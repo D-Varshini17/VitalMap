@@ -7,7 +7,7 @@ void main() {
     await tester.pumpWidget(MyApp());
 
     expect(find.text('Input'), findsWidgets);
-    expect(find.text('Profile Details'), findsOneWidget);
+    expect(find.text('Basic profile'), findsOneWidget);
     expect(find.text('Analyze Available Values'), findsOneWidget);
   });
 }

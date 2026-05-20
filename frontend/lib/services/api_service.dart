@@ -12,7 +12,7 @@ class ApiService {
           .post(url,
               headers: {'Content-Type': 'application/json'},
               body: jsonEncode(payload))
-          .timeout(Duration(seconds: 10));
+          .timeout(const Duration(seconds: 30));
       if (res.statusCode == 200) {
         return jsonDecode(res.body) as Map<String, dynamic>;
       }

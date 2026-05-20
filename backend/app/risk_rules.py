@@ -1,6 +1,3 @@
-from math import isnan
-
-
 def aip_risk(aip):
     if aip is None:
         return "More Data Needed", "grey"
@@ -34,8 +31,10 @@ def fib4_risk(fib4):
 def tyg_risk(tyg):
     if tyg is None:
         return "More Data Needed", "grey"
-    if tyg <= 4.5:
+    if tyg < 8.5:
         return "Low", "green"
+    if tyg < 9.0:
+        return "Moderate", "yellow"
     return "High", "red"
 
 
@@ -63,15 +62,68 @@ def lar_rule(lar):
     if lar is None:
         return "More Data Needed", "grey"
     if lar < 3:
-        return "Pattern may suggest non-alcohol related triggers", "green"
-    return "Pattern may suggest alcohol-related pattern", "yellow"
+        return "Low", "green"
+    return "Moderate", "yellow"
 
 
 def egfr_rule(egfr):
     if egfr is None:
         return "More Data Needed", "grey"
     if egfr >= 90:
-        return "Low concern", "green"
+        return "Low", "green"
     if egfr >= 60:
-        return "Moderate monitoring suggested", "yellow"
+        return "Moderate", "yellow"
     return "High attention needed", "red"
+
+
+def fli_risk(fli):
+    if fli is None:
+        return "More Data Needed", "grey"
+    if fli < 30:
+        return "Low", "green"
+    if fli <= 60:
+        return "Moderate", "yellow"
+    return "High", "red"
+
+
+def nafld_risk(score):
+    if score is None:
+        return "More Data Needed", "grey"
+    if score < -1.455:
+        return "Low", "green"
+    if score <= 0.676:
+        return "Moderate", "yellow"
+    return "High", "red"
+
+
+def metabolic_risk(fasting=None, hba1c=None, ppbs=None, random_blood_sugar=None):
+    values = [v for v in [fasting, hba1c, ppbs, random_blood_sugar] if v is not None]
+    if not values:
+        return "More Data Needed", "grey"
+    high = (
+        (fasting is not None and fasting >= 126)
+        or (hba1c is not None and hba1c >= 6.5)
+        or (ppbs is not None and ppbs >= 200)
+        or (random_blood_sugar is not None and random_blood_sugar >= 200)
+    )
+    moderate = (
+        (fasting is not None and fasting >= 100)
+        or (hba1c is not None and hba1c >= 5.7)
+        or (ppbs is not None and ppbs >= 140)
+        or (random_blood_sugar is not None and random_blood_sugar >= 140)
+    )
+    if high:
+        return "High", "red"
+    if moderate:
+        return "Moderate", "yellow"
+    return "Low", "green"
+
+
+def tumor_marker_risk(value, low_cutoff, moderate_cutoff):
+    if value is None:
+        return "More Data Needed", "grey"
+    if value <= low_cutoff:
+        return "Low", "green"
+    if value <= moderate_cutoff:
+        return "Moderate", "yellow"
+    return "High", "red"

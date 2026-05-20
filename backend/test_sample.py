@@ -61,12 +61,12 @@ payload = {
 }
 
 engine = FormulaEngine()
-results, more_needed, contributors = engine.analyze(payload)
+results, more_needed, general_health_pattern = engine.analyze(payload)
 
 out = {
     "calculated_results": results,
     "more_data_needed": more_needed,
-    "contributors": contributors,
+    "general_health_pattern": general_health_pattern,
 }
 
 print(json.dumps(out, indent=2))
