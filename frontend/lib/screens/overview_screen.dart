@@ -26,11 +26,22 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final response = lastRespWithMeta != null ? lastRespWithMeta!['response'] as Map<String, dynamic> : null;
-    final results = response != null ? response['calculated_results'] as List<dynamic> : [];
-    final timestamp = lastRespWithMeta != null ? lastRespWithMeta!['timestamp'] as String? : null;
+    final response = lastRespWithMeta != null
+        ? lastRespWithMeta!['response'] as Map<String, dynamic>
+        : null;
+    final results =
+        response != null ? response['calculated_results'] as List<dynamic> : [];
     // organs to show
-    final organs = ['Heart', 'Kidney', 'Liver', 'Lung', 'Brain / Metabolic', 'Pancreas', 'Inflammation', 'Cancer Awareness'];
+    final organs = [
+      'Heart',
+      'Kidney',
+      'Liver',
+      'Lung',
+      'Brain / Metabolic',
+      'Pancreas',
+      'Inflammation',
+      'Cancer Awareness'
+    ];
 
     List<Widget> cards = organs.map((organ) {
       final orgResults = results.where((r) => r['organ'] == organ).toList();
@@ -41,10 +52,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
         if (orgResults.any((r) => r['risk_level'] == 'High')) {
           status = 'High';
           color = Colors.red;
-        } else if (orgResults.any((r) => r['risk_level'] == 'Moderate' || r['risk_level'] == 'Moderate monitoring suggested')) {
+        } else if (orgResults.any((r) =>
+            r['risk_level'] == 'Moderate' ||
+            r['risk_level'] == 'Moderate monitoring suggested')) {
           status = 'Moderate';
           color = Colors.orange;
-        } else if (orgResults.any((r) => r['risk_level'] == 'Low' || r['risk_level'] == 'Low concern')) {
+        } else if (orgResults.any((r) =>
+            r['risk_level'] == 'Low' || r['risk_level'] == 'Low concern')) {
           status = 'Low';
           color = Colors.green;
         } else {
@@ -54,30 +68,42 @@ class _OverviewScreenState extends State<OverviewScreen> {
       }
       return StatusCard(
         title: organ,
-        subtitle: orgResults.isNotEmpty ? orgResults.map((r) => r['index_name']).take(2).join(', ') : 'No data available',
+        subtitle: orgResults.isNotEmpty
+            ? orgResults.map((r) => r['index_name']).take(2).join(', ')
+            : 'No data available',
         color: color,
         status: status,
         trailing: ElevatedButton(
-          onPressed: (lastPayload == null || recalculating) ? null : () async {
-            setState(() {
-              recalculating = true;
-            });
-            final resp = await ApiService.analyze(lastPayload!);
-            if (resp != null) {
-              await LocalStorage.saveLastResponse(resp);
-              final v = await LocalStorage.loadLastResponse();
-              setState(() {
-                lastRespWithMeta = v;
-                recalculating = false;
-              });
-            } else {
-              setState(() {
-                recalculating = false;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to recalculate. Check connection.')));
-            }
-          },
-          child: recalculating ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text('Recalculate'),
+          onPressed: (lastPayload == null || recalculating)
+              ? null
+              : () async {
+                  setState(() {
+                    recalculating = true;
+                  });
+                  final resp = await ApiService.analyze(lastPayload!);
+                  if (resp != null) {
+                    await LocalStorage.saveLastResponse(resp);
+                    final v = await LocalStorage.loadLastResponse();
+                    setState(() {
+                      lastRespWithMeta = v;
+                      recalculating = false;
+                    });
+                  } else {
+                    setState(() {
+                      recalculating = false;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content:
+                            Text('Unable to recalculate. Check connection.')));
+                  }
+                },
+          child: recalculating
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
+              : Text('Recalculate'),
         ),
       );
     }).toList();
@@ -86,18 +112,24 @@ class _OverviewScreenState extends State<OverviewScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Row(children: [
-            Image.asset('assets/logo.png', width: 36, height: 36, errorBuilder: (c, e, s) => SizedBox(width: 36, height: 36)),
+            Icon(Icons.health_and_safety, size: 32),
             SizedBox(width: 8),
             Text('Overview')
           ]),
         ),
         body: Padding(
           padding: EdgeInsets.all(12),
-          child: GridView.count(crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8, children: cards),
+          child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              children: cards),
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text('For informational purposes only. This app is not a substitute for clinical diagnosis.', textAlign: TextAlign.center),
+          child: Text(
+              'For informational purposes only. This app is not a substitute for clinical diagnosis.',
+              textAlign: TextAlign.center),
         ),
       ),
     );

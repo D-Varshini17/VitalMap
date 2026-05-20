@@ -12,6 +12,7 @@ double? triglyceridesToMgdl(double? value, String unit) {
 
 double? creatinineToMgdl(double? value, String unit) {
   if (value == null) return null;
-  if (unit.toLowerCase().contains('umol') || unit.toLowerCase().contains('µmol')) return value / 88.4;
+  if (unit.toLowerCase().contains('umol') ||
+      unit.toLowerCase().contains('µmol')) return value / 88.4;
   return value;
 }

@@ -38,8 +38,10 @@ class _HomeContainerState extends State<HomeContainer> {
         onTap: (i) => setState(() => _currentIndex = i),
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.edit), label: 'Input'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Results'),
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.analytics), label: 'Results'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard), label: 'Overview'),
         ],
       ),
     );

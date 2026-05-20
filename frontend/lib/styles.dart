@@ -6,14 +6,15 @@ class AppStyles {
 
   static final ThemeData theme = ThemeData(
     primaryColor: primary,
-    colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.teal).copyWith(secondary: accent),
+    colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.teal)
+        .copyWith(secondary: accent),
     scaffoldBackgroundColor: Colors.white,
     appBarTheme: AppBarTheme(
       backgroundColor: primary,
       foregroundColor: Colors.white,
       elevation: 1,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
