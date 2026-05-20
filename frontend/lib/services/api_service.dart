@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const _base = 'http://127.0.0.1:8000';
+  static const _base = 'https://vitalmap-backend.onrender.com';
 
   static Future<Map<String, dynamic>?> analyze(Map<String, dynamic> payload) async {
     try {
