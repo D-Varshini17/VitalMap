@@ -44,6 +44,7 @@ class FormulaEngine:
             lipids.get("total_cholesterol"),
             lipids.get("total_cholesterol_unit", "mg/dL"),
         )
+        vldl = lipids.get("vldl")
 
         fasting = glucose_to_mgdl(
             diabetes.get("fasting_glucose"),
@@ -67,7 +68,7 @@ class FormulaEngine:
             kidney.get("creatinine"), kidney.get("creatinine_unit", "mg/dL")
         )
 
-        self._calculate_aip(results, more_needed, general, tg, hdl, ldl, total_cholesterol)
+        self._calculate_aip(results, more_needed, general, tg, hdl, ldl, total_cholesterol, vldl)
         self._calculate_tyg(results, more_needed, general, tg, fasting)
         self._calculate_metabolic(results, more_needed, general, fasting, hba1c, ppbs, random_glucose)
         self._calculate_apri(results, more_needed, general, ast, platelets)
@@ -124,7 +125,12 @@ class FormulaEngine:
             "possible_contributors": self.explainer.contributors(organ, general, values_used),
             "suggestions": self.explainer.suggestions(organ, index_name),
             "lifestyle_improvement": self.explainer.lifestyle_improvement(organ),
+            "food_recommendations": self.explainer.food_recommendations(organ),
+            "environment_recommendations": self.explainer.environment_recommendations(organ),
             "doctor_followup": self.explainer.doctor_followup(risk_level),
+            "ai_recommendation": self.explainer.rule_based_ai_recommendation(
+                organ, index_name, score, risk_level, values_used, general
+            ),
             "values_used": values_used,
             "disclaimer": self.explainer.disclaimer(),
             "formula_used": formula_used,
@@ -157,7 +163,7 @@ class FormulaEngine:
         except Exception:
             return None
 
-    def _calculate_aip(self, results, more_needed, general, tg, hdl, ldl, total_cholesterol):
+    def _calculate_aip(self, results, more_needed, general, tg, hdl, ldl, total_cholesterol, vldl):
         if tg is not None and hdl is not None and tg > 0 and hdl > 0:
             score = log10(tg / hdl)
             risk, color = risk_rules.aip_risk(score)
@@ -169,6 +175,8 @@ class FormulaEngine:
                 values["ldl_mg/dL"] = round(ldl, 2)
             if total_cholesterol is not None:
                 values["total_cholesterol_mg/dL"] = round(total_cholesterol, 2)
+            if vldl is not None:
+                values["vldl"] = vldl
             results.append(
                 self._result(
                     organ="Heart",
@@ -524,16 +532,16 @@ class FormulaEngine:
 
     def _calculate_tumor_markers(self, results, more_needed, general, tumor):
         markers = [
-            ("AFP", "afp", 10, 20),
-            ("CA 15-3", "ca15_3", 30, 45),
-            ("CA 27.29", "ca27_29", 38, 55),
+            ("AFP", "afp", 200),
+            ("CA 15-3", "ca15_3", 30),
+            ("CA 27.29", "ca27_29", 38),
         ]
-        for display_name, key, low_cutoff, moderate_cutoff in markers:
+        for display_name, key, low_cutoff in markers:
             value = tumor.get(key)
             if value is None:
                 self._more_needed(more_needed, display_name, "Cancer Awareness", {key: value})
                 continue
-            risk, color = risk_rules.tumor_marker_risk(value, low_cutoff, moderate_cutoff)
+            risk, color = risk_rules.tumor_marker_risk(value, low_cutoff)
             results.append(
                 self._result(
                     organ="Cancer Awareness",

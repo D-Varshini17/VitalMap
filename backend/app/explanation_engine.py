@@ -9,9 +9,9 @@ class ExplanationEngine:
         )
 
     def overall_risk(self, results: List[dict], more_needed: List[dict]) -> str:
-        has_high = any(r.get("risk_level") == "High" for r in results)
-        has_moderate = any(r.get("risk_level") == "Moderate" for r in results)
-        has_low = any(r.get("risk_level") == "Low" for r in results)
+        has_high = any(self._severity(r.get("risk_level")) == "High" for r in results)
+        has_moderate = any(self._severity(r.get("risk_level")) == "Moderate" for r in results)
+        has_low = any(self._severity(r.get("risk_level")) == "Low" for r in results)
         if has_high:
             return "High"
         if has_moderate:
@@ -19,6 +19,17 @@ class ExplanationEngine:
         if has_low:
             return "Low"
         return "More Data Needed"
+
+    def _severity(self, risk_level: str | None) -> str:
+        if not risk_level:
+            return "More Data Needed"
+        if risk_level.startswith("High"):
+            return "High"
+        if risk_level.startswith("Moderate"):
+            return "Moderate"
+        if risk_level.startswith("Low"):
+            return "Low"
+        return risk_level
 
     def general_health_pattern(self, general_health: dict) -> List[str]:
         out: List[str] = []
@@ -80,6 +91,8 @@ class ExplanationEngine:
             out.append("Air pollution exposure")
         if organ == "Lung" and general_health.get("cooking_smoke") == "Yes":
             out.append("Cooking smoke exposure")
+        if organ == "Lung" and general_health.get("cooking_fuel_smoke") == "Yes":
+            out.append("Cooking fuel smoke exposure")
         if general_health.get("family_history") not in [None, "None"]:
             out.append("Family history")
         return out[:6]
@@ -158,11 +171,53 @@ class ExplanationEngine:
             base.append("Avoid unnecessary over-the-counter pain medicines unless advised by a clinician.")
         return base
 
+    def food_recommendations(self, organ: str) -> List[str]:
+        advice = [
+            "Prefer vegetables, fruits, whole grains, and fiber-rich foods.",
+            "Reduce sugary drinks and frequent fried or processed foods.",
+            "Keep high-salt packaged foods occasional where practical.",
+        ]
+        if organ in ["Heart", "Diabetes / Metabolic", "Liver"]:
+            advice.append("Choose lean protein and unsaturated fats more often.")
+        if organ == "Kidney":
+            advice.append("Discuss any major diet restriction with a qualified healthcare professional.")
+        return advice
+
+    def environment_recommendations(self, organ: str) -> List[str]:
+        advice = [
+            "Avoid smoking and passive smoking exposure where possible.",
+            "Reduce dust, chemical, and smoke exposure when practical.",
+            "Use ventilation during cooking when smoke exposure is present.",
+        ]
+        if organ == "Lung":
+            advice.append("Consider checking air quality and limiting outdoor exposure during high pollution periods.")
+        return advice
+
     def doctor_followup(self, risk_level: str) -> str:
-        if risk_level == "High":
+        severity = self._severity(risk_level)
+        if severity == "High":
             return "Clinical review is suggested soon, especially if abnormal values persist or symptoms are present."
-        if risk_level == "Moderate":
+        if severity == "Moderate":
             return "Clinical review is suggested if the value persists, increases, or is linked with symptoms."
-        if risk_level == "Low":
+        if severity == "Low":
             return "Routine follow-up can be considered during regular health checkups."
         return "More report values are needed before this risk indicator can be interpreted."
+
+    def rule_based_ai_recommendation(
+        self,
+        organ: str,
+        index_name: str,
+        score,
+        risk_level: str,
+        values_used: Dict[str, Any],
+        general_health: dict,
+    ) -> Dict[str, Any]:
+        return {
+            "simple_summary": self.summary(index_name, organ, risk_level),
+            "possible_contributors": self.contributors(organ, general_health, values_used),
+            "lifestyle_recommendations": self.lifestyle_improvement(organ),
+            "food_recommendations": self.food_recommendations(organ),
+            "environment_recommendations": self.environment_recommendations(organ),
+            "doctor_followup": self.doctor_followup(risk_level),
+            "disclaimer": self.disclaimer(),
+        }

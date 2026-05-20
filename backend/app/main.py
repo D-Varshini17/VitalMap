@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .schemas import AnalyzeRequest, AnalyzeResponse
 from .formulas import FormulaEngine
 from .explanation_engine import ExplanationEngine
-from .ai_summary import AISummaryService
+from .ai_recommendation import AIRecommendationService
 
 app = FastAPI(title="NCD Guard - VitalMap Backend")
 
@@ -17,14 +17,14 @@ app.add_middleware(
 
 engine = FormulaEngine()
 explainer = ExplanationEngine()
-ai_summary = AISummaryService()
+ai_recommendation = AIRecommendationService()
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze(payload: AnalyzeRequest):
     payload_dict = payload.model_dump()
     results, more_needed, general_health_pattern = engine.analyze(payload_dict)
-    results = ai_summary.enhance_results(results, payload_dict)
+    results = ai_recommendation.enhance_results(results, payload_dict)
     overall = explainer.overall_risk(results, more_needed)
     disclaimer = explainer.disclaimer()
     return AnalyzeResponse(

@@ -147,6 +147,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 
   Widget _generalPatternCard(List<dynamic> pattern) {
+    final levels = _contributorLevels();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -163,6 +164,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               ],
             ),
             const SizedBox(height: 10),
+            for (final entry in levels.entries)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _patternBar(entry.key, entry.value),
+              ),
             if (pattern.isEmpty)
               const Text('More Data Needed',
                   style: TextStyle(color: AppStyles.muted))
@@ -284,10 +290,18 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
   String _highestRisk(List<Map<String, dynamic>> results) {
     if (results.isEmpty) return 'More Data Needed';
-    if (results.any((result) => result['risk_level'] == 'High')) return 'High';
-    if (results.any((result) => result['risk_level'] == 'Moderate'))
+    if (results.any((result) =>
+        (result['risk_level']?.toString() ?? '').startsWith('High'))) {
+      return 'High';
+    }
+    if (results.any((result) =>
+        (result['risk_level']?.toString() ?? '').startsWith('Moderate'))) {
       return 'Moderate';
-    if (results.any((result) => result['risk_level'] == 'Low')) return 'Low';
+    }
+    if (results.any((result) =>
+        (result['risk_level']?.toString() ?? '').startsWith('Low'))) {
+      return 'Low';
+    }
     return 'More Data Needed';
   }
 
@@ -303,10 +317,79 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 
   Color _colorForRisk(String risk) {
-    if (risk == 'High') return const Color(0xFFE34B4B);
-    if (risk == 'Moderate') return const Color(0xFFE5A400);
-    if (risk == 'Low') return const Color(0xFF2E9D64);
+    if (risk.startsWith('High')) return const Color(0xFFE34B4B);
+    if (risk.startsWith('Moderate')) return const Color(0xFFE5A400);
+    if (risk.startsWith('Low')) return const Color(0xFF2E9D64);
     return Colors.grey;
+  }
+
+  Widget _patternBar(String title, String level) {
+    final color = _colorForRisk(level);
+    final widthFactor = level == 'High'
+        ? 1.0
+        : level == 'Moderate'
+            ? 0.66
+            : 0.34;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+                child: Text('$title: $level contributor',
+                    style: const TextStyle(
+                        color: AppStyles.text, fontWeight: FontWeight.w700))),
+            const Text('May contribute to risk indicators.',
+                style: TextStyle(color: AppStyles.muted, fontSize: 11)),
+          ],
+        ),
+        const SizedBox(height: 5),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: widthFactor,
+            minHeight: 8,
+            backgroundColor: const Color(0xFFEAFBFD),
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Map<String, String> _contributorLevels() {
+    final general =
+        Map<String, dynamic>.from(lastPayload?['general_health'] as Map? ?? {});
+    return {
+      'Lifestyle': _levelFor([
+        general['smoking'] == 'Yes',
+        general['alcohol'] == 'Frequent',
+        general['physical_activity'] == 'Low',
+        general['sleep_duration'] == '<5 hrs',
+        general['stress_level'] == 'High',
+      ]),
+      'Food habits': _levelFor([
+        general['high_sugar_intake'] == 'High',
+        general['high_salt_intake'] == 'High',
+        general['fried_processed_food'] == 'Frequent',
+        general['fruit_veg_intake'] == 'Low',
+        general['sugary_drinks'] == 'Frequently',
+      ]),
+      'Environment': _levelFor([
+        general['air_pollution'] == 'High',
+        general['occupational_exposure'] == 'Yes',
+        general['passive_smoking'] == 'Yes',
+        general['cooking_smoke'] == 'Yes',
+        general['cooking_fuel_smoke'] == 'Yes',
+      ]),
+    };
+  }
+
+  String _levelFor(List<bool> flags) {
+    final count = flags.where((flag) => flag).length;
+    if (count >= 3) return 'High';
+    if (count >= 1) return 'Moderate';
+    return 'Low';
   }
 
   String _formatDate(DateTime date) {

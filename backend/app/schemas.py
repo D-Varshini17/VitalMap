@@ -119,14 +119,17 @@ class CalculatedResult(BaseModel):
     score: Optional[float]
     risk_level: str
     color: str
+    formula_used: str
     values_used: Dict[str, Any]
     summary: str
     possible_contributors: List[str]
     suggestions: List[str]
     lifestyle_improvement: List[str]
+    food_recommendations: List[str]
+    environment_recommendations: List[str]
     doctor_followup: str
+    ai_recommendation: Dict[str, Any]
     disclaimer: str
-    formula_used: Optional[str] = None
 
 
 class MoreDataNeeded(BaseModel):

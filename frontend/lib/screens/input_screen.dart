@@ -32,6 +32,7 @@ class _InputScreenState extends State<InputScreen> {
   final hdlCtl = TextEditingController();
   final ldlCtl = TextEditingController();
   final totalCholesterolCtl = TextEditingController();
+  final vldlCtl = TextEditingController();
 
   final fastingCtl = TextEditingController();
   final hba1cCtl = TextEditingController();
@@ -44,12 +45,14 @@ class _InputScreenState extends State<InputScreen> {
   final alpCtl = TextEditingController();
   final bilirubinCtl = TextEditingController();
   final albuminCtl = TextEditingController();
+  final totalProteinCtl = TextEditingController();
 
   final plateletsCtl = TextEditingController();
   final wbcCtl = TextEditingController();
   final neutCtl = TextEditingController();
   final lymphCtl = TextEditingController();
   final hemoglobinCtl = TextEditingController();
+  final rbcCtl = TextEditingController();
   final esrCtl = TextEditingController();
 
   final creatCtl = TextEditingController();
@@ -82,6 +85,7 @@ class _InputScreenState extends State<InputScreen> {
   String? occupationalExposure;
   String? passiveSmoking;
   String? cookingSmoke;
+  String? cookingFuelSmoke;
   String? locationType;
 
   String tgUnit = 'mg/dL';
@@ -147,6 +151,12 @@ class _InputScreenState extends State<InputScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedPayload();
+  }
+
+  @override
   void dispose() {
     for (final ctl in [
       ageCtl,
@@ -161,6 +171,7 @@ class _InputScreenState extends State<InputScreen> {
       hdlCtl,
       ldlCtl,
       totalCholesterolCtl,
+      vldlCtl,
       fastingCtl,
       hba1cCtl,
       ppbsCtl,
@@ -171,11 +182,13 @@ class _InputScreenState extends State<InputScreen> {
       alpCtl,
       bilirubinCtl,
       albuminCtl,
+      totalProteinCtl,
       plateletsCtl,
       wbcCtl,
       neutCtl,
       lymphCtl,
       hemoglobinCtl,
+      rbcCtl,
       esrCtl,
       creatCtl,
       bloodUreaCtl,
@@ -223,6 +236,110 @@ class _InputScreenState extends State<InputScreen> {
     widget.onAnalysisComplete(response);
   }
 
+  Future<void> _loadSavedPayload() async {
+    final payload = await LocalStorage.loadLastPayload();
+    if (!mounted || payload == null) return;
+    final profile = Map<String, dynamic>.from(payload['profile'] as Map? ?? {});
+    final general =
+        Map<String, dynamic>.from(payload['general_health'] as Map? ?? {});
+    final vitals = Map<String, dynamic>.from(payload['vitals'] as Map? ?? {});
+    final lipids =
+        Map<String, dynamic>.from(payload['lipid_profile'] as Map? ?? {});
+    final diabetes =
+        Map<String, dynamic>.from(payload['diabetes_profile'] as Map? ?? {});
+    final liver =
+        Map<String, dynamic>.from(payload['liver_function'] as Map? ?? {});
+    final cbc = Map<String, dynamic>.from(payload['cbc'] as Map? ?? {});
+    final kidney =
+        Map<String, dynamic>.from(payload['kidney_function'] as Map? ?? {});
+    final pancreas =
+        Map<String, dynamic>.from(payload['pancreatic_enzymes'] as Map? ?? {});
+    final tumor =
+        Map<String, dynamic>.from(payload['tumor_markers'] as Map? ?? {});
+
+    setState(() {
+      _setText(ageCtl, profile['age']);
+      _setText(heightCtl, profile['height_cm']);
+      _setText(weightCtl, profile['weight_kg']);
+      _setText(waistCtl, profile['waist_cm']);
+      sex = profile['sex'] as String?;
+
+      smoking = general['smoking'] as String?;
+      alcohol = general['alcohol'] as String?;
+      physicalActivity = general['physical_activity'] as String?;
+      sleepDuration = general['sleep_duration'] as String?;
+      stressLevel = general['stress_level'] as String?;
+      familyHistory = general['family_history'] as String?;
+      dietType = general['diet_type'] as String?;
+      sugarIntake = general['high_sugar_intake'] as String?;
+      saltIntake = general['high_salt_intake'] as String?;
+      processedFood = general['fried_processed_food'] as String?;
+      fruitVeg = general['fruit_veg_intake'] as String?;
+      sugaryDrinks = general['sugary_drinks'] as String?;
+      airPollution = general['air_pollution'] as String?;
+      occupationalExposure = general['occupational_exposure'] as String?;
+      passiveSmoking = general['passive_smoking'] as String?;
+      cookingSmoke = general['cooking_smoke'] as String?;
+      cookingFuelSmoke = general['cooking_fuel_smoke'] as String?;
+      locationType = general['location_type'] as String?;
+
+      _setText(sysCtl, vitals['systolic']);
+      _setText(diaCtl, vitals['diastolic']);
+      _setText(hrCtl, vitals['heart_rate']);
+      _setText(spo2Ctl, vitals['spo2']);
+      _setText(tgCtl, lipids['triglycerides']);
+      _setText(hdlCtl, lipids['hdl']);
+      _setText(ldlCtl, lipids['ldl']);
+      _setText(totalCholesterolCtl, lipids['total_cholesterol']);
+      _setText(vldlCtl, lipids['vldl']);
+      tgUnit = lipids['triglycerides_unit'] as String? ?? tgUnit;
+      hdlUnit = lipids['hdl_unit'] as String? ?? hdlUnit;
+      ldlUnit = lipids['ldl_unit'] as String? ?? ldlUnit;
+      totalCholesterolUnit =
+          lipids['total_cholesterol_unit'] as String? ?? totalCholesterolUnit;
+
+      _setText(fastingCtl, diabetes['fasting_glucose']);
+      _setText(hba1cCtl, diabetes['hba1c']);
+      _setText(ppbsCtl, diabetes['ppbs']);
+      _setText(randomSugarCtl, diabetes['random_blood_sugar']);
+      glucoseUnit = diabetes['fasting_glucose_unit'] as String? ?? glucoseUnit;
+      ppbsUnit = diabetes['ppbs_unit'] as String? ?? ppbsUnit;
+      randomSugarUnit =
+          diabetes['random_blood_sugar_unit'] as String? ?? randomSugarUnit;
+
+      _setText(astCtl, liver['ast']);
+      _setText(altCtl, liver['alt']);
+      _setText(ggtCtl, liver['ggt']);
+      _setText(alpCtl, liver['alp']);
+      _setText(bilirubinCtl, liver['bilirubin']);
+      _setText(albuminCtl, liver['albumin']);
+      _setText(totalProteinCtl, liver['total_protein']);
+      _setText(plateletsCtl, cbc['platelets']);
+      _setText(wbcCtl, cbc['wbc']);
+      _setText(neutCtl, cbc['neutrophils']);
+      _setText(lymphCtl, cbc['lymphocytes']);
+      _setText(hemoglobinCtl, cbc['hemoglobin']);
+      _setText(rbcCtl, cbc['rbc']);
+      _setText(esrCtl, cbc['esr']);
+
+      _setText(creatCtl, kidney['creatinine']);
+      _setText(bloodUreaCtl, kidney['blood_urea']);
+      _setText(uricAcidCtl, kidney['uric_acid']);
+      _setText(sodiumCtl, kidney['sodium']);
+      _setText(potassiumCtl, kidney['potassium']);
+      creatUnit = kidney['creatinine_unit'] as String? ?? creatUnit;
+      _setText(lipaseCtl, pancreas['lipase']);
+      _setText(amylaseCtl, pancreas['amylase']);
+      _setText(afpCtl, tumor['afp']);
+      _setText(ca15Ctl, tumor['ca15_3']);
+      _setText(ca27Ctl, tumor['ca27_29']);
+    });
+  }
+
+  void _setText(TextEditingController controller, dynamic value) {
+    if (value != null) controller.text = value.toString();
+  }
+
   Map<String, dynamic> _payload() {
     return {
       "profile": {
@@ -249,6 +366,7 @@ class _InputScreenState extends State<InputScreen> {
         "occupational_exposure": occupationalExposure,
         "passive_smoking": passiveSmoking,
         "cooking_smoke": cookingSmoke,
+        "cooking_fuel_smoke": cookingFuelSmoke,
         "location_type": locationType,
       },
       "vitals": {
@@ -266,6 +384,7 @@ class _InputScreenState extends State<InputScreen> {
         "ldl_unit": ldlUnit,
         "total_cholesterol": _num(totalCholesterolCtl),
         "total_cholesterol_unit": totalCholesterolUnit,
+        "vldl": _num(vldlCtl),
       },
       "diabetes_profile": {
         "fasting_glucose": _num(fastingCtl),
@@ -283,6 +402,7 @@ class _InputScreenState extends State<InputScreen> {
         "alp": _num(alpCtl),
         "bilirubin": _num(bilirubinCtl),
         "albumin": _num(albuminCtl),
+        "total_protein": _num(totalProteinCtl),
       },
       "cbc": {
         "platelets": _num(plateletsCtl),
@@ -290,6 +410,7 @@ class _InputScreenState extends State<InputScreen> {
         "neutrophils": _num(neutCtl),
         "lymphocytes": _num(lymphCtl),
         "hemoglobin": _num(hemoglobinCtl),
+        "rbc": _num(rbcCtl),
         "esr": _num(esrCtl),
       },
       "kidney_function": {
@@ -343,14 +464,14 @@ class _InputScreenState extends State<InputScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _IntroCard(),
-                _sectionTitle('Compulsory General Questions'),
+                _stepHeader('Step 1 of 3: General Health Details'),
                 _profileCard(),
                 _lifestyleCard(),
                 _foodCard(),
                 _environmentCard(),
-                _sectionTitle('Optional Vital / Lab Inputs'),
+                _stepHeader('Step 2 of 3: Optional Report-Based Lab Inputs'),
                 const Text(
-                  'Enter only the report values you have. The app will automatically calculate all possible risk indicators.',
+                  'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
                   style: TextStyle(color: AppStyles.muted),
                 ),
                 const SizedBox(height: 12),
@@ -381,6 +502,14 @@ class _InputScreenState extends State<InputScreen> {
                         loading ? 'Analyzing...' : 'Analyze Available Values'),
                   ),
                 ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Text(
+                    'Step 3 of 3: Review screening insights on the Results tab',
+                    style: TextStyle(
+                        color: AppStyles.primary, fontWeight: FontWeight.w700),
+                  ),
+                ),
                 const DisclaimerWidget(),
               ],
             ),
@@ -390,10 +519,25 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _sectionTitle(String text) {
+  Widget _stepHeader(String text) {
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 6),
-      child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: AppStyles.accent,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+              child:
+                  Text(text, style: Theme.of(context).textTheme.titleMedium)),
+        ],
+      ),
     );
   }
 
@@ -556,8 +700,12 @@ class _InputScreenState extends State<InputScreen> {
             _choice('Cooking smoke', cookingSmoke, const ['No', 'Yes'],
                 (value) => setState(() => cookingSmoke = value)),
           ),
-          _choice('Location type', locationType, const ['Urban', 'Rural'],
-              (value) => setState(() => locationType = value)),
+          _twoColumn(
+            _choice('Cooking fuel smoke', cookingFuelSmoke, const ['No', 'Yes'],
+                (value) => setState(() => cookingFuelSmoke = value)),
+            _choice('Location type', locationType, const ['Urban', 'Rural'],
+                (value) => setState(() => locationType = value)),
+          ),
         ],
       ),
     );
@@ -626,6 +774,7 @@ class _InputScreenState extends State<InputScreen> {
               totalCholesterolUnit,
               (value) => setState(() => totalCholesterolUnit = value),
               const ['mg/dL', 'mmol/L']),
+          _numberField(vldlCtl, 'VLDL'),
         ],
       ),
     );
@@ -671,6 +820,7 @@ class _InputScreenState extends State<InputScreen> {
           _twoColumn(_numberField(ggtCtl, 'GGT'), _numberField(alpCtl, 'ALP')),
           _twoColumn(_numberField(bilirubinCtl, 'Bilirubin'),
               _numberField(albuminCtl, 'Albumin')),
+          _numberField(totalProteinCtl, 'Total protein'),
         ],
       ),
     );
@@ -687,7 +837,8 @@ class _InputScreenState extends State<InputScreen> {
           _twoColumn(_numberField(neutCtl, 'Neutrophils (%)'),
               _numberField(lymphCtl, 'Lymphocytes (%)')),
           _twoColumn(_numberField(hemoglobinCtl, 'Hemoglobin'),
-              _numberField(esrCtl, 'ESR')),
+              _numberField(rbcCtl, 'RBC')),
+          _numberField(esrCtl, 'ESR'),
         ],
       ),
     );
@@ -846,9 +997,21 @@ class _InputScreenState extends State<InputScreen> {
 }
 
 class _IntroCard extends StatelessWidget {
+  const _IntroCard();
+
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFE9FBFF), Color(0xFFFFFFFF), Color(0xFFEAF7FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppStyles.border),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(

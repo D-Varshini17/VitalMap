@@ -31,10 +31,8 @@ def fib4_risk(fib4):
 def tyg_risk(tyg):
     if tyg is None:
         return "More Data Needed", "grey"
-    if tyg < 8.5:
+    if tyg <= 4.5:
         return "Low", "green"
-    if tyg < 9.0:
-        return "Moderate", "yellow"
     return "High", "red"
 
 
@@ -52,10 +50,10 @@ def spO2_risk(spo2):
     if spo2 is None:
         return "More Data Needed", "grey"
     if spo2 >= 95:
-        return "Low", "green"
+        return "Low concern", "green"
     if 90 <= spo2 < 95:
-        return "Moderate", "yellow"
-    return "High", "red"
+        return "Moderate monitoring suggested", "yellow"
+    return "High attention needed", "red"
 
 
 def lar_rule(lar):
@@ -70,10 +68,10 @@ def egfr_rule(egfr):
     if egfr is None:
         return "More Data Needed", "grey"
     if egfr >= 90:
-        return "Low", "green"
+        return "Low concern", "green"
     if egfr >= 60:
-        return "Moderate", "yellow"
-    return "High attention needed", "red"
+        return "Moderate monitoring suggested", "yellow"
+    return "High attention needed / clinical review suggested", "red"
 
 
 def fli_risk(fli):
@@ -119,11 +117,9 @@ def metabolic_risk(fasting=None, hba1c=None, ppbs=None, random_blood_sugar=None)
     return "Low", "green"
 
 
-def tumor_marker_risk(value, low_cutoff, moderate_cutoff):
+def tumor_marker_risk(value, low_cutoff):
     if value is None:
         return "More Data Needed", "grey"
     if value <= low_cutoff:
-        return "Low", "green"
-    if value <= moderate_cutoff:
-        return "Moderate", "yellow"
-    return "High", "red"
+        return "Low / within awareness threshold", "green"
+    return "High awareness indicator; clinical review suggested", "red"

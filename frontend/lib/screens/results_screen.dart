@@ -50,6 +50,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
   Widget build(BuildContext context) {
     final results = (response?['calculated_results'] as List<dynamic>?) ?? [];
     final moreNeeded = (response?['more_data_needed'] as List<dynamic>?) ?? [];
+    final pattern =
+        (response?['general_health_pattern'] as List<dynamic>?) ?? [];
     final overallRisk =
         response?['overall_risk'] as String? ?? 'More Data Needed';
 
@@ -73,6 +75,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   for (final item in results)
                     _resultCard(Map<String, dynamic>.from(item as Map)),
                   if (moreNeeded.isNotEmpty) _moreDataCard(moreNeeded),
+                  _generalPatternCard(pattern),
                   const DisclaimerWidget(),
                 ],
               ),
@@ -168,12 +171,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
             ),
             const SizedBox(height: 14),
             _scoreRow(result),
+            _textBlock(
+                'Formula Used', result['formula_used']?.toString() ?? ''),
             _textBlock('Detailed Summary', result['summary']?.toString() ?? ''),
             _bulletBlock(
                 'Possible Contributors', result['possible_contributors']),
             _bulletBlock('Suggestions', result['suggestions']),
             _bulletBlock(
                 'Lifestyle Improvement', result['lifestyle_improvement']),
+            _bulletBlock('Food Habit Advice', result['food_recommendations']),
+            _bulletBlock(
+                'Environmental Advice', result['environment_recommendations']),
+            _aiRecommendationBlock(result['ai_recommendation']),
             _textBlock('Doctor Follow-up',
                 result['doctor_followup']?.toString() ?? ''),
             _valuesBlock(values),
@@ -295,6 +304,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
               ],
             ),
             const SizedBox(height: 10),
+            const Text(
+              'More data can improve this screening insight.',
+              style: TextStyle(color: AppStyles.muted),
+            ),
+            const SizedBox(height: 10),
             for (final item in items.take(8))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -306,6 +320,97 @@ class _ResultsScreenState extends State<ResultsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _generalPatternCard(List<dynamic> pattern) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.spa_outlined, color: AppStyles.primary),
+                SizedBox(width: 8),
+                Text('General Health Pattern',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (pattern.isEmpty)
+              const Text('No major contributor pattern highlighted.',
+                  style: TextStyle(color: AppStyles.muted))
+            else
+              for (final item in pattern)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('- ',
+                          style: TextStyle(color: AppStyles.primary)),
+                      Expanded(
+                          child: Text(item.toString(),
+                              style: const TextStyle(color: AppStyles.text))),
+                    ],
+                  ),
+                ),
+            const SizedBox(height: 8),
+            const Text('These factors may contribute to risk indicators.',
+                style: TextStyle(color: AppStyles.muted)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _aiRecommendationBlock(dynamic aiRecommendation) {
+    final rec = Map<String, dynamic>.from(aiRecommendation as Map? ?? {});
+    if (rec.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFEAFBFD), Color(0xFFFFFFFF)],
+          ),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppStyles.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('AI Recommendation Summary',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text(rec['simple_summary']?.toString() ?? '',
+                style: const TextStyle(color: AppStyles.text, height: 1.35)),
+            _compactList('Lifestyle', rec['lifestyle_recommendations']),
+            _compactList('Food', rec['food_recommendations']),
+            _compactList('Environment', rec['environment_recommendations']),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _compactList(String title, dynamic items) {
+    final list = (items as List<dynamic>?)
+            ?.map((item) => item.toString())
+            .where((item) => item.isNotEmpty)
+            .take(3)
+            .toList() ??
+        [];
+    if (list.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text('$title: ${list.join('; ')}',
+          style: const TextStyle(color: AppStyles.muted, height: 1.3)),
     );
   }
 
@@ -329,9 +434,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Color _colorForRisk(String risk) {
-    if (risk == 'High') return const Color(0xFFE34B4B);
-    if (risk == 'Moderate') return const Color(0xFFE5A400);
-    if (risk == 'Low') return const Color(0xFF2E9D64);
+    if (risk.startsWith('High')) return const Color(0xFFE34B4B);
+    if (risk.startsWith('Moderate')) return const Color(0xFFE5A400);
+    if (risk.startsWith('Low')) return const Color(0xFF2E9D64);
     return Colors.grey;
   }
 
