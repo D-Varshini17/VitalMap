@@ -1,10 +1,8 @@
 services:
   - type: web
     name: vitalmap-backend
-    env: docker
+    runtime: docker
     plan: free
     dockerfilePath: backend/Dockerfile
+    dockerContext: .
     autoDeploy: true
-    envVars:
-      - key: PORT
-        value: "8000"
