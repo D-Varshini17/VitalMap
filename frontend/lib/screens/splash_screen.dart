@@ -39,6 +39,7 @@ class _SplashScreenState extends State<SplashScreen>
     _after(980, () => _titleVisible = true);
     _after(1320, () => _taglineVisible = true);
     _after(2920, () => _fadeOut = true);
+    _after(3650, _completeNow);
   }
 
   void _after(int milliseconds, VoidCallback action) {
@@ -57,6 +58,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _finish() {
     if (_completed || !_fadeOut) return;
+    _completeNow();
+  }
+
+  void _completeNow() {
+    if (_completed || !mounted) return;
     _completed = true;
     widget.onComplete();
   }
@@ -79,8 +85,8 @@ class _SplashScreenState extends State<SplashScreen>
                   radius: 1.15,
                   colors: [
                     Color(0xFF123B66),
-                    Color(0xFF071D39),
-                    Color(0xFF020A18),
+                    Color(0xFF0B294A),
+                    Color(0xFF071A31),
                   ],
                 ),
               ),

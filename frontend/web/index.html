@@ -31,8 +31,58 @@
 
   <title>VitalMap</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: #F4FBFF;
+      color: #17323D;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #loading {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #F4FBFF 0%, #FFFFFF 55%, #E9FBFF 100%);
+    }
+
+    #loading-card {
+      text-align: center;
+      padding: 24px;
+    }
+
+    #loading-logo {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 18px 42px rgba(75, 175, 227, 0.18);
+    }
+
+    #loading-title {
+      margin-top: 14px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    #loading-subtitle {
+      margin-top: 6px;
+      color: #667E89;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
+  <div id="loading">
+    <div id="loading-card">
+      <img id="loading-logo" src="assets/assets/logo_medid.jpeg" alt="VitalMap logo">
+      <div id="loading-title">VitalMap</div>
+      <div id="loading-subtitle">Loading health dashboard...</div>
+    </div>
+  </div>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
