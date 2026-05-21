@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../storage/local_storage.dart';
 import '../styles.dart';
+import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
 
 class ResultsScreen extends StatefulWidget {
@@ -58,13 +59,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Row(
-            children: [
-              Icon(Icons.insights, color: AppStyles.primary),
-              SizedBox(width: 8),
-              Text('Results'),
-            ],
-          ),
+          title: const BrandAppBarTitle(title: 'Results'),
         ),
         body: response == null
             ? _emptyState()
@@ -107,18 +102,31 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _summaryCard(String overallRisk, int count) {
+    final status = AppStyles.statusStyle(overallRisk);
     return Card(
+      color: AppStyles.softBlue,
+      shape: _softCardShape(AppStyles.softBlueBorder),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Overall Screening Insight',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+            Row(
+              children: [
+                _softIcon(Icons.insights_outlined, AppStyles.primary,
+                    AppStyles.softBlueBorder),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text('Overall Screening Insight',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
             Row(
               children: [
-                _riskPill(overallRisk, _colorForRisk(overallRisk)),
+                _riskPill(status),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -141,10 +149,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   Widget _resultCard(Map<String, dynamic> result) {
     final risk = result['risk_level']?.toString() ?? 'More Data Needed';
-    final color = _colorForName(result['color']?.toString(), risk);
+    final status = AppStyles.statusStyle(risk);
     final values =
         Map<String, dynamic>.from(result['values_used'] as Map? ?? {});
     return Card(
+      color: status.background,
+      shape: _softCardShape(status.border),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -153,6 +163,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _softIcon(_organIcon(result['organ']?.toString()),
+                    status.accent, status.border),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,11 +179,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
                     ],
                   ),
                 ),
-                _riskPill(risk, color),
+                _riskPill(status),
               ],
             ),
             const SizedBox(height: 14),
-            _scoreRow(result),
+            _scoreRow(result, status),
             _textBlock(
                 'Formula Used', result['formula_used']?.toString() ?? ''),
             _textBlock('Detailed Summary', result['summary']?.toString() ?? ''),
@@ -193,20 +206,19 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  Widget _scoreRow(Map<String, dynamic> result) {
+  Widget _scoreRow(Map<String, dynamic> result, HealthStatusStyle status) {
     final score = result['score'];
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAFBFD),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: status.border),
       ),
       child: Text(
         '${result['index_name']} Score: ${score == null ? 'More Data Needed' : score.toString()}',
-        style:
-            const TextStyle(fontWeight: FontWeight.w700, color: AppStyles.text),
+        style: TextStyle(fontWeight: FontWeight.w700, color: status.text),
       ),
     );
   }
@@ -220,7 +232,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
-          Text(text,
+          Text(_friendlyStatusText(text),
               style: const TextStyle(color: AppStyles.text, height: 1.35)),
         ],
       ),
@@ -288,19 +300,24 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _moreDataCard(List<dynamic> items) {
+    const status = AppStyles.moreDataStatus;
     return Card(
+      color: status.background,
+      shape: _softCardShape(status.border),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: const [
-                Icon(Icons.info_outline, color: Colors.grey),
-                SizedBox(width: 8),
-                Text('More Data Needed',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+              children: [
+                _softIcon(status.icon, status.accent, status.border),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text('More Data Needed',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -324,47 +341,132 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _generalPatternCard(List<dynamic> pattern) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: const [
-                Icon(Icons.spa_outlined, color: AppStyles.primary),
-                SizedBox(width: 8),
-                Text('General Health Pattern',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            if (pattern.isEmpty)
-              const Text('No major contributor pattern highlighted.',
-                  style: TextStyle(color: AppStyles.muted))
-            else
-              for (final item in pattern)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('- ',
-                          style: TextStyle(color: AppStyles.primary)),
-                      Expanded(
-                          child: Text(item.toString(),
-                              style: const TextStyle(color: AppStyles.text))),
-                    ],
-                  ),
-                ),
-            const SizedBox(height: 8),
-            const Text('These factors may contribute to risk indicators.',
-                style: TextStyle(color: AppStyles.muted)),
-          ],
-        ),
+    final groups = _patternGroups(pattern);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.spa_outlined, color: AppStyles.primary),
+              SizedBox(width: 8),
+              Text('General Health Pattern',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth > 700 ? 3 : 1;
+              final width =
+                  (constraints.maxWidth - (12 * (columns - 1))) / columns;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final title in const [
+                    'Lifestyle',
+                    'Food Habits',
+                    'Environment'
+                  ])
+                    SizedBox(
+                      width: width,
+                      child: _contributorCard(title, groups[title] ?? const []),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          const Text('These factors may contribute to risk indicators.',
+              style: TextStyle(color: AppStyles.muted)),
+        ],
       ),
     );
+  }
+
+  Widget _contributorCard(String title, List<String> items) {
+    final style = AppStyles.contributorStyle(title);
+    final badgeText = items.isEmpty
+        ? 'No major items'
+        : items.length == 1
+            ? '1 item noted'
+            : '${items.length} items noted';
+    return Container(
+      constraints: const BoxConstraints(minHeight: 150),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: style.background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: style.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(style.icon, color: style.accent, size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: Text(title,
+                      style: TextStyle(
+                          color: style.text, fontWeight: FontWeight.w800))),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _softBadge(badgeText, style.badgeBackground, style.text),
+          const SizedBox(height: 10),
+          if (items.isEmpty)
+            Text('No major pattern highlighted.',
+                style: TextStyle(color: style.text, height: 1.3))
+          else
+            for (final item in items.take(3))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(item,
+                    style: TextStyle(color: style.text, height: 1.3)),
+              ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, List<String>> _patternGroups(List<dynamic> pattern) {
+    final groups = <String, List<String>>{
+      'Lifestyle': [],
+      'Food Habits': [],
+      'Environment': [],
+    };
+    for (final item in pattern) {
+      final text = item.toString();
+      groups[_categoryForPattern(text)]!.add(text);
+    }
+    return groups;
+  }
+
+  String _categoryForPattern(String text) {
+    final value = text.toLowerCase();
+    if (value.contains('pollution') ||
+        value.contains('occupational') ||
+        value.contains('dust') ||
+        value.contains('chemical') ||
+        value.contains('passive') ||
+        value.contains('cooking') ||
+        value.contains('fuel smoke')) {
+      return 'Environment';
+    }
+    if (value.contains('sugar') ||
+        value.contains('salt') ||
+        value.contains('fried') ||
+        value.contains('processed') ||
+        value.contains('fruit') ||
+        value.contains('vegetable') ||
+        value.contains('food') ||
+        value.contains('drink')) {
+      return 'Food Habits';
+    }
+    return 'Lifestyle';
   }
 
   Widget _aiRecommendationBlock(dynamic aiRecommendation) {
@@ -376,11 +478,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFEAFBFD), Color(0xFFFFFFFF)],
-          ),
+          color: AppStyles.softBlue,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppStyles.border),
+          border: Border.all(color: AppStyles.softBlueBorder),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,7 +488,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             const Text('AI Recommendation Summary',
                 style: TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
-            Text(rec['simple_summary']?.toString() ?? '',
+            Text(_friendlyStatusText(rec['simple_summary']?.toString() ?? ''),
                 style: const TextStyle(color: AppStyles.text, height: 1.35)),
             _compactList('Lifestyle', rec['lifestyle_recommendations']),
             _compactList('Food', rec['food_recommendations']),
@@ -414,14 +514,40 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  Widget _riskPill(String label, Color color) {
+  Widget _riskPill(HealthStatusStyle status) {
+    return _softBadge(status.label, status.badgeBackground, status.text);
+  }
+
+  Widget _softBadge(String label, Color background, Color textColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration:
-          BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Text(label,
-          style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+          style: TextStyle(
+              color: textColor, fontWeight: FontWeight.w700, fontSize: 12)),
+    );
+  }
+
+  Widget _softIcon(IconData icon, Color color, Color borderColor) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor),
+      ),
+      child: Icon(icon, color: color, size: 21),
+    );
+  }
+
+  ShapeBorder _softCardShape(Color borderColor) {
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: BorderSide(color: borderColor),
     );
   }
 
@@ -433,24 +559,35 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return '$organ Screening Insight';
   }
 
-  Color _colorForRisk(String risk) {
-    if (risk.startsWith('High')) return const Color(0xFFE34B4B);
-    if (risk.startsWith('Moderate')) return const Color(0xFFE5A400);
-    if (risk.startsWith('Low')) return const Color(0xFF2E9D64);
-    return Colors.grey;
+  IconData _organIcon(String? organ) {
+    switch (organ) {
+      case 'Heart':
+        return Icons.favorite_border;
+      case 'Diabetes / Metabolic':
+        return Icons.bloodtype_outlined;
+      case 'Liver':
+        return Icons.science_outlined;
+      case 'Kidney':
+        return Icons.water_drop_outlined;
+      case 'Lung':
+        return Icons.air_outlined;
+      case 'Inflammation':
+        return Icons.healing_outlined;
+      case 'Pancreas':
+        return Icons.biotech_outlined;
+      case 'Cancer Awareness':
+        return Icons.health_and_safety_outlined;
+      default:
+        return Icons.monitor_heart_outlined;
+    }
   }
 
-  Color _colorForName(String? name, String risk) {
-    switch (name) {
-      case 'green':
-        return const Color(0xFF2E9D64);
-      case 'yellow':
-        return const Color(0xFFE5A400);
-      case 'red':
-        return const Color(0xFFE34B4B);
-      default:
-        return _colorForRisk(risk);
-    }
+  String _friendlyStatusText(String text) {
+    return text.replaceAllMapped(
+      RegExp(r'(current )?risk indicator is ([^.\n]+)', caseSensitive: false),
+      (match) =>
+          'screening status is ${AppStyles.statusLabel(match.group(2)).toLowerCase()}',
+    );
   }
 
   String _cleanKey(String key) {

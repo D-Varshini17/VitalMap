@@ -4,17 +4,35 @@ from pydantic import BaseModel
 
 class Profile(BaseModel):
     age: Optional[int] = None
+    age_unit: Optional[str] = "years"
     sex: Optional[str] = None
     height_cm: Optional[float] = None
+    height_unit: Optional[str] = "cm"
+    height_input: Optional[float] = None
+    height_feet: Optional[float] = None
+    height_inches: Optional[float] = None
     weight_kg: Optional[float] = None
+    weight_unit: Optional[str] = "kg"
+    weight_input: Optional[float] = None
     waist_cm: Optional[float] = None
+    waist_unit: Optional[str] = "cm"
+    waist_input: Optional[float] = None
 
 
 class Vitals(BaseModel):
     systolic: Optional[float] = None
+    systolic_unit: Optional[str] = "mmHg"
     diastolic: Optional[float] = None
+    diastolic_unit: Optional[str] = "mmHg"
     heart_rate: Optional[int] = None
+    heart_rate_unit: Optional[str] = "bpm"
     spo2: Optional[float] = None
+    spo2_unit: Optional[str] = "%"
+    body_temperature: Optional[float] = None
+    body_temperature_unit: Optional[str] = "°C"
+    body_temperature_input: Optional[float] = None
+    respiratory_rate: Optional[int] = None
+    respiratory_rate_unit: Optional[str] = "breaths/min"
 
 
 class LipidProfile(BaseModel):
@@ -27,6 +45,7 @@ class LipidProfile(BaseModel):
     total_cholesterol: Optional[float] = None
     total_cholesterol_unit: Optional[str] = "mg/dL"
     vldl: Optional[float] = None
+    vldl_unit: Optional[str] = "mg/dL"
 
 
 class DiabetesProfile(BaseModel):
@@ -37,46 +56,78 @@ class DiabetesProfile(BaseModel):
     ppbs_unit: Optional[str] = "mg/dL"
     random_blood_sugar: Optional[float] = None
     random_blood_sugar_unit: Optional[str] = "mg/dL"
+    hba1c_unit: Optional[str] = "%"
 
 
 class LiverFunction(BaseModel):
     ast: Optional[float] = None
+    ast_unit: Optional[str] = "U/L"
     alt: Optional[float] = None
+    alt_unit: Optional[str] = "U/L"
     ggt: Optional[float] = None
+    ggt_unit: Optional[str] = "U/L"
     alp: Optional[float] = None
+    alp_unit: Optional[str] = "U/L"
     bilirubin: Optional[float] = None
+    bilirubin_unit: Optional[str] = "mg/dL"
+    bilirubin_direct: Optional[float] = None
+    bilirubin_direct_unit: Optional[str] = "mg/dL"
+    bilirubin_indirect: Optional[float] = None
+    bilirubin_indirect_unit: Optional[str] = "mg/dL"
     albumin: Optional[float] = None
+    albumin_unit: Optional[str] = "g/dL"
     total_protein: Optional[float] = None
+    total_protein_unit: Optional[str] = "g/dL"
 
 
 class CBC(BaseModel):
     platelets: Optional[float] = None
+    platelets_unit: Optional[str] = "10⁹/L"
     wbc: Optional[float] = None
+    wbc_unit: Optional[str] = "10⁹/L"
     neutrophils: Optional[float] = None
+    neutrophils_unit: Optional[str] = "%"
     lymphocytes: Optional[float] = None
+    lymphocytes_unit: Optional[str] = "%"
     hemoglobin: Optional[float] = None
+    hemoglobin_unit: Optional[str] = "g/dL"
     rbc: Optional[float] = None
+    rbc_unit: Optional[str] = "million/µL"
     esr: Optional[float] = None
+    esr_unit: Optional[str] = "mm/hr"
 
 
 class KidneyFunction(BaseModel):
     creatinine: Optional[float] = None
     creatinine_unit: Optional[str] = "mg/dL"
     blood_urea: Optional[float] = None
+    blood_urea_unit: Optional[str] = "mg/dL"
+    bun: Optional[float] = None
+    bun_unit: Optional[str] = "mg/dL"
     uric_acid: Optional[float] = None
+    uric_acid_unit: Optional[str] = "mg/dL"
     sodium: Optional[float] = None
+    sodium_unit: Optional[str] = "mmol/L"
     potassium: Optional[float] = None
+    potassium_unit: Optional[str] = "mmol/L"
+    chloride: Optional[float] = None
+    chloride_unit: Optional[str] = "mmol/L"
 
 
 class TumorMarkers(BaseModel):
     afp: Optional[float] = None
+    afp_unit: Optional[str] = "ng/mL"
     ca15_3: Optional[float] = None
+    ca15_3_unit: Optional[str] = "U/mL"
     ca27_29: Optional[float] = None
+    ca27_29_unit: Optional[str] = "U/mL"
 
 
 class PancreaticEnzymes(BaseModel):
     lipase: Optional[float] = None
+    lipase_unit: Optional[str] = "U/L"
     amylase: Optional[float] = None
+    amylase_unit: Optional[str] = "U/L"
 
 
 class GeneralHealth(BaseModel):

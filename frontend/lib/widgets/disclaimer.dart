@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../styles.dart';
+import 'brand_logo.dart';
 
 class DisclaimerWidget extends StatelessWidget {
   const DisclaimerWidget({super.key});
@@ -16,9 +17,30 @@ class DisclaimerWidget extends StatelessWidget {
         border: Border.all(color: AppStyles.border),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Text(
-        'For informational purposes only. This app is not a substitute for clinical diagnosis, treatment, or medical advice. Please consult a qualified healthcare professional for medical decisions.',
-        style: TextStyle(fontSize: 12, color: AppStyles.muted, height: 1.35),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          BrandLogoMark(size: 34),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('VitalMap Safety Note',
+                    style: TextStyle(
+                        color: AppStyles.text,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700)),
+                SizedBox(height: 4),
+                Text(
+                  'For informational purposes only. This app is not a substitute for clinical diagnosis, treatment, or medical advice. Please consult a qualified healthcare professional for medical decisions.',
+                  style: TextStyle(
+                      fontSize: 12, color: AppStyles.muted, height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

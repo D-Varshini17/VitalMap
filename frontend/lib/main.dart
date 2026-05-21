@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'screens/input_screen.dart';
 import 'screens/overview_screen.dart';
 import 'screens/results_screen.dart';
+import 'screens/splash_screen.dart';
 import 'storage/local_storage.dart';
 import 'styles.dart';
 
@@ -18,8 +19,39 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'VitalMap',
       theme: AppStyles.theme,
-      home: const HomeContainer(),
+      home: const SplashGate(),
       debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class SplashGate extends StatefulWidget {
+  const SplashGate({super.key});
+
+  @override
+  State<SplashGate> createState() => _SplashGateState();
+}
+
+class _SplashGateState extends State<SplashGate> {
+  bool _showSplash = true;
+
+  void _handleSplashComplete() {
+    if (!mounted || !_showSplash) return;
+    setState(() => _showSplash = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 520),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: _showSplash
+          ? SplashScreen(
+              key: const ValueKey('splash'),
+              onComplete: _handleSplashComplete,
+            )
+          : const HomeContainer(key: ValueKey('home')),
     );
   }
 }

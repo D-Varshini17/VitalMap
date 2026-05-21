@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../storage/local_storage.dart';
 import '../styles.dart';
+import '../utils/unit_conversion.dart';
+import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
 
 class InputScreen extends StatefulWidget {
@@ -20,6 +22,8 @@ class _InputScreenState extends State<InputScreen> {
 
   final ageCtl = TextEditingController();
   final heightCtl = TextEditingController();
+  final heightFeetCtl = TextEditingController();
+  final heightInchesCtl = TextEditingController();
   final weightCtl = TextEditingController();
   final waistCtl = TextEditingController();
 
@@ -27,6 +31,8 @@ class _InputScreenState extends State<InputScreen> {
   final diaCtl = TextEditingController();
   final hrCtl = TextEditingController();
   final spo2Ctl = TextEditingController();
+  final temperatureCtl = TextEditingController();
+  final respiratoryRateCtl = TextEditingController();
 
   final tgCtl = TextEditingController();
   final hdlCtl = TextEditingController();
@@ -44,6 +50,8 @@ class _InputScreenState extends State<InputScreen> {
   final ggtCtl = TextEditingController();
   final alpCtl = TextEditingController();
   final bilirubinCtl = TextEditingController();
+  final bilirubinDirectCtl = TextEditingController();
+  final bilirubinIndirectCtl = TextEditingController();
   final albuminCtl = TextEditingController();
   final totalProteinCtl = TextEditingController();
 
@@ -57,9 +65,11 @@ class _InputScreenState extends State<InputScreen> {
 
   final creatCtl = TextEditingController();
   final bloodUreaCtl = TextEditingController();
+  final bunCtl = TextEditingController();
   final uricAcidCtl = TextEditingController();
   final sodiumCtl = TextEditingController();
   final potassiumCtl = TextEditingController();
+  final chlorideCtl = TextEditingController();
 
   final lipaseCtl = TextEditingController();
   final amylaseCtl = TextEditingController();
@@ -88,67 +98,55 @@ class _InputScreenState extends State<InputScreen> {
   String? cookingFuelSmoke;
   String? locationType;
 
+  String ageUnit = 'years';
+  String heightUnit = 'cm';
+  String weightUnit = 'kg';
+  String waistUnit = 'cm';
+  String systolicUnit = 'mmHg';
+  String diastolicUnit = 'mmHg';
+  String heartRateUnit = 'bpm';
+  String spo2Unit = '%';
+  String temperatureUnit = '°C';
+  String respiratoryRateUnit = 'breaths/min';
   String tgUnit = 'mg/dL';
   String hdlUnit = 'mg/dL';
   String ldlUnit = 'mg/dL';
   String totalCholesterolUnit = 'mg/dL';
+  String vldlUnit = 'mg/dL';
   String glucoseUnit = 'mg/dL';
   String ppbsUnit = 'mg/dL';
   String randomSugarUnit = 'mg/dL';
+  String hba1cUnit = '%';
+  String astUnit = 'U/L';
+  String altUnit = 'U/L';
+  String ggtUnit = 'U/L';
+  String alpUnit = 'U/L';
+  String bilirubinUnit = 'mg/dL';
+  String bilirubinDirectUnit = 'mg/dL';
+  String bilirubinIndirectUnit = 'mg/dL';
+  String albuminUnit = 'g/dL';
+  String totalProteinUnit = 'g/dL';
+  String plateletsUnit = '10⁹/L';
+  String wbcUnit = '10⁹/L';
+  String neutrophilsUnit = '%';
+  String lymphocytesUnit = '%';
+  String hemoglobinUnit = 'g/dL';
+  String rbcUnit = 'million/µL';
+  String esrUnit = 'mm/hr';
   String creatUnit = 'mg/dL';
+  String bloodUreaUnit = 'mg/dL';
+  String bunUnit = 'mg/dL';
+  String uricAcidUnit = 'mg/dL';
+  String sodiumUnit = 'mmol/L';
+  String potassiumUnit = 'mmol/L';
+  String chlorideUnit = 'mmol/L';
+  String lipaseUnit = 'U/L';
+  String amylaseUnit = 'U/L';
+  String afpUnit = 'ng/mL';
+  String ca153Unit = 'U/mL';
+  String ca2729Unit = 'U/mL';
 
   bool loading = false;
-
-  static const _reportSections = [
-    _ReportSection(
-      id: 'heart',
-      title: 'Heart / Lipid Profile',
-      subtitle: 'AIP',
-      icon: Icons.favorite_border,
-    ),
-    _ReportSection(
-      id: 'diabetes',
-      title: 'Diabetes / Metabolic',
-      subtitle: 'TyG, metabolic insight',
-      icon: Icons.water_drop_outlined,
-    ),
-    _ReportSection(
-      id: 'liver',
-      title: 'Liver Function Test',
-      subtitle: 'APRI, FIB-4, FLI, NAFLD',
-      icon: Icons.monitor_heart_outlined,
-    ),
-    _ReportSection(
-      id: 'cbc',
-      title: 'CBC / Differential',
-      subtitle: 'NLR and liver support',
-      icon: Icons.bloodtype_outlined,
-    ),
-    _ReportSection(
-      id: 'kidney',
-      title: 'Kidney Function',
-      subtitle: 'eGFR',
-      icon: Icons.opacity_outlined,
-    ),
-    _ReportSection(
-      id: 'vitals',
-      title: 'Vitals',
-      subtitle: 'SpO2, BP support',
-      icon: Icons.speed_outlined,
-    ),
-    _ReportSection(
-      id: 'pancreas',
-      title: 'Pancreatic Enzymes',
-      subtitle: 'LAR',
-      icon: Icons.science_outlined,
-    ),
-    _ReportSection(
-      id: 'cancer',
-      title: 'Cancer Awareness',
-      subtitle: 'Awareness markers only',
-      icon: Icons.health_and_safety_outlined,
-    ),
-  ];
 
   @override
   void initState() {
@@ -161,12 +159,16 @@ class _InputScreenState extends State<InputScreen> {
     for (final ctl in [
       ageCtl,
       heightCtl,
+      heightFeetCtl,
+      heightInchesCtl,
       weightCtl,
       waistCtl,
       sysCtl,
       diaCtl,
       hrCtl,
       spo2Ctl,
+      temperatureCtl,
+      respiratoryRateCtl,
       tgCtl,
       hdlCtl,
       ldlCtl,
@@ -181,6 +183,8 @@ class _InputScreenState extends State<InputScreen> {
       ggtCtl,
       alpCtl,
       bilirubinCtl,
+      bilirubinDirectCtl,
+      bilirubinIndirectCtl,
       albuminCtl,
       totalProteinCtl,
       plateletsCtl,
@@ -192,9 +196,11 @@ class _InputScreenState extends State<InputScreen> {
       esrCtl,
       creatCtl,
       bloodUreaCtl,
+      bunCtl,
       uricAcidCtl,
       sodiumCtl,
       potassiumCtl,
+      chlorideCtl,
       lipaseCtl,
       amylaseCtl,
       afpCtl,
@@ -256,12 +262,22 @@ class _InputScreenState extends State<InputScreen> {
         Map<String, dynamic>.from(payload['pancreatic_enzymes'] as Map? ?? {});
     final tumor =
         Map<String, dynamic>.from(payload['tumor_markers'] as Map? ?? {});
+    final selectedSections = _inferSelectedSections(payload);
 
     setState(() {
+      _selectedSections
+        ..clear()
+        ..addAll(selectedSections);
       _setText(ageCtl, profile['age']);
-      _setText(heightCtl, profile['height_cm']);
-      _setText(weightCtl, profile['weight_kg']);
-      _setText(waistCtl, profile['waist_cm']);
+      ageUnit = profile['age_unit'] as String? ?? ageUnit;
+      heightUnit = profile['height_unit'] as String? ?? heightUnit;
+      _setText(heightCtl, profile['height_input'] ?? profile['height_cm']);
+      _setText(heightFeetCtl, profile['height_feet']);
+      _setText(heightInchesCtl, profile['height_inches']);
+      weightUnit = profile['weight_unit'] as String? ?? weightUnit;
+      _setText(weightCtl, profile['weight_input'] ?? profile['weight_kg']);
+      waistUnit = profile['waist_unit'] as String? ?? waistUnit;
+      _setText(waistCtl, profile['waist_input'] ?? profile['waist_cm']);
       sex = profile['sex'] as String?;
 
       smoking = general['smoking'] as String?;
@@ -284,9 +300,20 @@ class _InputScreenState extends State<InputScreen> {
       locationType = general['location_type'] as String?;
 
       _setText(sysCtl, vitals['systolic']);
+      systolicUnit = vitals['systolic_unit'] as String? ?? systolicUnit;
       _setText(diaCtl, vitals['diastolic']);
+      diastolicUnit = vitals['diastolic_unit'] as String? ?? diastolicUnit;
       _setText(hrCtl, vitals['heart_rate']);
+      heartRateUnit = vitals['heart_rate_unit'] as String? ?? heartRateUnit;
       _setText(spo2Ctl, vitals['spo2']);
+      spo2Unit = vitals['spo2_unit'] as String? ?? spo2Unit;
+      temperatureUnit =
+          vitals['body_temperature_unit'] as String? ?? temperatureUnit;
+      _setText(temperatureCtl,
+          vitals['body_temperature_input'] ?? vitals['body_temperature']);
+      respiratoryRateUnit =
+          vitals['respiratory_rate_unit'] as String? ?? respiratoryRateUnit;
+      _setText(respiratoryRateCtl, vitals['respiratory_rate']);
       _setText(tgCtl, lipids['triglycerides']);
       _setText(hdlCtl, lipids['hdl']);
       _setText(ldlCtl, lipids['ldl']);
@@ -297,12 +324,14 @@ class _InputScreenState extends State<InputScreen> {
       ldlUnit = lipids['ldl_unit'] as String? ?? ldlUnit;
       totalCholesterolUnit =
           lipids['total_cholesterol_unit'] as String? ?? totalCholesterolUnit;
+      vldlUnit = lipids['vldl_unit'] as String? ?? vldlUnit;
 
       _setText(fastingCtl, diabetes['fasting_glucose']);
       _setText(hba1cCtl, diabetes['hba1c']);
       _setText(ppbsCtl, diabetes['ppbs']);
       _setText(randomSugarCtl, diabetes['random_blood_sugar']);
       glucoseUnit = diabetes['fasting_glucose_unit'] as String? ?? glucoseUnit;
+      hba1cUnit = diabetes['hba1c_unit'] as String? ?? hba1cUnit;
       ppbsUnit = diabetes['ppbs_unit'] as String? ?? ppbsUnit;
       randomSugarUnit =
           diabetes['random_blood_sugar_unit'] as String? ?? randomSugarUnit;
@@ -312,8 +341,22 @@ class _InputScreenState extends State<InputScreen> {
       _setText(ggtCtl, liver['ggt']);
       _setText(alpCtl, liver['alp']);
       _setText(bilirubinCtl, liver['bilirubin']);
+      _setText(bilirubinDirectCtl, liver['bilirubin_direct']);
+      _setText(bilirubinIndirectCtl, liver['bilirubin_indirect']);
       _setText(albuminCtl, liver['albumin']);
       _setText(totalProteinCtl, liver['total_protein']);
+      astUnit = liver['ast_unit'] as String? ?? astUnit;
+      altUnit = liver['alt_unit'] as String? ?? altUnit;
+      ggtUnit = liver['ggt_unit'] as String? ?? ggtUnit;
+      alpUnit = liver['alp_unit'] as String? ?? alpUnit;
+      bilirubinUnit = liver['bilirubin_unit'] as String? ?? bilirubinUnit;
+      bilirubinDirectUnit =
+          liver['bilirubin_direct_unit'] as String? ?? bilirubinDirectUnit;
+      bilirubinIndirectUnit =
+          liver['bilirubin_indirect_unit'] as String? ?? bilirubinIndirectUnit;
+      albuminUnit = liver['albumin_unit'] as String? ?? albuminUnit;
+      totalProteinUnit =
+          liver['total_protein_unit'] as String? ?? totalProteinUnit;
       _setText(plateletsCtl, cbc['platelets']);
       _setText(wbcCtl, cbc['wbc']);
       _setText(neutCtl, cbc['neutrophils']);
@@ -321,18 +364,38 @@ class _InputScreenState extends State<InputScreen> {
       _setText(hemoglobinCtl, cbc['hemoglobin']);
       _setText(rbcCtl, cbc['rbc']);
       _setText(esrCtl, cbc['esr']);
+      plateletsUnit = cbc['platelets_unit'] as String? ?? plateletsUnit;
+      wbcUnit = cbc['wbc_unit'] as String? ?? wbcUnit;
+      neutrophilsUnit = cbc['neutrophils_unit'] as String? ?? neutrophilsUnit;
+      lymphocytesUnit = cbc['lymphocytes_unit'] as String? ?? lymphocytesUnit;
+      hemoglobinUnit = cbc['hemoglobin_unit'] as String? ?? hemoglobinUnit;
+      rbcUnit = cbc['rbc_unit'] as String? ?? rbcUnit;
+      esrUnit = cbc['esr_unit'] as String? ?? esrUnit;
 
       _setText(creatCtl, kidney['creatinine']);
       _setText(bloodUreaCtl, kidney['blood_urea']);
+      _setText(bunCtl, kidney['bun']);
       _setText(uricAcidCtl, kidney['uric_acid']);
       _setText(sodiumCtl, kidney['sodium']);
       _setText(potassiumCtl, kidney['potassium']);
+      _setText(chlorideCtl, kidney['chloride']);
       creatUnit = kidney['creatinine_unit'] as String? ?? creatUnit;
+      bloodUreaUnit = kidney['blood_urea_unit'] as String? ?? bloodUreaUnit;
+      bunUnit = kidney['bun_unit'] as String? ?? bunUnit;
+      uricAcidUnit = kidney['uric_acid_unit'] as String? ?? uricAcidUnit;
+      sodiumUnit = kidney['sodium_unit'] as String? ?? sodiumUnit;
+      potassiumUnit = kidney['potassium_unit'] as String? ?? potassiumUnit;
+      chlorideUnit = kidney['chloride_unit'] as String? ?? chlorideUnit;
       _setText(lipaseCtl, pancreas['lipase']);
       _setText(amylaseCtl, pancreas['amylase']);
+      lipaseUnit = pancreas['lipase_unit'] as String? ?? lipaseUnit;
+      amylaseUnit = pancreas['amylase_unit'] as String? ?? amylaseUnit;
       _setText(afpCtl, tumor['afp']);
       _setText(ca15Ctl, tumor['ca15_3']);
       _setText(ca27Ctl, tumor['ca27_29']);
+      afpUnit = tumor['afp_unit'] as String? ?? afpUnit;
+      ca153Unit = tumor['ca15_3_unit'] as String? ?? ca153Unit;
+      ca2729Unit = tumor['ca27_29_unit'] as String? ?? ca2729Unit;
     });
   }
 
@@ -341,13 +404,28 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   Map<String, dynamic> _payload() {
+    final heightCm = _heightCm();
+    final weightKg = weightToKg(_num(weightCtl), weightUnit);
+    final waistCm = waistToCm(_num(waistCtl), waistUnit);
+    final neutrophils = _num(neutCtl);
+    final lymphocytes = _num(lymphCtl);
     return {
+      "selected_report_sections": _selectedSections.toList(),
       "profile": {
         "age": _int(ageCtl),
+        "age_unit": ageUnit,
         "sex": sex,
-        "height_cm": _num(heightCtl),
-        "weight_kg": _num(weightCtl),
-        "waist_cm": _num(waistCtl),
+        "height_cm": heightCm,
+        "height_unit": heightUnit,
+        "height_input": _num(heightCtl),
+        "height_feet": _num(heightFeetCtl),
+        "height_inches": _num(heightInchesCtl),
+        "weight_kg": weightKg,
+        "weight_unit": weightUnit,
+        "weight_input": _num(weightCtl),
+        "waist_cm": waistCm,
+        "waist_unit": waistUnit,
+        "waist_input": _num(waistCtl),
       },
       "general_health": {
         "smoking": smoking,
@@ -370,67 +448,170 @@ class _InputScreenState extends State<InputScreen> {
         "location_type": locationType,
       },
       "vitals": {
-        "systolic": _num(sysCtl),
-        "diastolic": _num(diaCtl),
-        "heart_rate": _int(hrCtl),
-        "spo2": _num(spo2Ctl),
+        "systolic": _sectionNum('vitals', sysCtl),
+        "systolic_unit": systolicUnit,
+        "diastolic": _sectionNum('vitals', diaCtl),
+        "diastolic_unit": diastolicUnit,
+        "heart_rate": _sectionInt('vitals', hrCtl),
+        "heart_rate_unit": heartRateUnit,
+        "spo2": _sectionNum('vitals', spo2Ctl),
+        "spo2_unit": spo2Unit,
+        "body_temperature": _ifSection(
+            'vitals', temperatureToC(_num(temperatureCtl), temperatureUnit)),
+        "body_temperature_unit": temperatureUnit,
+        "body_temperature_input": _sectionNum('vitals', temperatureCtl),
+        "respiratory_rate": _sectionInt('vitals', respiratoryRateCtl),
+        "respiratory_rate_unit": respiratoryRateUnit,
       },
       "lipid_profile": {
-        "triglycerides": _num(tgCtl),
-        "triglycerides_unit": tgUnit,
-        "hdl": _num(hdlCtl),
-        "hdl_unit": hdlUnit,
-        "ldl": _num(ldlCtl),
-        "ldl_unit": ldlUnit,
-        "total_cholesterol": _num(totalCholesterolCtl),
-        "total_cholesterol_unit": totalCholesterolUnit,
-        "vldl": _num(vldlCtl),
+        "triglycerides":
+            _ifSection('heart', triglyceridesToMgdl(_num(tgCtl), tgUnit)),
+        "triglycerides_unit": "mg/dL",
+        "triglycerides_input": _sectionNum('heart', tgCtl),
+        "triglycerides_input_unit": tgUnit,
+        "hdl": _ifSection('heart', cholesterolToMgdl(_num(hdlCtl), hdlUnit)),
+        "hdl_unit": "mg/dL",
+        "hdl_input": _sectionNum('heart', hdlCtl),
+        "hdl_input_unit": hdlUnit,
+        "ldl": _ifSection('heart', cholesterolToMgdl(_num(ldlCtl), ldlUnit)),
+        "ldl_unit": "mg/dL",
+        "ldl_input": _sectionNum('heart', ldlCtl),
+        "ldl_input_unit": ldlUnit,
+        "total_cholesterol": _ifSection('heart',
+            cholesterolToMgdl(_num(totalCholesterolCtl), totalCholesterolUnit)),
+        "total_cholesterol_unit": "mg/dL",
+        "total_cholesterol_input": _sectionNum('heart', totalCholesterolCtl),
+        "total_cholesterol_input_unit": totalCholesterolUnit,
+        "vldl": _ifSection('heart', cholesterolToMgdl(_num(vldlCtl), vldlUnit)),
+        "vldl_unit": "mg/dL",
+        "vldl_input": _sectionNum('heart', vldlCtl),
+        "vldl_input_unit": vldlUnit,
       },
       "diabetes_profile": {
-        "fasting_glucose": _num(fastingCtl),
-        "fasting_glucose_unit": glucoseUnit,
-        "hba1c": _num(hba1cCtl),
-        "ppbs": _num(ppbsCtl),
-        "ppbs_unit": ppbsUnit,
-        "random_blood_sugar": _num(randomSugarCtl),
-        "random_blood_sugar_unit": randomSugarUnit,
+        "fasting_glucose": _ifSection(
+            'diabetes', glucoseToMgdl(_num(fastingCtl), glucoseUnit)),
+        "fasting_glucose_unit": "mg/dL",
+        "fasting_glucose_input": _sectionNum('diabetes', fastingCtl),
+        "fasting_glucose_input_unit": glucoseUnit,
+        "hba1c": _sectionNum('diabetes', hba1cCtl),
+        "hba1c_unit": hba1cUnit,
+        "ppbs": _ifSection('diabetes', glucoseToMgdl(_num(ppbsCtl), ppbsUnit)),
+        "ppbs_unit": "mg/dL",
+        "ppbs_input": _sectionNum('diabetes', ppbsCtl),
+        "ppbs_input_unit": ppbsUnit,
+        "random_blood_sugar": _ifSection(
+            'diabetes', glucoseToMgdl(_num(randomSugarCtl), randomSugarUnit)),
+        "random_blood_sugar_unit": "mg/dL",
+        "random_blood_sugar_input": _sectionNum('diabetes', randomSugarCtl),
+        "random_blood_sugar_input_unit": randomSugarUnit,
       },
       "liver_function": {
-        "ast": _num(astCtl),
-        "alt": _num(altCtl),
-        "ggt": _num(ggtCtl),
-        "alp": _num(alpCtl),
-        "bilirubin": _num(bilirubinCtl),
-        "albumin": _num(albuminCtl),
-        "total_protein": _num(totalProteinCtl),
+        "ast": _sectionNum('liver', astCtl),
+        "ast_unit": astUnit,
+        "alt": _sectionNum('liver', altCtl),
+        "alt_unit": altUnit,
+        "ggt": _sectionNum('liver', ggtCtl),
+        "ggt_unit": ggtUnit,
+        "alp": _sectionNum('liver', alpCtl),
+        "alp_unit": alpUnit,
+        "bilirubin": _ifSection(
+            'liver', bilirubinToMgdl(_num(bilirubinCtl), bilirubinUnit)),
+        "bilirubin_unit": "mg/dL",
+        "bilirubin_input": _sectionNum('liver', bilirubinCtl),
+        "bilirubin_input_unit": bilirubinUnit,
+        "bilirubin_direct": _ifSection('liver',
+            bilirubinToMgdl(_num(bilirubinDirectCtl), bilirubinDirectUnit)),
+        "bilirubin_direct_unit": "mg/dL",
+        "bilirubin_indirect": _ifSection('liver',
+            bilirubinToMgdl(_num(bilirubinIndirectCtl), bilirubinIndirectUnit)),
+        "bilirubin_indirect_unit": "mg/dL",
+        "albumin":
+            _ifSection('liver', albuminToGdl(_num(albuminCtl), albuminUnit)),
+        "albumin_unit": "g/dL",
+        "albumin_input": _sectionNum('liver', albuminCtl),
+        "albumin_input_unit": albuminUnit,
+        "total_protein": _ifSection('liver',
+            totalProteinToGdl(_num(totalProteinCtl), totalProteinUnit)),
+        "total_protein_unit": "g/dL",
+        "total_protein_input": _sectionNum('liver', totalProteinCtl),
+        "total_protein_input_unit": totalProteinUnit,
       },
       "cbc": {
-        "platelets": _num(plateletsCtl),
-        "wbc": _num(wbcCtl),
-        "neutrophils": _num(neutCtl),
-        "lymphocytes": _num(lymphCtl),
-        "hemoglobin": _num(hemoglobinCtl),
-        "rbc": _num(rbcCtl),
-        "esr": _num(esrCtl),
+        "platelets": _ifSection(
+            'cbc', plateletsTo10e9L(_num(plateletsCtl), plateletsUnit)),
+        "platelets_unit": "10⁹/L",
+        "platelets_input": _sectionNum('cbc', plateletsCtl),
+        "platelets_input_unit": plateletsUnit,
+        "wbc": _sectionNum('cbc', wbcCtl),
+        "wbc_unit": "10⁹/L",
+        "wbc_input": _sectionNum('cbc', wbcCtl),
+        "wbc_input_unit": "10⁹/L",
+        "neutrophils": _ifSection('cbc', neutrophils),
+        "neutrophils_unit": "%",
+        "lymphocytes": _ifSection('cbc', lymphocytes),
+        "lymphocytes_unit": "%",
+        "hemoglobin": _sectionNum('cbc', hemoglobinCtl),
+        "hemoglobin_unit": "g/dL",
+        "rbc": _sectionNum('cbc', rbcCtl),
+        "rbc_unit": "million/µL",
+        "esr": _sectionNum('cbc', esrCtl),
+        "esr_unit": "mm/hr",
       },
       "kidney_function": {
-        "creatinine": _num(creatCtl),
-        "creatinine_unit": creatUnit,
-        "blood_urea": _num(bloodUreaCtl),
-        "uric_acid": _num(uricAcidCtl),
-        "sodium": _num(sodiumCtl),
-        "potassium": _num(potassiumCtl),
+        "creatinine":
+            _ifSection('kidney', creatinineToMgdl(_num(creatCtl), creatUnit)),
+        "creatinine_unit": "mg/dL",
+        "creatinine_input": _sectionNum('kidney', creatCtl),
+        "creatinine_input_unit": creatUnit,
+        "blood_urea": _ifSection(
+            'kidney', bloodUreaToMgdl(_num(bloodUreaCtl), bloodUreaUnit)),
+        "blood_urea_unit": "mg/dL",
+        "bun": _sectionNum('kidney', bunCtl),
+        "bun_unit": bunUnit,
+        "uric_acid": _ifSection(
+            'kidney', uricAcidToMgdl(_num(uricAcidCtl), uricAcidUnit)),
+        "uric_acid_unit": "mg/dL",
+        "sodium": _sectionNum('kidney', sodiumCtl),
+        "sodium_unit": "mmol/L",
+        "potassium": _sectionNum('kidney', potassiumCtl),
+        "potassium_unit": "mmol/L",
+        "chloride": _sectionNum('kidney', chlorideCtl),
+        "chloride_unit": "mmol/L",
       },
       "pancreatic_enzymes": {
-        "lipase": _num(lipaseCtl),
-        "amylase": _num(amylaseCtl),
+        "lipase": _sectionNum('pancreas', lipaseCtl),
+        "lipase_unit": lipaseUnit,
+        "amylase": _sectionNum('pancreas', amylaseCtl),
+        "amylase_unit": amylaseUnit,
       },
       "tumor_markers": {
-        "afp": _num(afpCtl),
-        "ca15_3": _num(ca15Ctl),
-        "ca27_29": _num(ca27Ctl),
+        "afp": _sectionNum('cancer', afpCtl),
+        "afp_unit": afpUnit,
+        "ca15_3": _sectionNum('cancer', ca15Ctl),
+        "ca15_3_unit": ca153Unit,
+        "ca27_29": _sectionNum('cancer', ca27Ctl),
+        "ca27_29_unit": ca2729Unit,
       },
     };
+  }
+
+  double? _sectionNum(String id, TextEditingController controller) {
+    return _selectedSections.contains(id) ? _num(controller) : null;
+  }
+
+  int? _sectionInt(String id, TextEditingController controller) {
+    return _selectedSections.contains(id) ? _int(controller) : null;
+  }
+
+  T? _ifSection<T>(String id, T? value) {
+    return _selectedSections.contains(id) ? value : null;
+  }
+
+  double? _heightCm() {
+    if (heightUnit == 'ft-in') {
+      return heightFeetInchesToCm(_num(heightFeetCtl), _num(heightInchesCtl));
+    }
+    return heightToCm(_num(heightCtl), heightUnit);
   }
 
   double? _num(TextEditingController controller) {
@@ -447,71 +628,73 @@ class _InputScreenState extends State<InputScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: const Color(0xFFF4FBFF),
         appBar: AppBar(
-          title: const Row(
-            children: [
-              Icon(Icons.health_and_safety, color: AppStyles.primary),
-              SizedBox(width: 8),
-              Text('VitalMap'),
-            ],
-          ),
+          title: const BrandAppBarTitle(title: 'VitalMap'),
         ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _IntroCard(),
-                _stepHeader('Step 1 of 3: General Health Details'),
-                _profileCard(),
-                _lifestyleCard(),
-                _foodCard(),
-                _environmentCard(),
-                _stepHeader('Step 2 of 3: Optional Report-Based Lab Inputs'),
-                const Text(
-                  'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
-                  style: TextStyle(color: AppStyles.muted),
-                ),
-                const SizedBox(height: 12),
-                _reportPicker(),
-                const SizedBox(height: 6),
-                if (_selectedSections.contains('heart')) _heartCard(),
-                if (_selectedSections.contains('diabetes')) _diabetesCard(),
-                if (_selectedSections.contains('liver')) _liverCard(),
-                if (_selectedSections.contains('cbc')) _cbcCard(),
-                if (_selectedSections.contains('kidney')) _kidneyCard(),
-                if (_selectedSections.contains('vitals')) _vitalsCard(),
-                if (_selectedSections.contains('pancreas')) _pancreasCard(),
-                if (_selectedSections.contains('cancer')) _cancerCard(),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: loading ? null : analyze,
-                    icon: loading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Icon(Icons.insights),
-                    label: Text(
-                        loading ? 'Analyzing...' : 'Analyze Available Values'),
+        body: ColoredBox(
+          color: const Color(0xFFF4FBFF),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _IntroCard(),
+                  _stepHeader('General Details'),
+                  _profileCard(),
+                  _lifestyleCard(),
+                  _foodCard(),
+                  _environmentCard(),
+                  _stepHeader('Report Values'),
+                  const Text(
+                    'Turn on only the reports you have. Empty report fields can be skipped safely.',
+                    style: TextStyle(color: AppStyles.muted),
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 12),
-                  child: Text(
-                    'Step 3 of 3: Review screening insights on the Results tab',
-                    style: TextStyle(
-                        color: AppStyles.primary, fontWeight: FontWeight.w700),
+                  const SizedBox(height: 10),
+                  _vitalsCard(),
+                  _heartCard(),
+                  _diabetesCard(),
+                  _liverCard(),
+                  _cbcCard(),
+                  _kidneyCard(),
+                  _pancreasCard(),
+                  _cancerCard(),
+                  const SizedBox(height: 12),
+                  if (_compulsoryComplete() && !_hasAnyReportValue())
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        'No lab-based index can be calculated yet. Add report values to generate organ-wise risk indicators.',
+                        style: TextStyle(
+                            color: AppStyles.muted,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  if (!_compulsoryComplete())
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        'Please complete the compulsory general health questions.',
+                        style: TextStyle(
+                            color: AppStyles.muted,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  _actionButtons(),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: Text(
+                      'Review screening insights on the Results tab.',
+                      style: TextStyle(
+                          color: AppStyles.primary,
+                          fontWeight: FontWeight.w700),
+                    ),
                   ),
-                ),
-                const DisclaimerWidget(),
-              ],
+                  const DisclaimerWidget(),
+                ],
+              ),
             ),
           ),
         ),
@@ -543,48 +726,323 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _profileCard() {
     return _SectionCard(
-      title: 'Basic profile',
+      title: 'Basic Profile',
       icon: Icons.person_outline,
+      background: const Color(0xFFEAF8FF),
+      accent: const Color(0xFF55B9DF),
       child: Column(
         children: [
           _twoColumn(
-            _numberField(ageCtl, 'Age', required: true),
+            _unitField(
+              ageCtl,
+              'Age',
+              ageUnit,
+              (value) => setState(() => ageUnit = value),
+              const ['years'],
+              helper: 'Self-reported',
+              required: true,
+              allowSkip: false,
+            ),
             _choice('Sex', sex, const ['Female', 'Male', 'Other'],
                 (value) => setState(() => sex = value)),
           ),
           _twoColumn(
-            _numberField(heightCtl, 'Height (cm)', required: true),
-            _numberField(weightCtl, 'Weight (kg)', required: true),
-          ),
-          _numberField(waistCtl, 'Waist circumference (cm)', required: true),
-          if (_currentBmi() != null)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  'BMI: ${_currentBmi()!.toStringAsFixed(1)}',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, color: AppStyles.primary),
-                ),
-              ),
+            _heightField(),
+            _unitField(
+              weightCtl,
+              'Weight',
+              weightUnit,
+              (value) => setState(() => weightUnit = value),
+              const ['kg', 'lb'],
+              helper: 'Self-reported',
+              required: true,
+              allowSkip: false,
             ),
+          ),
+          _unitField(
+            waistCtl,
+            'Waist circumference',
+            waistUnit,
+            (value) => setState(() => waistUnit = value),
+            const ['cm', 'inch'],
+            helper: 'Self-reported or measured at waist level',
+            required: true,
+            allowSkip: false,
+          ),
+          _readOnlyUnitField(
+            'BMI',
+            _currentBmi()?.toStringAsFixed(1) ?? '',
+            'kg/m²',
+            helper: 'Auto-calculated from height and weight.',
+          ),
         ],
       ),
     );
   }
 
   double? _currentBmi() {
-    final height = _num(heightCtl);
-    final weight = _num(weightCtl);
+    final height = _heightCm();
+    final weight = weightToKg(_num(weightCtl), weightUnit);
     if (height == null || weight == null || height <= 0) return null;
     return weight / ((height / 100) * (height / 100));
+  }
+
+  bool _compulsoryComplete() {
+    final hasHeight = heightUnit == 'ft-in'
+        ? heightFeetCtl.text.trim().isNotEmpty
+        : heightCtl.text.trim().isNotEmpty;
+    final profileComplete = ageCtl.text.trim().isNotEmpty &&
+        hasHeight &&
+        weightCtl.text.trim().isNotEmpty &&
+        waistCtl.text.trim().isNotEmpty &&
+        sex != null;
+    final lifestyleComplete = smoking != null &&
+        alcohol != null &&
+        physicalActivity != null &&
+        sleepDuration != null &&
+        stressLevel != null &&
+        familyHistory != null;
+    final foodComplete = dietType != null &&
+        sugarIntake != null &&
+        saltIntake != null &&
+        processedFood != null &&
+        fruitVeg != null &&
+        sugaryDrinks != null;
+    final environmentComplete = airPollution != null &&
+        occupationalExposure != null &&
+        passiveSmoking != null &&
+        cookingSmoke != null &&
+        cookingFuelSmoke != null &&
+        locationType != null;
+    return profileComplete &&
+        lifestyleComplete &&
+        foodComplete &&
+        environmentComplete;
+  }
+
+  bool _hasAnyReportValue() {
+    bool hasAny(List<TextEditingController> controllers) {
+      return controllers.any((controller) => controller.text.trim().isNotEmpty);
+    }
+
+    return (_selectedSections.contains('vitals') &&
+            hasAny([
+              sysCtl,
+              diaCtl,
+              hrCtl,
+              spo2Ctl,
+              temperatureCtl,
+              respiratoryRateCtl,
+            ])) ||
+        (_selectedSections.contains('heart') &&
+            hasAny([
+              tgCtl,
+              hdlCtl,
+              ldlCtl,
+              totalCholesterolCtl,
+              vldlCtl,
+            ])) ||
+        (_selectedSections.contains('diabetes') &&
+            hasAny([
+              fastingCtl,
+              hba1cCtl,
+              ppbsCtl,
+              randomSugarCtl,
+            ])) ||
+        (_selectedSections.contains('liver') &&
+            hasAny([
+              astCtl,
+              altCtl,
+              ggtCtl,
+              alpCtl,
+              bilirubinCtl,
+              bilirubinDirectCtl,
+              bilirubinIndirectCtl,
+              albuminCtl,
+              totalProteinCtl,
+            ])) ||
+        (_selectedSections.contains('cbc') &&
+            hasAny([
+              plateletsCtl,
+              wbcCtl,
+              neutCtl,
+              lymphCtl,
+              hemoglobinCtl,
+              rbcCtl,
+              esrCtl,
+            ])) ||
+        (_selectedSections.contains('kidney') &&
+            hasAny([
+              creatCtl,
+              bloodUreaCtl,
+              bunCtl,
+              uricAcidCtl,
+              sodiumCtl,
+              potassiumCtl,
+              chlorideCtl,
+            ])) ||
+        (_selectedSections.contains('pancreas') &&
+            hasAny([lipaseCtl, amylaseCtl])) ||
+        (_selectedSections.contains('cancer') &&
+            hasAny([afpCtl, ca15Ctl, ca27Ctl]));
+  }
+
+  Set<String> _inferSelectedSections(Map<String, dynamic> payload) {
+    final saved = payload['selected_report_sections'];
+    if (saved is List) return saved.whereType<String>().toSet();
+    final sections = <String>{};
+    final vitals = Map<String, dynamic>.from(payload['vitals'] as Map? ?? {});
+    final lipids =
+        Map<String, dynamic>.from(payload['lipid_profile'] as Map? ?? {});
+    final diabetes =
+        Map<String, dynamic>.from(payload['diabetes_profile'] as Map? ?? {});
+    final liver =
+        Map<String, dynamic>.from(payload['liver_function'] as Map? ?? {});
+    final cbc = Map<String, dynamic>.from(payload['cbc'] as Map? ?? {});
+    final kidney =
+        Map<String, dynamic>.from(payload['kidney_function'] as Map? ?? {});
+    final pancreas =
+        Map<String, dynamic>.from(payload['pancreatic_enzymes'] as Map? ?? {});
+    final tumor =
+        Map<String, dynamic>.from(payload['tumor_markers'] as Map? ?? {});
+    if (_hasSavedValues(vitals, [
+      'systolic',
+      'diastolic',
+      'heart_rate',
+      'spo2',
+      'body_temperature',
+      'respiratory_rate'
+    ])) {
+      sections.add('vitals');
+    }
+    if (_hasSavedValues(
+        lipids, ['triglycerides', 'hdl', 'ldl', 'total_cholesterol', 'vldl'])) {
+      sections.add('heart');
+    }
+    if (_hasSavedValues(
+        diabetes, ['fasting_glucose', 'hba1c', 'ppbs', 'random_blood_sugar'])) {
+      sections.add('diabetes');
+    }
+    if (_hasSavedValues(liver, [
+      'ast',
+      'alt',
+      'ggt',
+      'alp',
+      'bilirubin',
+      'bilirubin_direct',
+      'bilirubin_indirect',
+      'albumin',
+      'total_protein'
+    ])) {
+      sections.add('liver');
+    }
+    if (_hasSavedValues(cbc, [
+      'platelets',
+      'wbc',
+      'neutrophils',
+      'lymphocytes',
+      'hemoglobin',
+      'rbc',
+      'esr'
+    ])) {
+      sections.add('cbc');
+    }
+    if (_hasSavedValues(kidney, [
+      'creatinine',
+      'blood_urea',
+      'bun',
+      'uric_acid',
+      'sodium',
+      'potassium',
+      'chloride'
+    ])) {
+      sections.add('kidney');
+    }
+    if (_hasSavedValues(pancreas, ['lipase', 'amylase'])) {
+      sections.add('pancreas');
+    }
+    if (_hasSavedValues(tumor, ['afp', 'ca15_3', 'ca27_29'])) {
+      sections.add('cancer');
+    }
+    return sections;
+  }
+
+  bool _hasSavedValues(Map<String, dynamic> map, List<String> keys) {
+    return keys
+        .any((key) => map[key] != null && map[key].toString().isNotEmpty);
+  }
+
+  void _toggleSection(String id, bool enabled) {
+    setState(() {
+      if (enabled) {
+        _selectedSections.add(id);
+      } else {
+        _selectedSections.remove(id);
+      }
+    });
+  }
+
+  void _clearControllers(List<TextEditingController> controllers) {
+    setState(() {
+      for (final controller in controllers) {
+        controller.clear();
+      }
+    });
+  }
+
+  Widget _actionButtons() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final analyzeButton = ElevatedButton.icon(
+          onPressed: loading || !_compulsoryComplete() ? null : analyze,
+          icon: loading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
+                )
+              : const Icon(Icons.insights),
+          label: Text(loading ? 'Analyzing...' : 'Analyze Available Values'),
+        );
+        final saveButton = OutlinedButton.icon(
+          onPressed: () async {
+            await LocalStorage.saveLastPayload(_payload());
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Saved for later.')),
+            );
+          },
+          icon: const Icon(Icons.bookmark_border),
+          label: const Text('Save and Continue Later'),
+        );
+        if (constraints.maxWidth < 520) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              analyzeButton,
+              const SizedBox(height: 10),
+              saveButton,
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: analyzeButton),
+            const SizedBox(width: 12),
+            Expanded(child: saveButton),
+          ],
+        );
+      },
+    );
   }
 
   Widget _lifestyleCard() {
     return _SectionCard(
       title: 'Lifestyle',
       icon: Icons.directions_walk,
+      background: const Color(0xFFF6EEFF),
+      accent: const Color(0xFFA675D6),
       child: Column(
         children: [
           _twoColumn(
@@ -631,8 +1089,10 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _foodCard() {
     return _SectionCard(
-      title: 'Food habits',
+      title: 'Food Habits',
       icon: Icons.restaurant_outlined,
+      background: const Color(0xFFFFF2E8),
+      accent: const Color(0xFFE49A52),
       child: Column(
         children: [
           _twoColumn(
@@ -680,6 +1140,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Environment',
       icon: Icons.eco_outlined,
+      background: const Color(0xFFEAF8F6),
+      accent: const Color(0xFF48B7AB),
       child: Column(
         children: [
           _twoColumn(
@@ -711,43 +1173,23 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _reportPicker() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = constraints.maxWidth > 620
-            ? (constraints.maxWidth - 24) / 3
-            : (constraints.maxWidth - 12) / 2;
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            for (final section in _reportSections)
-              SizedBox(
-                width: cardWidth,
-                child: _ReportToggleCard(
-                  section: section,
-                  selected: _selectedSections.contains(section.id),
-                  onTap: () {
-                    setState(() {
-                      if (_selectedSections.contains(section.id)) {
-                        _selectedSections.remove(section.id);
-                      } else {
-                        _selectedSections.add(section.id);
-                      }
-                    });
-                  },
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _heartCard() {
     return _SectionCard(
-      title: 'Heart / Lipid Profile',
+      title: 'Lipid Profile',
       icon: Icons.favorite_border,
+      background: const Color(0xFFFFF0F5),
+      accent: const Color(0xFFD970A0),
+      reportId: 'heart',
+      enabled: _selectedSections.contains('heart'),
+      onToggle: _toggleSection,
+      chip: 'Used for: AIP, TyG, FLI',
+      onClear: () => _clearControllers([
+        tgCtl,
+        hdlCtl,
+        ldlCtl,
+        totalCholesterolCtl,
+        vldlCtl,
+      ]),
       child: Column(
         children: [
           _unitField(
@@ -755,26 +1197,37 @@ class _InputScreenState extends State<InputScreen> {
               'Triglycerides',
               tgUnit,
               (value) => setState(() => tgUnit = value),
-              const ['mg/dL', 'mmol/L']),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Lipid Profile'),
           _unitField(
               hdlCtl,
-              'HDL',
+              'HDL cholesterol',
               hdlUnit,
               (value) => setState(() => hdlUnit = value),
-              const ['mg/dL', 'mmol/L']),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Lipid Profile'),
           _unitField(
               ldlCtl,
-              'LDL',
+              'LDL cholesterol',
               ldlUnit,
               (value) => setState(() => ldlUnit = value),
-              const ['mg/dL', 'mmol/L']),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Lipid Profile'),
           _unitField(
               totalCholesterolCtl,
               'Total cholesterol',
               totalCholesterolUnit,
               (value) => setState(() => totalCholesterolUnit = value),
-              const ['mg/dL', 'mmol/L']),
-          _numberField(vldlCtl, 'VLDL'),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Lipid Profile'),
+          _unitField(
+            vldlCtl,
+            'VLDL',
+            vldlUnit,
+            (value) => setState(() => vldlUnit = value),
+            const ['mg/dL', 'mmol/L'],
+            helper: 'Found in: Lipid Profile',
+          ),
         ],
       ),
     );
@@ -782,8 +1235,20 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _diabetesCard() {
     return _SectionCard(
-      title: 'Diabetes / Metabolic Profile',
+      title: 'Diabetes / Glucose Profile',
       icon: Icons.water_drop_outlined,
+      background: const Color(0xFFFFF7E7),
+      accent: const Color(0xFFD99D41),
+      reportId: 'diabetes',
+      enabled: _selectedSections.contains('diabetes'),
+      onToggle: _toggleSection,
+      chip: 'Used for: TyG, FLI, NAFLD',
+      onClear: () => _clearControllers([
+        fastingCtl,
+        hba1cCtl,
+        ppbsCtl,
+        randomSugarCtl,
+      ]),
       child: Column(
         children: [
           _unitField(
@@ -791,20 +1256,30 @@ class _InputScreenState extends State<InputScreen> {
               'Fasting glucose',
               glucoseUnit,
               (value) => setState(() => glucoseUnit = value),
-              const ['mg/dL', 'mmol/L']),
-          _numberField(hba1cCtl, 'HbA1c (%)'),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Diabetes / Glucose Report'),
+          _unitField(
+            hba1cCtl,
+            'HbA1c',
+            hba1cUnit,
+            (value) => setState(() => hba1cUnit = value),
+            const ['%'],
+            helper: 'Found in: Diabetes / Glucose Report',
+          ),
           _unitField(
               ppbsCtl,
               'PPBS',
               ppbsUnit,
               (value) => setState(() => ppbsUnit = value),
-              const ['mg/dL', 'mmol/L']),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Diabetes / Glucose Report'),
           _unitField(
               randomSugarCtl,
               'Random blood sugar',
               randomSugarUnit,
               (value) => setState(() => randomSugarUnit = value),
-              const ['mg/dL', 'mmol/L']),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Diabetes / Glucose Report'),
         ],
       ),
     );
@@ -814,13 +1289,85 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Liver Function Test',
       icon: Icons.monitor_heart_outlined,
+      background: const Color(0xFFECF8EF),
+      accent: const Color(0xFF65B985),
+      reportId: 'liver',
+      enabled: _selectedSections.contains('liver'),
+      onToggle: _toggleSection,
+      chip: 'Used for: APRI, FIB-4, FLI, NAFLD',
+      onClear: () => _clearControllers([
+        astCtl,
+        altCtl,
+        ggtCtl,
+        alpCtl,
+        bilirubinCtl,
+        bilirubinDirectCtl,
+        bilirubinIndirectCtl,
+        albuminCtl,
+        totalProteinCtl,
+      ]),
       child: Column(
         children: [
-          _twoColumn(_numberField(astCtl, 'AST'), _numberField(altCtl, 'ALT')),
-          _twoColumn(_numberField(ggtCtl, 'GGT'), _numberField(alpCtl, 'ALP')),
-          _twoColumn(_numberField(bilirubinCtl, 'Bilirubin'),
-              _numberField(albuminCtl, 'Albumin')),
-          _numberField(totalProteinCtl, 'Total protein'),
+          _twoColumn(
+            _unitField(astCtl, 'AST / SGOT', astUnit,
+                (value) => setState(() => astUnit = value), const ['U/L'],
+                helper: 'Found in: Liver Function Test'),
+            _unitField(altCtl, 'ALT / SGPT', altUnit,
+                (value) => setState(() => altUnit = value), const ['U/L'],
+                helper: 'Found in: Liver Function Test'),
+          ),
+          _twoColumn(
+            _unitField(ggtCtl, 'GGT', ggtUnit,
+                (value) => setState(() => ggtUnit = value), const ['U/L'],
+                helper: 'Found in: Liver Function Test'),
+            _unitField(alpCtl, 'ALP', alpUnit,
+                (value) => setState(() => alpUnit = value), const ['U/L'],
+                helper: 'Found in: Liver Function Test'),
+          ),
+          _twoColumn(
+            _unitField(
+              bilirubinCtl,
+              'Bilirubin total',
+              bilirubinUnit,
+              (value) => setState(() => bilirubinUnit = value),
+              const ['mg/dL', 'µmol/L'],
+              helper: 'Found in: Liver Function Test',
+            ),
+            _unitField(
+              bilirubinDirectCtl,
+              'Bilirubin direct',
+              bilirubinDirectUnit,
+              (value) => setState(() => bilirubinDirectUnit = value),
+              const ['mg/dL', 'µmol/L'],
+              helper: 'Found in: Liver Function Test',
+            ),
+          ),
+          _twoColumn(
+            _unitField(
+              bilirubinIndirectCtl,
+              'Bilirubin indirect',
+              bilirubinIndirectUnit,
+              (value) => setState(() => bilirubinIndirectUnit = value),
+              const ['mg/dL', 'µmol/L'],
+              helper: 'Found in: Liver Function Test',
+            ),
+            _unitField(
+              albuminCtl,
+              'Albumin',
+              albuminUnit,
+              (value) => setState(() => albuminUnit = value),
+              const ['g/dL', 'g/L'],
+              helper: 'Found in: Liver Function Test',
+            ),
+          ),
+          _unitField(
+            totalProteinCtl,
+            'Total protein',
+            totalProteinUnit,
+            (value) => setState(() => totalProteinUnit = value),
+            const ['g/dL', 'g/L'],
+            helper: 'Found in: Liver Function Test',
+          ),
         ],
       ),
     );
@@ -830,15 +1377,85 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'CBC / Differential Count',
       icon: Icons.bloodtype_outlined,
+      background: const Color(0xFFF5F3FA),
+      accent: const Color(0xFF9C89CD),
+      reportId: 'cbc',
+      enabled: _selectedSections.contains('cbc'),
+      onToggle: _toggleSection,
+      chip: 'Used for: NLR, APRI, FIB-4, NAFLD',
+      onClear: () => _clearControllers([
+        plateletsCtl,
+        wbcCtl,
+        neutCtl,
+        lymphCtl,
+        hemoglobinCtl,
+        rbcCtl,
+        esrCtl,
+      ]),
       child: Column(
         children: [
-          _twoColumn(_numberField(plateletsCtl, 'Platelets'),
-              _numberField(wbcCtl, 'WBC')),
-          _twoColumn(_numberField(neutCtl, 'Neutrophils (%)'),
-              _numberField(lymphCtl, 'Lymphocytes (%)')),
-          _twoColumn(_numberField(hemoglobinCtl, 'Hemoglobin'),
-              _numberField(rbcCtl, 'RBC')),
-          _numberField(esrCtl, 'ESR'),
+          _twoColumn(
+            _unitField(
+              plateletsCtl,
+              'Platelets',
+              plateletsUnit,
+              (value) => setState(() => plateletsUnit = value),
+              const ['10⁹/L', 'lakh/µL', 'cells/µL'],
+              helper: 'Found in: CBC Report',
+            ),
+            _unitField(
+              wbcCtl,
+              'WBC',
+              '10⁹/L',
+              (_) {},
+              const ['10⁹/L'],
+              helper: 'Found in: CBC Report',
+            ),
+          ),
+          _twoColumn(
+            _unitField(
+              neutCtl,
+              'Neutrophils',
+              '%',
+              (_) {},
+              const ['%'],
+              helper: 'Found in: CBC Differential Count',
+            ),
+            _unitField(
+              lymphCtl,
+              'Lymphocytes',
+              '%',
+              (_) {},
+              const ['%'],
+              helper: 'Found in: CBC Differential Count',
+            ),
+          ),
+          _twoColumn(
+            _unitField(
+              hemoglobinCtl,
+              'Hemoglobin',
+              hemoglobinUnit,
+              (value) => setState(() => hemoglobinUnit = value),
+              const ['g/dL'],
+              helper: 'Found in: CBC Report',
+            ),
+            _unitField(
+              rbcCtl,
+              'RBC',
+              rbcUnit,
+              (value) => setState(() => rbcUnit = value),
+              const ['million/µL'],
+              helper: 'Found in: CBC Report',
+            ),
+          ),
+          _unitField(
+            esrCtl,
+            'ESR',
+            esrUnit,
+            (value) => setState(() => esrUnit = value),
+            const ['mm/hr'],
+            helper: 'Found in: CBC Report',
+          ),
         ],
       ),
     );
@@ -848,6 +1465,21 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Kidney Function Test',
       icon: Icons.opacity_outlined,
+      background: const Color(0xFFEAFBFD),
+      accent: const Color(0xFF49B6C8),
+      reportId: 'kidney',
+      enabled: _selectedSections.contains('kidney'),
+      onToggle: _toggleSection,
+      chip: 'Used for: eGFR',
+      onClear: () => _clearControllers([
+        creatCtl,
+        bloodUreaCtl,
+        bunCtl,
+        uricAcidCtl,
+        sodiumCtl,
+        potassiumCtl,
+        chlorideCtl,
+      ]),
       child: Column(
         children: [
           _unitField(
@@ -855,11 +1487,62 @@ class _InputScreenState extends State<InputScreen> {
               'Creatinine',
               creatUnit,
               (value) => setState(() => creatUnit = value),
-              const ['mg/dL', 'µmol/L']),
-          _twoColumn(_numberField(bloodUreaCtl, 'Blood urea'),
-              _numberField(uricAcidCtl, 'Uric acid')),
-          _twoColumn(_numberField(sodiumCtl, 'Sodium'),
-              _numberField(potassiumCtl, 'Potassium')),
+              const ['mg/dL', 'µmol/L'],
+              helper: 'Found in: Kidney Function Test'),
+          _twoColumn(
+            _unitField(
+              bloodUreaCtl,
+              'Blood urea',
+              bloodUreaUnit,
+              (value) => setState(() => bloodUreaUnit = value),
+              const ['mg/dL', 'mmol/L'],
+              helper: 'Found in: Kidney Function Test',
+            ),
+            _unitField(
+              bunCtl,
+              'Urea nitrogen / BUN',
+              bunUnit,
+              (value) => setState(() => bunUnit = value),
+              const ['mg/dL'],
+              helper: 'Found in: Kidney Function Test',
+            ),
+          ),
+          _twoColumn(
+            _unitField(
+              uricAcidCtl,
+              'Uric acid',
+              uricAcidUnit,
+              (value) => setState(() => uricAcidUnit = value),
+              const ['mg/dL', 'µmol/L'],
+              helper: 'Found in: Kidney Function Test',
+            ),
+            _unitField(
+              sodiumCtl,
+              'Sodium',
+              'mmol/L',
+              (_) {},
+              const ['mmol/L'],
+              helper: 'Found in: Kidney Function Test',
+            ),
+          ),
+          _twoColumn(
+            _unitField(
+              potassiumCtl,
+              'Potassium',
+              'mmol/L',
+              (_) {},
+              const ['mmol/L'],
+              helper: 'Found in: Kidney Function Test',
+            ),
+            _unitField(
+              chlorideCtl,
+              'Chloride',
+              'mmol/L',
+              (_) {},
+              const ['mmol/L'],
+              helper: 'Found in: Kidney Function Test',
+            ),
+          ),
         ],
       ),
     );
@@ -869,12 +1552,76 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Vitals',
       icon: Icons.speed_outlined,
+      background: const Color(0xFFEAF7FF),
+      accent: const Color(0xFF4BAFE3),
+      reportId: 'vitals',
+      enabled: _selectedSections.contains('vitals'),
+      onToggle: _toggleSection,
+      chip: 'Used for: BP, SpO₂, pulse support',
+      onClear: () => _clearControllers([
+        sysCtl,
+        diaCtl,
+        hrCtl,
+        spo2Ctl,
+        temperatureCtl,
+        respiratoryRateCtl,
+      ]),
       child: Column(
         children: [
-          _twoColumn(_numberField(sysCtl, 'Systolic BP'),
-              _numberField(diaCtl, 'Diastolic BP')),
-          _twoColumn(_numberField(hrCtl, 'Heart rate'),
-              _numberField(spo2Ctl, 'SpO2 (%)')),
+          _twoColumn(
+            _unitField(
+              sysCtl,
+              'Systolic BP',
+              systolicUnit,
+              (value) => setState(() => systolicUnit = value),
+              const ['mmHg'],
+              helper: 'Found in: Vitals',
+            ),
+            _unitField(
+              diaCtl,
+              'Diastolic BP',
+              diastolicUnit,
+              (value) => setState(() => diastolicUnit = value),
+              const ['mmHg'],
+              helper: 'Found in: Vitals',
+            ),
+          ),
+          _twoColumn(
+            _unitField(
+              hrCtl,
+              'Heart rate',
+              heartRateUnit,
+              (value) => setState(() => heartRateUnit = value),
+              const ['bpm'],
+              helper: 'Found in: Vitals',
+            ),
+            _unitField(
+              spo2Ctl,
+              'SpO₂',
+              spo2Unit,
+              (value) => setState(() => spo2Unit = value),
+              const ['%'],
+              helper: 'Measured using: Pulse oximeter',
+            ),
+          ),
+          _twoColumn(
+            _unitField(
+              temperatureCtl,
+              'Body temperature',
+              temperatureUnit,
+              (value) => setState(() => temperatureUnit = value),
+              const ['°C', '°F'],
+              helper: 'Found in: Vitals',
+            ),
+            _unitField(
+              respiratoryRateCtl,
+              'Respiratory rate',
+              respiratoryRateUnit,
+              (value) => setState(() => respiratoryRateUnit = value),
+              const ['breaths/min'],
+              helper: 'Found in: Vitals',
+            ),
+          ),
         ],
       ),
     );
@@ -884,8 +1631,31 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Pancreatic Enzymes',
       icon: Icons.science_outlined,
-      child: _twoColumn(_numberField(lipaseCtl, 'Lipase'),
-          _numberField(amylaseCtl, 'Amylase')),
+      background: const Color(0xFFFFF0ED),
+      accent: const Color(0xFFE18170),
+      reportId: 'pancreas',
+      enabled: _selectedSections.contains('pancreas'),
+      onToggle: _toggleSection,
+      chip: 'Used for: LAR',
+      onClear: () => _clearControllers([lipaseCtl, amylaseCtl]),
+      child: _twoColumn(
+        _unitField(
+          lipaseCtl,
+          'Lipase',
+          lipaseUnit,
+          (value) => setState(() => lipaseUnit = value),
+          const ['U/L'],
+          helper: 'Found in: Pancreatic Enzymes Report',
+        ),
+        _unitField(
+          amylaseCtl,
+          'Amylase',
+          amylaseUnit,
+          (value) => setState(() => amylaseUnit = value),
+          const ['U/L'],
+          helper: 'Found in: Pancreatic Enzymes Report',
+        ),
+      ),
     );
   }
 
@@ -893,33 +1663,133 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Cancer Awareness Markers',
       icon: Icons.health_and_safety_outlined,
+      background: const Color(0xFFF3F2F8),
+      accent: const Color(0xFF8B8FC7),
+      reportId: 'cancer',
+      enabled: _selectedSections.contains('cancer'),
+      onToggle: _toggleSection,
+      chip: 'Used for: awareness markers only',
+      onClear: () => _clearControllers([afpCtl, ca15Ctl, ca27Ctl]),
       child: Column(
         children: [
-          _numberField(afpCtl, 'AFP'),
-          _twoColumn(_numberField(ca15Ctl, 'CA 15-3'),
-              _numberField(ca27Ctl, 'CA 27.29')),
+          _unitField(
+            afpCtl,
+            'AFP',
+            afpUnit,
+            (value) => setState(() => afpUnit = value),
+            const ['ng/mL'],
+            helper: 'Found in: Tumor Marker Report',
+          ),
+          _twoColumn(
+            _unitField(
+              ca15Ctl,
+              'CA 15-3',
+              ca153Unit,
+              (value) => setState(() => ca153Unit = value),
+              const ['U/mL'],
+              helper: 'Found in: Tumor Marker Report',
+            ),
+            _unitField(
+              ca27Ctl,
+              'CA 27.29',
+              ca2729Unit,
+              (value) => setState(() => ca2729Unit = value),
+              const ['U/mL'],
+              helper: 'Found in: Tumor Marker Report',
+            ),
+          ),
         ],
       ),
     );
   }
 
+  Widget _heightField() {
+    if (heightUnit == 'ft-in') {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _numberField(
+                    heightFeetCtl,
+                    'Feet',
+                    required: true,
+                    unitSuffix: 'ft',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _numberField(
+                    heightInchesCtl,
+                    'Inches',
+                    unitSuffix: 'in',
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 112,
+                  child: _unitDropdown(
+                    heightUnit,
+                    const ['cm', 'ft-in'],
+                    (value) => setState(() => heightUnit = value),
+                  ),
+                ),
+              ],
+            ),
+            _fieldHelper('Self-reported', allowSkip: false),
+          ],
+        ),
+      );
+    }
+    return _unitField(
+      heightCtl,
+      'Height',
+      heightUnit,
+      (value) => setState(() => heightUnit = value),
+      const ['cm', 'ft-in'],
+      helper: 'Self-reported',
+      required: true,
+      allowSkip: false,
+    );
+  }
+
   Widget _numberField(TextEditingController controller, String label,
-      {bool required = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        onChanged: (_) => setState(() {}),
-        decoration: InputDecoration(labelText: label),
-        validator: (value) {
-          final text = value?.trim() ?? '';
-          if (required && text.isEmpty) return 'Required';
-          if (text.isNotEmpty && double.tryParse(text) == null)
-            return 'Enter a valid number';
-          return null;
-        },
+      {bool required = false, String? unitSuffix}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        labelText: label,
+        suffixText: unitSuffix,
+        suffixIcon: IconButton(
+          tooltip: 'Unit help',
+          icon: const Icon(Icons.info_outline, size: 18),
+          onPressed: _showUnitInfo,
+        ),
       ),
+      validator: (value) {
+        final text = value?.trim() ?? '';
+        if (required && text.isEmpty) {
+          return 'Please enter a valid number.';
+        }
+        if (text.isEmpty) return null;
+        final parsed = double.tryParse(text);
+        if (parsed == null) {
+          return 'Please enter a valid number.';
+        }
+        if (parsed < 0) {
+          return 'This value seems unusually low. Please check the unit.';
+        }
+        if (parsed > 1000000) {
+          return 'This value seems unusually high. Please check the unit.';
+        }
+        return null;
+      },
     );
   }
 
@@ -928,28 +1798,156 @@ class _InputScreenState extends State<InputScreen> {
     String label,
     String unit,
     ValueChanged<String> onUnitChanged,
-    List<String> units,
-  ) {
+    List<String> units, {
+    String? helper,
+    bool required = false,
+    bool allowSkip = true,
+  }) {
+    final hasAlternativeUnits = units.length > 1;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _numberField(controller, label)),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 120,
-            child: DropdownButtonFormField<String>(
-              initialValue: unit,
-              decoration: const InputDecoration(labelText: 'Unit'),
-              items: units
-                  .map((item) =>
-                      DropdownMenuItem(value: item, child: Text(item)))
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) onUnitChanged(value);
-              },
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _numberField(controller, label, required: required),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 120,
+                child: hasAlternativeUnits
+                    ? _unitDropdown(unit, units, onUnitChanged)
+                    : _fixedUnitLabel(units.first),
+              ),
+            ],
+          ),
+          _fieldHelper(helper, allowSkip: allowSkip, controller: controller),
+        ],
+      ),
+    );
+  }
+
+  Widget _readOnlyUnitField(
+    String label,
+    String value,
+    String unit, {
+    String? helper,
+  }) {
+    final text = value.isEmpty ? 'Auto' : value;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  key: ValueKey('$label-$text'),
+                  initialValue: text,
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: label,
+                    suffixText: unit,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(width: 120, child: _fixedUnitLabel('Read-only')),
+            ],
+          ),
+          _fieldHelper(helper, allowSkip: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _fixedUnitLabel(String unit) {
+    return Container(
+      height: 56,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7FCFF),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppStyles.border),
+      ),
+      child: Text(
+        unit,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: AppStyles.primary,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _unitDropdown(
+    String unit,
+    List<String> units,
+    ValueChanged<String> onUnitChanged,
+  ) {
+    return DropdownButtonFormField<String>(
+      initialValue: unit,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'Unit'),
+      items: units
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
+      onChanged: (value) {
+        if (value != null) onUnitChanged(value);
+      },
+    );
+  }
+
+  Widget _fieldHelper(String? helper,
+      {bool allowSkip = true, TextEditingController? controller}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 2,
+        children: [
+          Text(
+            helper ?? 'Select the unit exactly as shown in your report.',
+            style: const TextStyle(color: AppStyles.muted, fontSize: 12),
+          ),
+          if (allowSkip && controller != null)
+            TextButton.icon(
+              onPressed: () => setState(() => controller.clear()),
+              icon: const Icon(Icons.remove_circle_outline, size: 16),
+              label: const Text("I don't have this value"),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 28),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  void _showUnitInfo() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unit help'),
+        content: const Text(
+          'Select the unit exactly as shown in your report. The app converts it automatically.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -972,7 +1970,9 @@ class _InputScreenState extends State<InputScreen> {
             .map((item) => DropdownMenuItem(value: item, child: Text(item)))
             .toList(),
         onChanged: onChanged,
-        validator: (choice) => choice == null ? 'Required' : null,
+        validator: (choice) => choice == null
+            ? 'Please complete the compulsory general health questions.'
+            : null,
       ),
     );
   }
@@ -1010,39 +2010,92 @@ class _IntroCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: const Color(0xFFCFEFFF)),
+        boxShadow: [
+          BoxShadow(
+            color: AppStyles.primary.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppStyles.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child:
-                  const Icon(Icons.health_and_safety, color: AppStyles.primary),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Organ health risk indicator',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                  SizedBox(height: 6),
-                  Text(
-                    'Complete the general questions, then add any report values available to generate safe screening insights.',
-                    style: TextStyle(color: AppStyles.muted),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppStyles.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
-              ),
+                  child: const Icon(Icons.health_and_safety,
+                      color: AppStyles.primary),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Enter Your Health Details',
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppStyles.text)),
+                      SizedBox(height: 6),
+                      Text(
+                        'Answer general questions and add only the report values you have.',
+                        style: TextStyle(color: AppStyles.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _ProgressChip(label: 'General Details', selected: true),
+                _ProgressChip(label: 'Report Values'),
+                _ProgressChip(label: 'Review'),
+              ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgressChip extends StatelessWidget {
+  const _ProgressChip({required this.label, this.selected = false});
+
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: selected ? AppStyles.primary : Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: selected ? AppStyles.primary : AppStyles.softBlueBorder,
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: selected ? Colors.white : AppStyles.softBlueText,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
         ),
       ),
     );
@@ -1050,102 +2103,154 @@ class _IntroCard extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard(
-      {required this.title, required this.icon, required this.child});
+  const _SectionCard({
+    required this.title,
+    required this.icon,
+    required this.child,
+    required this.background,
+    required this.accent,
+    this.reportId,
+    this.enabled = true,
+    this.onToggle,
+    this.chip,
+    this.onClear,
+  });
 
   final String title;
   final IconData icon;
   final Widget child;
+  final Color background;
+  final Color accent;
+  final String? reportId;
+  final bool enabled;
+  final void Function(String id, bool enabled)? onToggle;
+  final String? chip;
+  final VoidCallback? onClear;
+
+  bool get _isReport => reportId != null;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: AppStyles.primary, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                    child: Text(title,
-                        style: Theme.of(context).textTheme.titleMedium)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            child,
-          ],
-        ),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accent.withValues(alpha: 0.22)),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _ReportToggleCard extends StatelessWidget {
-  const _ReportToggleCard({
-    required this.section,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final _ReportSection section;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 126),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFEAFBFD) : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              color: selected ? AppStyles.primary : AppStyles.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(section.icon,
-                    color: selected ? AppStyles.primary : AppStyles.muted),
-                const Spacer(),
-                Icon(
-                  selected ? Icons.check_circle : Icons.add_circle_outline,
-                  color: selected ? AppStyles.primary : AppStyles.muted,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, color: accent, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(color: AppStyles.text),
+                    ),
+                  ),
+                  if (chip != null) ...[
+                    const SizedBox(width: 8),
+                    Flexible(child: _UsedForChip(label: chip!, color: accent)),
+                  ],
+                  if (_isReport) ...[
+                    const SizedBox(width: 8),
+                    Switch.adaptive(
+                      value: enabled,
+                      activeThumbColor: accent,
+                      onChanged: (value) => onToggle?.call(reportId!, value),
+                    ),
+                  ],
+                ],
+              ),
+              if (_isReport)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    enabled
+                        ? 'I have this report'
+                        : 'Turn on if you have this report',
+                    style: const TextStyle(
+                      color: AppStyles.muted,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
+              if (enabled) ...[
+                const SizedBox(height: 12),
+                child,
+                if (onClear != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: onClear,
+                      icon: const Icon(Icons.cleaning_services_outlined,
+                          size: 16),
+                      label: const Text('Clear this section'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: accent,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
               ],
-            ),
-            const SizedBox(height: 10),
-            Text(section.title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700, color: AppStyles.text)),
-            const SizedBox(height: 4),
-            Text(section.subtitle,
-                style: const TextStyle(fontSize: 12, color: AppStyles.muted)),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ReportSection {
-  const _ReportSection({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
+class _UsedForChip extends StatelessWidget {
+  const _UsedForChip({required this.label, required this.color});
 
-  final String id;
-  final String title;
-  final String subtitle;
-  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        label,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w800,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
 }

@@ -28,17 +28,54 @@ class AIRecommendationService:
             "You do not diagnose, treat, or confirm disease. You only explain calculated risk "
             "indicators in simple language and provide general lifestyle, food habit, and "
             "environmental recommendations. Always recommend consulting a qualified healthcare "
-            "professional for medical decisions. Do not use medication advice."
+            "professional for medical decisions. Do not use medication advice. Do not calculate "
+            "or recalculate any score. Do not change the supplied risk indicator."
         )
 
     def _user_payload(self, result: Dict[str, Any], payload: Dict[str, Any]) -> str:
+        general = payload.get("general_health") or {}
+        lifestyle_answers = {
+            key: general.get(key)
+            for key in [
+                "smoking",
+                "alcohol",
+                "physical_activity",
+                "sleep_duration",
+                "stress_level",
+                "family_history",
+            ]
+        }
+        food_habit_answers = {
+            key: general.get(key)
+            for key in [
+                "diet_type",
+                "high_sugar_intake",
+                "high_salt_intake",
+                "fried_processed_food",
+                "fruit_veg_intake",
+                "sugary_drinks",
+            ]
+        }
+        environment_answers = {
+            key: general.get(key)
+            for key in [
+                "air_pollution",
+                "occupational_exposure",
+                "passive_smoking",
+                "cooking_smoke",
+                "cooking_fuel_smoke",
+                "location_type",
+            ]
+        }
         safe_input = {
             "organ_system": result.get("organ"),
             "index_name": result.get("index_name"),
             "calculated_score": result.get("score"),
             "risk_indicator": result.get("risk_level"),
             "values_used": result.get("values_used"),
-            "general_lifestyle_answers": payload.get("general_health") or {},
+            "lifestyle_answers": lifestyle_answers,
+            "food_habit_answers": food_habit_answers,
+            "environment_answers": environment_answers,
             "profile": payload.get("profile") or {},
             "symptoms": payload.get("symptoms") or {},
             "output_format": {
@@ -62,7 +99,7 @@ class AIRecommendationService:
         return json.dumps(safe_input)
 
     def _apply_ai_object(self, result: Dict[str, Any], ai_obj: Dict[str, Any]) -> Dict[str, Any]:
-        if not ai_obj:
+        if not ai_obj or not self._is_safe_ai_object(ai_obj):
             return result
         updated = dict(result)
         fallback = dict(result.get("ai_recommendation") or {})
@@ -85,6 +122,20 @@ class AIRecommendationService:
         updated["environment_recommendations"] = fallback.get("environment_recommendations") or updated.get("environment_recommendations", [])
         updated["doctor_followup"] = fallback.get("doctor_followup") or updated.get("doctor_followup")
         return updated
+
+    def _is_safe_ai_object(self, ai_obj: Dict[str, Any]) -> bool:
+        text = json.dumps(ai_obj, ensure_ascii=False).lower()
+        forbidden = [
+            "diagnosis",
+            "disease confirmed",
+            "cancer detected",
+            "guaranteed prediction",
+            "treatment plan",
+            "medication advice",
+            "medicine recommendation",
+            "prescribe",
+        ]
+        return not any(term in text for term in forbidden)
 
     def _parse_json_text(self, text: str) -> Dict[str, Any]:
         try:

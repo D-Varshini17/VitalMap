@@ -2,10 +2,24 @@ from typing import Dict, Any, List, Optional
 from math import exp, log10, log, sqrt
 
 from .unit_conversion import (
+    absolute_count_to_10e9_l,
+    albumin_to_gdl,
+    bilirubin_to_mgdl,
+    blood_urea_to_mgdl,
     glucose_to_mgdl,
+    height_to_cm,
+    is_absolute_count_unit,
+    is_percent_unit,
+    platelets_to_10e9_l,
     triglycerides_to_mgdl,
     cholesterol_to_mgdl,
     creatinine_to_mgdl,
+    temperature_to_c,
+    total_protein_to_gdl,
+    uric_acid_to_mgdl,
+    waist_to_cm,
+    wbc_to_10e9_l,
+    weight_to_kg,
 )
 from . import risk_rules
 from .explanation_engine import ExplanationEngine
@@ -32,8 +46,10 @@ class FormulaEngine:
 
         age = profile.get("age")
         sex = profile.get("sex")
-        bmi = self._bmi(profile.get("height_cm"), profile.get("weight_kg"))
-        waist = profile.get("waist_cm")
+        height_cm = self._profile_height_cm(profile)
+        weight_kg = self._profile_weight_kg(profile)
+        bmi = self._bmi(height_cm, weight_kg)
+        waist = self._profile_waist_cm(profile)
 
         tg = triglycerides_to_mgdl(
             lipids.get("triglycerides"), lipids.get("triglycerides_unit", "mg/dL")
@@ -44,7 +60,7 @@ class FormulaEngine:
             lipids.get("total_cholesterol"),
             lipids.get("total_cholesterol_unit", "mg/dL"),
         )
-        vldl = lipids.get("vldl")
+        vldl = cholesterol_to_mgdl(lipids.get("vldl"), lipids.get("vldl_unit", "mg/dL"))
 
         fasting = glucose_to_mgdl(
             diabetes.get("fasting_glucose"),
@@ -60,13 +76,18 @@ class FormulaEngine:
         ast = liver.get("ast")
         alt = liver.get("alt")
         ggt = liver.get("ggt")
-        albumin = liver.get("albumin")
-        platelets = cbc.get("platelets")
-        neutrophils = cbc.get("neutrophils")
-        lymphocytes = cbc.get("lymphocytes")
+        bilirubin = bilirubin_to_mgdl(liver.get("bilirubin"), liver.get("bilirubin_unit", "mg/dL"))
+        albumin = albumin_to_gdl(liver.get("albumin"), liver.get("albumin_unit", "g/dL"))
+        total_protein = total_protein_to_gdl(liver.get("total_protein"), liver.get("total_protein_unit", "g/dL"))
+        platelets = platelets_to_10e9_l(cbc.get("platelets"), cbc.get("platelets_unit", "10⁹/L"))
+        wbc = wbc_to_10e9_l(cbc.get("wbc"), cbc.get("wbc_unit", "10⁹/L"))
+        neutrophils, lymphocytes = self._nlr_inputs(cbc)
         creatinine = creatinine_to_mgdl(
             kidney.get("creatinine"), kidney.get("creatinine_unit", "mg/dL")
         )
+        blood_urea = blood_urea_to_mgdl(kidney.get("blood_urea"), kidney.get("blood_urea_unit", "mg/dL"))
+        uric_acid = uric_acid_to_mgdl(kidney.get("uric_acid"), kidney.get("uric_acid_unit", "mg/dL"))
+        temperature = temperature_to_c(vitals.get("body_temperature"), vitals.get("body_temperature_unit", "°C"))
 
         self._calculate_aip(results, more_needed, general, tg, hdl, ldl, total_cholesterol, vldl)
         self._calculate_tyg(results, more_needed, general, tg, fasting)
@@ -162,6 +183,40 @@ class FormulaEngine:
             return weight_kg / ((height_cm / 100.0) ** 2)
         except Exception:
             return None
+
+    def _profile_height_cm(self, profile: Dict[str, Any]):
+        if profile.get("height_input") is not None or profile.get("height_unit") == "ft-in":
+            return height_to_cm(
+                profile.get("height_input"),
+                profile.get("height_unit", "cm"),
+                feet=profile.get("height_feet"),
+                inches=profile.get("height_inches"),
+            )
+        return profile.get("height_cm")
+
+    def _profile_weight_kg(self, profile: Dict[str, Any]):
+        if profile.get("weight_input") is not None:
+            return weight_to_kg(profile.get("weight_input"), profile.get("weight_unit", "kg"))
+        return profile.get("weight_kg")
+
+    def _profile_waist_cm(self, profile: Dict[str, Any]):
+        if profile.get("waist_input") is not None:
+            return waist_to_cm(profile.get("waist_input"), profile.get("waist_unit", "cm"))
+        return profile.get("waist_cm")
+
+    def _nlr_inputs(self, cbc: Dict[str, Any]):
+        neut_unit = cbc.get("neutrophils_unit", "%")
+        lymph_unit = cbc.get("lymphocytes_unit", "%")
+        both_percent = is_percent_unit(neut_unit) and is_percent_unit(lymph_unit)
+        both_absolute = is_absolute_count_unit(neut_unit) and is_absolute_count_unit(lymph_unit)
+        if not (both_percent or both_absolute):
+            return None, None
+        if both_absolute:
+            return (
+                absolute_count_to_10e9_l(cbc.get("neutrophils"), neut_unit),
+                absolute_count_to_10e9_l(cbc.get("lymphocytes"), lymph_unit),
+            )
+        return cbc.get("neutrophils"), cbc.get("lymphocytes")
 
     def _calculate_aip(self, results, more_needed, general, tg, hdl, ldl, total_cholesterol, vldl):
         if tg is not None and hdl is not None and tg > 0 and hdl > 0:

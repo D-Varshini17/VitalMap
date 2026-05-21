@@ -16,13 +16,21 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.10.0
+  flutter_lints: ^6.0.0
 flutter:
   uses-material-design: true
+  assets:
+    - assets/logo_medid.jpeg
 
 # Configuration for flutter_launcher_icons
 flutter_icons:
   android: true
-  ios: true
-  image_path: "assets/logo.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/logo.png"
+  ios: false
+  web:
+    generate: true
+    image_path: "assets/app_icon_legacy.png"
+    background_color: "#F7FDFF"
+    theme_color: "#4BAFE3"
+  image_path: "assets/app_icon_legacy.png"
+  adaptive_icon_background: "#F7FDFF"
+  adaptive_icon_foreground: "assets/app_icon_foreground.png"
