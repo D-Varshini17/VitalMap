@@ -6,6 +6,7 @@ import '../styles.dart';
 import '../utils/unit_conversion.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
+import '../widgets/health_dashboard_widgets.dart';
 
 class InputScreen extends StatefulWidget {
   const InputScreen({super.key, required this.onAnalysisComplete});
@@ -148,6 +149,73 @@ class _InputScreenState extends State<InputScreen> {
 
   bool loading = false;
 
+  static const _reportSections = [
+    _ReportSection(
+      id: 'heart',
+      title: 'Heart / Lipid Profile',
+      subtitle: 'AIP',
+      icon: Icons.favorite_border,
+      background: Color(0xFFFFF0F5),
+      accent: Color(0xFFD970A0),
+    ),
+    _ReportSection(
+      id: 'diabetes',
+      title: 'Diabetes / Metabolic',
+      subtitle: 'TyG, metabolic insight',
+      icon: Icons.water_drop_outlined,
+      background: Color(0xFFFFF7E7),
+      accent: Color(0xFFD99D41),
+    ),
+    _ReportSection(
+      id: 'liver',
+      title: 'Liver Function Test',
+      subtitle: 'APRI, FIB-4, FLI, NAFLD',
+      icon: Icons.monitor_heart_outlined,
+      background: Color(0xFFECF8EF),
+      accent: Color(0xFF65B985),
+    ),
+    _ReportSection(
+      id: 'cbc',
+      title: 'CBC / Differential',
+      subtitle: 'NLR and liver support',
+      icon: Icons.bloodtype_outlined,
+      background: Color(0xFFF5F3FA),
+      accent: Color(0xFF9C89CD),
+    ),
+    _ReportSection(
+      id: 'kidney',
+      title: 'Kidney Function',
+      subtitle: 'eGFR',
+      icon: Icons.opacity_outlined,
+      background: Color(0xFFEAFBFD),
+      accent: Color(0xFF49B6C8),
+    ),
+    _ReportSection(
+      id: 'vitals',
+      title: 'Vitals',
+      subtitle: 'SpO2, BP support',
+      icon: Icons.speed_outlined,
+      background: Color(0xFFEAF7FF),
+      accent: Color(0xFF4BAFE3),
+    ),
+    _ReportSection(
+      id: 'pancreas',
+      title: 'Pancreatic Enzymes',
+      subtitle: 'LAR',
+      icon: Icons.science_outlined,
+      background: Color(0xFFFFF0ED),
+      accent: Color(0xFFE18170),
+    ),
+    _ReportSection(
+      id: 'cancer',
+      title: 'Cancer Awareness',
+      subtitle: 'Awareness markers only',
+      icon: Icons.health_and_safety_outlined,
+      background: Color(0xFFF3F2F8),
+      accent: Color(0xFF8B8FC7),
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -232,7 +300,7 @@ class _InputScreenState extends State<InputScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Unable to analyze right now. Please check your connection or try again.'),
+              'Unable to analyze right now. Please check your input values and try again.'),
         ),
       );
       return;
@@ -628,73 +696,50 @@ class _InputScreenState extends State<InputScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4FBFF),
         appBar: AppBar(
           title: const BrandAppBarTitle(title: 'VitalMap'),
         ),
-        body: ColoredBox(
-          color: const Color(0xFFF4FBFF),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _IntroCard(),
-                  _stepHeader('General Details'),
-                  _profileCard(),
-                  _lifestyleCard(),
-                  _foodCard(),
-                  _environmentCard(),
-                  _stepHeader('Report Values'),
-                  const Text(
-                    'Turn on only the reports you have. Empty report fields can be skipped safely.',
-                    style: TextStyle(color: AppStyles.muted),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _IntroCard(),
+                _stepHeader('Step 1 of 3: General Health Details'),
+                _profileCard(),
+                _lifestyleCard(),
+                _foodCard(),
+                _environmentCard(),
+                _stepHeader('Step 2 of 3: Optional Report-Based Lab Inputs'),
+                const Text(
+                  'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
+                  style: TextStyle(color: AppStyles.muted),
+                ),
+                const SizedBox(height: 12),
+                _reportPicker(),
+                const SizedBox(height: 6),
+                if (_selectedSections.contains('heart')) _heartCard(),
+                if (_selectedSections.contains('diabetes')) _diabetesCard(),
+                if (_selectedSections.contains('liver')) _liverCard(),
+                if (_selectedSections.contains('cbc')) _cbcCard(),
+                if (_selectedSections.contains('kidney')) _kidneyCard(),
+                if (_selectedSections.contains('vitals')) _vitalsCard(),
+                if (_selectedSections.contains('pancreas')) _pancreasCard(),
+                if (_selectedSections.contains('cancer')) _cancerCard(),
+                const SizedBox(height: 12),
+                _actionButtons(),
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Text(
+                    'Step 3 of 3: Review screening insights on the Results tab',
+                    style: TextStyle(
+                        color: AppStyles.primary, fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 10),
-                  _vitalsCard(),
-                  _heartCard(),
-                  _diabetesCard(),
-                  _liverCard(),
-                  _cbcCard(),
-                  _kidneyCard(),
-                  _pancreasCard(),
-                  _cancerCard(),
-                  const SizedBox(height: 12),
-                  if (_compulsoryComplete() && !_hasAnyReportValue())
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 10),
-                      child: Text(
-                        'No lab-based index can be calculated yet. Add report values to generate organ-wise risk indicators.',
-                        style: TextStyle(
-                            color: AppStyles.muted,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  if (!_compulsoryComplete())
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 10),
-                      child: Text(
-                        'Please complete the compulsory general health questions.',
-                        style: TextStyle(
-                            color: AppStyles.muted,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  _actionButtons(),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12),
-                    child: Text(
-                      'Review screening insights on the Results tab.',
-                      style: TextStyle(
-                          color: AppStyles.primary,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  const DisclaimerWidget(),
-                ],
-              ),
+                ),
+                const DisclaimerWidget(),
+              ],
             ),
           ),
         ),
@@ -785,106 +830,6 @@ class _InputScreenState extends State<InputScreen> {
     final weight = weightToKg(_num(weightCtl), weightUnit);
     if (height == null || weight == null || height <= 0) return null;
     return weight / ((height / 100) * (height / 100));
-  }
-
-  bool _compulsoryComplete() {
-    final hasHeight = heightUnit == 'ft-in'
-        ? heightFeetCtl.text.trim().isNotEmpty
-        : heightCtl.text.trim().isNotEmpty;
-    final profileComplete = ageCtl.text.trim().isNotEmpty &&
-        hasHeight &&
-        weightCtl.text.trim().isNotEmpty &&
-        waistCtl.text.trim().isNotEmpty &&
-        sex != null;
-    final lifestyleComplete = smoking != null &&
-        alcohol != null &&
-        physicalActivity != null &&
-        sleepDuration != null &&
-        stressLevel != null &&
-        familyHistory != null;
-    final foodComplete = dietType != null &&
-        sugarIntake != null &&
-        saltIntake != null &&
-        processedFood != null &&
-        fruitVeg != null &&
-        sugaryDrinks != null;
-    final environmentComplete = airPollution != null &&
-        occupationalExposure != null &&
-        passiveSmoking != null &&
-        cookingSmoke != null &&
-        cookingFuelSmoke != null &&
-        locationType != null;
-    return profileComplete &&
-        lifestyleComplete &&
-        foodComplete &&
-        environmentComplete;
-  }
-
-  bool _hasAnyReportValue() {
-    bool hasAny(List<TextEditingController> controllers) {
-      return controllers.any((controller) => controller.text.trim().isNotEmpty);
-    }
-
-    return (_selectedSections.contains('vitals') &&
-            hasAny([
-              sysCtl,
-              diaCtl,
-              hrCtl,
-              spo2Ctl,
-              temperatureCtl,
-              respiratoryRateCtl,
-            ])) ||
-        (_selectedSections.contains('heart') &&
-            hasAny([
-              tgCtl,
-              hdlCtl,
-              ldlCtl,
-              totalCholesterolCtl,
-              vldlCtl,
-            ])) ||
-        (_selectedSections.contains('diabetes') &&
-            hasAny([
-              fastingCtl,
-              hba1cCtl,
-              ppbsCtl,
-              randomSugarCtl,
-            ])) ||
-        (_selectedSections.contains('liver') &&
-            hasAny([
-              astCtl,
-              altCtl,
-              ggtCtl,
-              alpCtl,
-              bilirubinCtl,
-              bilirubinDirectCtl,
-              bilirubinIndirectCtl,
-              albuminCtl,
-              totalProteinCtl,
-            ])) ||
-        (_selectedSections.contains('cbc') &&
-            hasAny([
-              plateletsCtl,
-              wbcCtl,
-              neutCtl,
-              lymphCtl,
-              hemoglobinCtl,
-              rbcCtl,
-              esrCtl,
-            ])) ||
-        (_selectedSections.contains('kidney') &&
-            hasAny([
-              creatCtl,
-              bloodUreaCtl,
-              bunCtl,
-              uricAcidCtl,
-              sodiumCtl,
-              potassiumCtl,
-              chlorideCtl,
-            ])) ||
-        (_selectedSections.contains('pancreas') &&
-            hasAny([lipaseCtl, amylaseCtl])) ||
-        (_selectedSections.contains('cancer') &&
-            hasAny([afpCtl, ca15Ctl, ca27Ctl]));
   }
 
   Set<String> _inferSelectedSections(Map<String, dynamic> payload) {
@@ -988,53 +933,6 @@ class _InputScreenState extends State<InputScreen> {
         controller.clear();
       }
     });
-  }
-
-  Widget _actionButtons() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final analyzeButton = ElevatedButton.icon(
-          onPressed: loading || !_compulsoryComplete() ? null : analyze,
-          icon: loading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white),
-                )
-              : const Icon(Icons.insights),
-          label: Text(loading ? 'Analyzing...' : 'Analyze Available Values'),
-        );
-        final saveButton = OutlinedButton.icon(
-          onPressed: () async {
-            await LocalStorage.saveLastPayload(_payload());
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Saved for later.')),
-            );
-          },
-          icon: const Icon(Icons.bookmark_border),
-          label: const Text('Save and Continue Later'),
-        );
-        if (constraints.maxWidth < 520) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              analyzeButton,
-              const SizedBox(height: 10),
-              saveButton,
-            ],
-          );
-        }
-        return Row(
-          children: [
-            Expanded(child: analyzeButton),
-            const SizedBox(width: 12),
-            Expanded(child: saveButton),
-          ],
-        );
-      },
-    );
   }
 
   Widget _lifestyleCard() {
@@ -1170,6 +1068,85 @@ class _InputScreenState extends State<InputScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _reportPicker() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth > 620
+            ? (constraints.maxWidth - 24) / 3
+            : (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final section in _reportSections)
+              SizedBox(
+                width: cardWidth,
+                child: _ReportToggleCard(
+                  section: section,
+                  selected: _selectedSections.contains(section.id),
+                  onTap: () {
+                    setState(() {
+                      if (_selectedSections.contains(section.id)) {
+                        _selectedSections.remove(section.id);
+                      } else {
+                        _selectedSections.add(section.id);
+                      }
+                    });
+                  },
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _actionButtons() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final analyzeButton = GradientActionButton(
+          onPressed: loading ? null : analyze,
+          icon: Icons.insights,
+          loading: loading,
+          label: loading ? 'Analyzing...' : 'Analyze Available Values',
+        );
+        final saveButton = OutlinedButton.icon(
+          onPressed: loading
+              ? null
+              : () async {
+                  await LocalStorage.saveLastPayload(_payload());
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Saved for later.')),
+                  );
+                },
+          icon: const Icon(Icons.bookmark_border),
+          label: const Text('Save and Continue Later'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+          ),
+        );
+        if (constraints.maxWidth < 560) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(width: double.infinity, child: analyzeButton),
+              const SizedBox(height: 10),
+              SizedBox(width: double.infinity, child: saveButton),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: analyzeButton),
+            const SizedBox(width: 12),
+            Expanded(child: saveButton),
+          ],
+        );
+      },
     );
   }
 
@@ -2001,102 +1978,9 @@ class _IntroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFE9FBFF), Color(0xFFFFFFFF), Color(0xFFEAF7FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFCFEFFF)),
-        boxShadow: [
-          BoxShadow(
-            color: AppStyles.primary.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppStyles.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.health_and_safety,
-                      color: AppStyles.primary),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Enter Your Health Details',
-                          style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: AppStyles.text)),
-                      SizedBox(height: 6),
-                      Text(
-                        'Answer general questions and add only the report values you have.',
-                        style: TextStyle(color: AppStyles.muted),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            const Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _ProgressChip(label: 'General Details', selected: true),
-                _ProgressChip(label: 'Report Values'),
-                _ProgressChip(label: 'Review'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ProgressChip extends StatelessWidget {
-  const _ProgressChip({required this.label, this.selected = false});
-
-  final String label;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: selected ? AppStyles.primary : Colors.white,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: selected ? AppStyles.primary : AppStyles.softBlueBorder,
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: selected ? Colors.white : AppStyles.softBlueText,
-          fontWeight: FontWeight.w800,
-          fontSize: 12,
-        ),
+    return const VitalMapHeroCard(
+      bottom: PremiumProgressChips(
+        labels: ['General Details', 'Report Values', 'Review'],
       ),
     );
   }
@@ -2107,11 +1991,11 @@ class _SectionCard extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.child,
-    required this.background,
-    required this.accent,
-    this.reportId,
-    this.enabled = true,
-    this.onToggle,
+    this.background = Colors.white,
+    this.accent = AppStyles.primary,
+    String? reportId,
+    bool enabled = true,
+    void Function(String id, bool enabled)? onToggle,
     this.chip,
     this.onClear,
   });
@@ -2121,13 +2005,8 @@ class _SectionCard extends StatelessWidget {
   final Widget child;
   final Color background;
   final Color accent;
-  final String? reportId;
-  final bool enabled;
-  final void Function(String id, bool enabled)? onToggle;
   final String? chip;
   final VoidCallback? onClear;
-
-  bool get _isReport => reportId != null;
 
   @override
   Widget build(BuildContext context) {
@@ -2135,100 +2014,86 @@ class _SectionCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: accent.withValues(alpha: 0.22)),
         boxShadow: [
           BoxShadow(
-            color: accent.withValues(alpha: 0.08),
+            color: accent.withValues(alpha: 0.10),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.78),
-                      borderRadius: BorderRadius.circular(8),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 5,
+            child: ColoredBox(color: accent.withValues(alpha: 0.85)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        borderRadius: BorderRadius.circular(12),
+                        border:
+                            Border.all(color: accent.withValues(alpha: 0.16)),
+                      ),
+                      child: Icon(icon, color: accent, size: 20),
                     ),
-                    child: Icon(icon, color: accent, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(color: AppStyles.text),
-                    ),
-                  ),
-                  if (chip != null) ...[
-                    const SizedBox(width: 8),
-                    Flexible(child: _UsedForChip(label: chip!, color: accent)),
-                  ],
-                  if (_isReport) ...[
-                    const SizedBox(width: 8),
-                    Switch.adaptive(
-                      value: enabled,
-                      activeThumbColor: accent,
-                      onChanged: (value) => onToggle?.call(reportId!, value),
-                    ),
-                  ],
-                ],
-              ),
-              if (_isReport)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    enabled
-                        ? 'I have this report'
-                        : 'Turn on if you have this report',
-                    style: const TextStyle(
-                      color: AppStyles.muted,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              if (enabled) ...[
-                const SizedBox(height: 12),
-                child,
-                if (onClear != null)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: onClear,
-                      icon: const Icon(Icons.cleaning_services_outlined,
-                          size: 16),
-                      label: const Text('Clear this section'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: accent,
-                        padding: EdgeInsets.zero,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(color: AppStyles.text),
+                          ),
+                          if (chip != null) ...[
+                            const SizedBox(height: 6),
+                            _SectionChip(label: chip!, color: accent),
+                          ],
+                        ],
                       ),
                     ),
-                  ),
+                    if (onClear != null)
+                      IconButton(
+                        tooltip: 'Clear this section',
+                        onPressed: onClear,
+                        icon: Icon(Icons.cleaning_services_outlined,
+                            color: accent),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                child,
               ],
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _UsedForChip extends StatelessWidget {
-  const _UsedForChip({required this.label, required this.color});
+class _SectionChip extends StatelessWidget {
+  const _SectionChip({required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -2236,9 +2101,9 @@ class _UsedForChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.72),
+        color: Colors.white.withValues(alpha: 0.68),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
@@ -2253,4 +2118,82 @@ class _UsedForChip extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ReportToggleCard extends StatelessWidget {
+  const _ReportToggleCard({
+    required this.section,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _ReportSection section;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 126),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: selected ? section.background : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border:
+              Border.all(color: selected ? section.accent : AppStyles.border),
+          boxShadow: [
+            BoxShadow(
+              color: section.accent.withValues(alpha: selected ? 0.12 : 0.03),
+              blurRadius: selected ? 12 : 6,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(section.icon,
+                    color: selected ? section.accent : AppStyles.muted),
+                const Spacer(),
+                Icon(
+                  selected ? Icons.check_circle : Icons.add_circle_outline,
+                  color: selected ? section.accent : AppStyles.muted,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(section.title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700, color: AppStyles.text)),
+            const SizedBox(height: 4),
+            Text(section.subtitle,
+                style: const TextStyle(fontSize: 12, color: AppStyles.muted)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportSection {
+  const _ReportSection({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.background,
+    required this.accent,
+  });
+
+  final String id;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color background;
+  final Color accent;
 }

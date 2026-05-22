@@ -29,7 +29,7 @@ class BrandLogoMark extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: EdgeInsets.all(size * 0.08),
+        padding: EdgeInsets.all(size * 0.14),
         child: Image.asset(AppStyles.logoAsset, fit: BoxFit.contain),
       ),
     );

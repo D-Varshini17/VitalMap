@@ -5,18 +5,21 @@ import '../storage/local_storage.dart';
 import '../styles.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
+import '../widgets/health_dashboard_widgets.dart';
 
 class OverviewScreen extends StatefulWidget {
   const OverviewScreen({
     super.key,
     this.response,
     this.lastChecked,
+    required this.onStartAnalysis,
     required this.onViewResults,
     required this.onRecalculated,
   });
 
   final Map<String, dynamic>? response;
   final DateTime? lastChecked;
+  final VoidCallback onStartAnalysis;
   final VoidCallback onViewResults;
   final ValueChanged<Map<String, dynamic>> onRecalculated;
 
@@ -30,15 +33,63 @@ class _OverviewScreenState extends State<OverviewScreen> {
   DateTime? lastChecked;
   bool recalculating = false;
 
-  static const organs = [
-    'Heart',
-    'Diabetes / Metabolic',
-    'Liver',
-    'Kidney',
-    'Lung',
-    'Inflammation',
-    'Pancreas',
-    'Cancer Awareness',
+  static const _organs = [
+    _OrganConfig(
+      key: 'Heart',
+      name: 'Heart',
+      icon: Icons.favorite_border,
+      background: Color(0xFFFFF0F5),
+      accent: Color(0xFFD970A0),
+    ),
+    _OrganConfig(
+      key: 'Liver',
+      name: 'Liver',
+      icon: Icons.science_outlined,
+      background: Color(0xFFFFF7E7),
+      accent: Color(0xFFD99D41),
+    ),
+    _OrganConfig(
+      key: 'Kidney',
+      name: 'Kidney',
+      icon: Icons.water_drop_outlined,
+      background: Color(0xFFF5EEFF),
+      accent: Color(0xFFA675D6),
+    ),
+    _OrganConfig(
+      key: 'Lung',
+      name: 'Lung',
+      icon: Icons.air_outlined,
+      background: Color(0xFFEAFBFD),
+      accent: Color(0xFF49B6C8),
+    ),
+    _OrganConfig(
+      key: 'Diabetes / Metabolic',
+      name: 'Metabolic',
+      icon: Icons.local_fire_department_outlined,
+      background: Color(0xFFFFF2E8),
+      accent: Color(0xFFE49A52),
+    ),
+    _OrganConfig(
+      key: 'Inflammation',
+      name: 'Inflammation',
+      icon: Icons.bloodtype_outlined,
+      background: Color(0xFFF5F3FA),
+      accent: Color(0xFF9C89CD),
+    ),
+    _OrganConfig(
+      key: 'Pancreas',
+      name: 'Pancreas',
+      icon: Icons.biotech_outlined,
+      background: Color(0xFFFFFAE8),
+      accent: Color(0xFFD8A92F),
+    ),
+    _OrganConfig(
+      key: 'Cancer Awareness',
+      name: 'Cancer Awareness',
+      icon: Icons.health_and_safety_outlined,
+      background: Color(0xFFEAF7FF),
+      accent: Color(0xFF4BAFE3),
+    ),
   ];
 
   @override
@@ -82,8 +133,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     if (updated == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text('Unable to recalculate right now. Please try again.')),
+          content: Text('Unable to recalculate right now. Please try again.'),
+        ),
       );
       return;
     }
@@ -98,41 +149,33 @@ class _OverviewScreenState extends State<OverviewScreen> {
   @override
   Widget build(BuildContext context) {
     final results = (response?['calculated_results'] as List<dynamic>?) ?? [];
+    final moreNeeded = (response?['more_data_needed'] as List<dynamic>?) ?? [];
     final pattern =
         (response?['general_health_pattern'] as List<dynamic>?) ?? [];
+    final overallRisk =
+        response?['overall_risk']?.toString() ?? 'More Data Needed';
 
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const BrandAppBarTitle(title: 'Dashboard'),
+          title: const BrandAppBarTitle(title: 'Overview'),
         ),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            _generalPatternCard(pattern),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = constraints.maxWidth > 760
-                    ? 4
-                    : constraints.maxWidth > 520
-                        ? 3
-                        : 2;
-                final width =
-                    (constraints.maxWidth - (12 * (columns - 1))) / columns;
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    for (final organ in organs)
-                      SizedBox(
-                        width: width,
-                        child:
-                            _organCard(organ, _resultsForOrgan(results, organ)),
-                      ),
-                  ],
-                );
-              },
+            VitalMapHeroCard(
+              title: 'VitalMap Overview',
+              subtitle: 'Organ health screening snapshot',
+              description: 'Based on your latest available inputs',
+              trailing:
+                  _heroMeta(overallRisk, results.length, moreNeeded.length),
             ),
+            if (results.isEmpty) _emptyInsightCard(),
+            _sectionTitle('Organ Insight Grid'),
+            _organGrid(results, moreNeeded),
+            _generalHealthPatternSection(pattern),
+            _quickActions(),
+            _moreDataSuggestions(moreNeeded),
             const SizedBox(height: 16),
             const DisclaimerWidget(),
           ],
@@ -141,104 +184,745 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  Widget _generalPatternCard(List<dynamic> pattern) {
-    final groups = _patternGroups(pattern);
-    final counts = _contributorCounts();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+  Widget _heroMeta(String overallRisk, int calculatedCount, int moreDataCount) {
+    final status = AppStyles.statusStyle(overallRisk);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: const [
-              Icon(Icons.spa_outlined, color: AppStyles.primary),
-              SizedBox(width: 8),
-              Text('General Health Pattern',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth > 700 ? 3 : 1;
-              final width =
-                  (constraints.maxWidth - (12 * (columns - 1))) / columns;
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  for (final title in const [
-                    'Lifestyle',
-                    'Food Habits',
-                    'Environment'
-                  ])
-                    SizedBox(
-                      width: width,
-                      child: _contributorCard(
-                        title,
-                        groups[title] ?? const <String>[],
-                        counts[title] ?? 0,
-                      ),
-                    ),
-                ],
-              );
-            },
+          const Text(
+            'Overall Status',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'These factors may contribute to risk indicators.',
-            style: TextStyle(color: AppStyles.muted),
+          StatusBadge(status: status),
+          const SizedBox(height: 8),
+          Text(
+            'Last checked: ${lastChecked == null ? 'Not checked yet' : _formatDate(lastChecked!)}',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$calculatedCount calculated',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$moreDataCount needing more data',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _contributorCard(String title, List<String> items, int count) {
-    final style = AppStyles.contributorStyle(title);
-    final displayCount = count > items.length ? count : items.length;
-    final badgeText = displayCount == 0
-        ? 'No major items'
-        : displayCount == 1
-            ? '1 item noted'
-            : '$displayCount items noted';
+  Widget _emptyInsightCard() {
     return Container(
-      constraints: const BoxConstraints(minHeight: 154),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: style.background,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: style.border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppStyles.softBlueBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppStyles.primary.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final copy = const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'No screening insights yet',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'Complete general questions and add any available report values to generate organ-wise insights.',
+                style: TextStyle(color: AppStyles.muted, height: 1.35),
+              ),
+            ],
+          );
+          final action = SizedBox(
+            width: constraints.maxWidth < 520 ? double.infinity : null,
+            child: GradientActionButton(
+              onPressed: widget.onStartAnalysis,
+              label: 'Start Analysis',
+              icon: Icons.edit_note,
+            ),
+          );
+          if (constraints.maxWidth < 560) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [copy, const SizedBox(height: 12), action],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: copy),
+              const SizedBox(width: 14),
+              action,
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 8),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+      ),
+    );
+  }
+
+  Widget _organGrid(List<dynamic> results, List<dynamic> moreNeeded) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth > 980
+            ? 4
+            : constraints.maxWidth > 640
+                ? 3
+                : 2;
+        final width = (constraints.maxWidth - (12 * (columns - 1))) / columns;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final organ in _organs)
+              SizedBox(
+                width: width,
+                child: _organCard(
+                  organ,
+                  _resultsForOrgan(results, organ.key),
+                  _moreNeededForOrgan(moreNeeded, organ.key),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _organCard(
+    _OrganConfig organ,
+    List<Map<String, dynamic>> organResults,
+    List<Map<String, dynamic>> moreNeeded,
+  ) {
+    final primaryResult = _primaryResult(organResults);
+    final rawStatus =
+        primaryResult?['risk_level']?.toString() ?? 'More Data Needed';
+    final status = AppStyles.statusStyle(rawStatus);
+    final indexes = organResults
+        .map((result) => result['index_name']?.toString() ?? '')
+        .where((text) => text.isNotEmpty)
+        .toList();
+    final score = primaryResult?['score'];
+    final scoreText = score == null
+        ? 'More Data Needed'
+        : '${primaryResult?['index_name']} $score';
+    final message = primaryResult == null
+        ? _missingDataExplanation(organ.key, moreNeeded)
+        : _organExplanation(organ.key, primaryResult, status);
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 266),
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, organ.background],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: status.border),
+        boxShadow: [
+          BoxShadow(
+            color: organ.accent.withValues(alpha: 0.10),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(style.icon, color: style.accent, size: 22),
-              const SizedBox(width: 8),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: organ.background,
+                  shape: BoxShape.circle,
+                  border:
+                      Border.all(color: organ.accent.withValues(alpha: 0.2)),
+                ),
+                child: Icon(organ.icon, color: organ.accent, size: 25),
+              ),
+              const SizedBox(width: 10),
               Expanded(
-                  child: Text(title,
-                      style: TextStyle(
-                          color: style.text, fontWeight: FontWeight.w800))),
+                child: Text(
+                  organ.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: AppStyles.text,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
-          _softBadge(badgeText, style.badgeBackground, style.text),
+          StatusBadge(status: status),
           const SizedBox(height: 10),
-          if (items.isEmpty)
-            Text('No major pattern highlighted.',
-                style: TextStyle(color: style.text, height: 1.3))
-          else
-            for (final item in items.take(2))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(item,
-                    style: TextStyle(color: style.text, height: 1.3)),
+          _metricLine(
+            'Index',
+            indexes.isEmpty ? 'More Data Needed' : indexes.join(', '),
+          ),
+          const SizedBox(height: 5),
+          _metricLine('Score', scoreText),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppStyles.text,
+              height: 1.3,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Last checked: ${lastChecked == null ? 'Not checked yet' : _formatDate(lastChecked!)}',
+            style: const TextStyle(color: AppStyles.muted, fontSize: 12),
+          ),
+          const Spacer(),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: organResults.isEmpty
+                    ? widget.onStartAnalysis
+                    : widget.onViewResults,
+                icon: Icon(
+                  organResults.isEmpty
+                      ? Icons.add_circle_outline
+                      : Icons.visibility_outlined,
+                  size: 17,
+                ),
+                label:
+                    Text(organResults.isEmpty ? 'Add values' : 'View details'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppStyles.text,
+                  side: BorderSide(color: status.border),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                ),
               ),
+              TextButton.icon(
+                onPressed:
+                    lastPayload == null || recalculating ? null : _recalculate,
+                icon: recalculating
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh, size: 17),
+                label: const Text('Recalculate'),
+              ),
+            ],
+          ),
         ],
       ),
     );
+  }
+
+  Widget _generalHealthPatternSection(List<dynamic> pattern) {
+    final groups = _patternGroups(pattern);
+    final counts = _contributorCounts();
+    final cards = [
+      _PatternConfig(
+        title: 'Lifestyle',
+        count: counts['Lifestyle'] ?? 0,
+        items: groups['Lifestyle'] ?? const [],
+        style: AppStyles.lifestyleContributor,
+      ),
+      _PatternConfig(
+        title: 'Food Habits',
+        count: counts['Food Habits'] ?? 0,
+        items: groups['Food Habits'] ?? const [],
+        style: AppStyles.foodContributor,
+      ),
+      _PatternConfig(
+        title: 'Environment',
+        count: counts['Environment'] ?? 0,
+        items: groups['Environment'] ?? const [],
+        style: AppStyles.environmentContributor,
+      ),
+    ];
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppStyles.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('General Health Pattern',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          const Text(
+            'These factors may contribute to risk indicators.',
+            style: TextStyle(color: AppStyles.muted),
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth > 760 ? 3 : 1;
+              final width =
+                  (constraints.maxWidth - (12 * (columns - 1))) / columns;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final card in cards)
+                    SizedBox(width: width, child: _patternCard(card)),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _patternCard(_PatternConfig config) {
+    final level = _contributorLevel(config.count);
+    final progress = config.count >= 3
+        ? 1.0
+        : config.count >= 1
+            ? 0.62
+            : 0.28;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _showPatternDetails(config),
+      child: Container(
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: config.style.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: config.style.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(config.style.icon, color: config.style.accent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    config.title,
+                    style: TextStyle(
+                      color: config.style.text,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.expand_more, size: 18),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Level: $level',
+              style: TextStyle(
+                color: config.style.text,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                minHeight: 9,
+                value: progress,
+                backgroundColor: Colors.white.withValues(alpha: 0.72),
+                color: config.style.accent,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              config.count == 0
+                  ? 'No major items noted'
+                  : '${config.count} item${config.count == 1 ? '' : 's'} noted',
+              style: TextStyle(color: config.style.text, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPatternDetails(_PatternConfig config) {
+    final items = config.items.isEmpty
+        ? ['No major items noted in this category.']
+        : config.items;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(config.style.icon, color: config.style.accent),
+                  const SizedBox(width: 8),
+                  Text(config.title,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w900)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'These factors may contribute to risk indicators.',
+                style: TextStyle(color: AppStyles.muted),
+              ),
+              const SizedBox(height: 12),
+              for (final item in items)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          size: 18, color: config.style.accent),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(item)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _quickActions() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppStyles.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Quick Actions',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth > 760 ? 4 : 2;
+              final width =
+                  (constraints.maxWidth - (10 * (columns - 1))) / columns;
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: width,
+                    child: _quickActionButton(Icons.add_circle_outline,
+                        'Add More Report Values', widget.onStartAnalysis),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: _quickActionButton(
+                      Icons.refresh,
+                      'Recalculate Insights',
+                      lastPayload == null || recalculating
+                          ? null
+                          : _recalculate,
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: _quickActionButton(
+                        Icons.visibility_outlined,
+                        'View Results',
+                        response == null ? null : widget.onViewResults),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: _quickActionButton(
+                      Icons.ios_share_outlined,
+                      'Export Screening Summary',
+                      () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content:
+                              Text('Export screening summary is coming soon.'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickActionButton(
+      IconData icon, String label, VoidCallback? onPressed) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(
+        label,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      style: OutlinedButton.styleFrom(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      ),
+    );
+  }
+
+  Widget _moreDataSuggestions(List<dynamic> moreNeeded) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppStyles.moreDataStatus.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppStyles.moreDataStatus.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('More Data Suggestions',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          const Text(
+            'Optional report values can improve organ-wise insights.',
+            style: TextStyle(color: AppStyles.muted),
+          ),
+          const SizedBox(height: 12),
+          if (moreNeeded.isEmpty)
+            const Text('No additional missing inputs highlighted right now.',
+                style: TextStyle(color: AppStyles.muted))
+          else
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final item in moreNeeded.take(10))
+                  _missingDataChip(Map<String, dynamic>.from(item as Map)),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _missingDataChip(Map<String, dynamic> item) {
+    final missing = (item['missing_inputs'] as List<dynamic>? ?? [])
+        .map((value) => _prettyMissing(value.toString()))
+        .join(', ');
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 260),
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppStyles.moreDataStatus.border),
+      ),
+      child: Text(
+        '${item['index_name'] ?? 'Insight'} needs ${missing.isEmpty ? 'more values' : missing}',
+        style: const TextStyle(
+          color: AppStyles.text,
+          fontWeight: FontWeight.w700,
+          height: 1.25,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _resultsForOrgan(
+      List<dynamic> results, String organ) {
+    return results
+        .where((result) => (result as Map)['organ'] == organ)
+        .map((result) => Map<String, dynamic>.from(result as Map))
+        .toList();
+  }
+
+  List<Map<String, dynamic>> _moreNeededForOrgan(
+      List<dynamic> moreNeeded, String organ) {
+    return moreNeeded
+        .where((item) => (item as Map)['organ'] == organ)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+  }
+
+  Map<String, dynamic>? _primaryResult(List<Map<String, dynamic>> results) {
+    if (results.isEmpty) return null;
+    Map<String, dynamic>? topResult;
+    var topRank = -1;
+    for (final result in results) {
+      final rank = AppStyles.statusRank(result['risk_level']?.toString());
+      if (rank > topRank) {
+        topRank = rank;
+        topResult = result;
+      }
+    }
+    return topResult;
+  }
+
+  Widget _metricLine(String label, String value) {
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style:
+            const TextStyle(color: AppStyles.text, fontSize: 12, height: 1.2),
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          TextSpan(text: value),
+        ],
+      ),
+    );
+  }
+
+  String _organExplanation(
+      String organ, Map<String, dynamic>? result, HealthStatusStyle status) {
+    if (result == null) return _missingDataExplanation(organ, const []);
+    final subject =
+        _indicatorSubject(result['index_name']?.toString() ?? '', organ);
+    if (status.label == AppStyles.attentionStatus.label) {
+      return '$subject needs monitoring if values persist.';
+    }
+    if (status.label == AppStyles.monitorStatus.label) {
+      return '$subject should be reviewed if values persist.';
+    }
+    if (status.label == AppStyles.lowConcernStatus.label) {
+      return '$subject appears within a low concern range.';
+    }
+    return _missingDataExplanation(organ, const []);
+  }
+
+  String _indicatorSubject(String indexName, String organ) {
+    switch (indexName) {
+      case 'AIP':
+        return 'Lipid-related risk indicator';
+      case 'TyG':
+      case 'Metabolic screening insight':
+        return 'Metabolic screening indicator';
+      case 'APRI':
+      case 'FIB-4':
+      case 'NAFLD Fibrosis Score':
+      case 'FLI':
+        return 'Liver screening indicator';
+      case 'eGFR':
+        return 'Kidney filtration estimate';
+      case 'SpO2':
+        return 'Oxygen saturation';
+      case 'NLR':
+        return 'Inflammation marker';
+      case 'LAR':
+        return 'Pancreatic enzyme ratio';
+      case 'AFP':
+      case 'CA 15-3':
+      case 'CA 27.29':
+        return 'Cancer awareness marker';
+      default:
+        return '$organ screening indicator';
+    }
+  }
+
+  String _missingDataExplanation(
+      String organ, List<Map<String, dynamic>> moreNeeded) {
+    if (moreNeeded.isNotEmpty) {
+      final missing =
+          moreNeeded.first['missing_inputs'] as List<dynamic>? ?? [];
+      if (missing.isNotEmpty) {
+        return 'Add ${_prettyMissing(missing.first.toString())} to improve this insight.';
+      }
+    }
+    switch (organ) {
+      case 'Heart':
+        return 'Add triglycerides and HDL to estimate lipid-related risk.';
+      case 'Diabetes / Metabolic':
+        return 'Add glucose values to estimate metabolic pattern.';
+      case 'Liver':
+        return 'Add AST, ALT, platelets, and related values for liver insights.';
+      case 'Kidney':
+        return 'Add creatinine to estimate kidney filtration.';
+      case 'Lung':
+        return 'Add SpO2 to review oxygen saturation.';
+      case 'Inflammation':
+        return 'Add neutrophils and lymphocytes for this marker.';
+      case 'Pancreas':
+        return 'Add lipase and amylase for this enzyme ratio.';
+      case 'Cancer Awareness':
+        return 'Add tumor marker values only if available in your report.';
+      default:
+        return 'More report values are needed for this screening insight.';
+    }
   }
 
   Map<String, List<String>> _patternGroups(List<dynamic> pattern) {
@@ -278,251 +962,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
     return 'Lifestyle';
   }
 
-  Widget _organCard(String organ, List<Map<String, dynamic>> organResults) {
-    final rawStatus = _highestRisk(organResults);
-    final status = AppStyles.statusStyle(rawStatus);
-    final primaryResult = _primaryResult(organResults);
-    final indexName =
-        primaryResult?['index_name']?.toString() ?? 'More Data Needed';
-    final score = primaryResult?['score'];
-    final scoreText = score == null ? 'More Data Needed' : score.toString();
-    final explanation = _organExplanation(organ, primaryResult, status);
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 248),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: status.background,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: status.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _organIconBox(organ, status),
-              const SizedBox(width: 10),
-              Expanded(
-                  child: Text(organ,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800, color: status.text))),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _riskPill(status),
-          const SizedBox(height: 12),
-          _metricLine('Index', indexName, status),
-          const SizedBox(height: 6),
-          _metricLine('Score', scoreText, status),
-          const SizedBox(height: 8),
-          Text(explanation,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: status.text, height: 1.3, fontSize: 12)),
-          const SizedBox(height: 8),
-          Text(
-              'Last checked: ${lastChecked == null ? '-' : _formatDate(lastChecked!)}',
-              style: const TextStyle(color: AppStyles.muted, fontSize: 12)),
-          const Spacer(),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: organResults.isEmpty ? null : widget.onViewResults,
-              icon: const Icon(Icons.visibility_outlined, size: 18),
-              label: const Text('View details'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: status.text,
-                side: BorderSide(color: status.border),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton.icon(
-              onPressed:
-                  lastPayload == null || recalculating ? null : _recalculate,
-              icon: recalculating
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.refresh, size: 18),
-              label: const Text('Recalculate'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Map<String, dynamic>> _resultsForOrgan(
-      List<dynamic> results, String organ) {
-    return results
-        .where((result) => (result as Map)['organ'] == organ)
-        .map((result) => Map<String, dynamic>.from(result as Map))
-        .toList();
-  }
-
-  String _highestRisk(List<Map<String, dynamic>> results) {
-    return _primaryResult(results)?['risk_level']?.toString() ??
-        'More Data Needed';
-  }
-
-  Map<String, dynamic>? _primaryResult(List<Map<String, dynamic>> results) {
-    if (results.isEmpty) return null;
-    Map<String, dynamic>? topResult;
-    var topRank = -1;
-    for (final result in results) {
-      final rank = AppStyles.statusRank(result['risk_level']?.toString());
-      if (rank > topRank) {
-        topRank = rank;
-        topResult = result;
-      }
-    }
-    return topResult;
-  }
-
-  Widget _riskPill(HealthStatusStyle status) {
-    return _softBadge(status.label, status.badgeBackground, status.text);
-  }
-
-  Widget _softBadge(String label, Color background, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(label,
-          style: TextStyle(
-              color: textColor, fontWeight: FontWeight.w700, fontSize: 12)),
-    );
-  }
-
-  Widget _organIconBox(String organ, HealthStatusStyle status) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: status.border),
-      ),
-      child: Icon(_organIcon(organ), color: status.accent, size: 21),
-    );
-  }
-
-  Widget _metricLine(String label, String value, HealthStatusStyle status) {
-    return RichText(
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      text: TextSpan(
-        style: TextStyle(color: status.text, fontSize: 12, height: 1.2),
-        children: [
-          TextSpan(
-              text: '$label: ',
-              style: const TextStyle(fontWeight: FontWeight.w700)),
-          TextSpan(text: value),
-        ],
-      ),
-    );
-  }
-
-  IconData _organIcon(String organ) {
-    switch (organ) {
-      case 'Heart':
-        return Icons.favorite_border;
-      case 'Diabetes / Metabolic':
-        return Icons.bloodtype_outlined;
-      case 'Liver':
-        return Icons.science_outlined;
-      case 'Kidney':
-        return Icons.water_drop_outlined;
-      case 'Lung':
-        return Icons.air_outlined;
-      case 'Inflammation':
-        return Icons.healing_outlined;
-      case 'Pancreas':
-        return Icons.biotech_outlined;
-      case 'Cancer Awareness':
-        return Icons.health_and_safety_outlined;
-      default:
-        return Icons.monitor_heart_outlined;
-    }
-  }
-
-  String _organExplanation(
-      String organ, Map<String, dynamic>? result, HealthStatusStyle status) {
-    if (result == null) return _missingDataExplanation(organ);
-    final subject =
-        _indicatorSubject(result['index_name']?.toString() ?? '', organ);
-    if (status.label == AppStyles.attentionStatus.label) {
-      return '$subject needs clinical review if values persist.';
-    }
-    if (status.label == AppStyles.monitorStatus.label) {
-      return '$subject should be monitored over time.';
-    }
-    if (status.label == AppStyles.lowConcernStatus.label) {
-      return '$subject looks reassuring based on available values.';
-    }
-    return _missingDataExplanation(organ);
-  }
-
-  String _indicatorSubject(String indexName, String organ) {
-    switch (indexName) {
-      case 'AIP':
-        return 'Lipid-related risk indicator';
-      case 'TyG':
-      case 'Metabolic screening insight':
-        return 'Glucose-related metabolic indicator';
-      case 'APRI':
-      case 'FIB-4':
-      case 'NAFLD Fibrosis Score':
-        return 'Liver fibrosis-related risk indicator';
-      case 'FLI':
-        return 'Fatty liver-related risk indicator';
-      case 'eGFR':
-        return 'Kidney filtration estimate';
-      case 'SpO2':
-        return 'Oxygen saturation indicator';
-      case 'NLR':
-        return 'Inflammation marker';
-      case 'LAR':
-        return 'Pancreatic enzyme ratio';
-      case 'AFP':
-      case 'CA 15-3':
-      case 'CA 27.29':
-        return 'Cancer awareness marker';
-      default:
-        return '$organ screening indicator';
-    }
-  }
-
-  String _missingDataExplanation(String organ) {
-    switch (organ) {
-      case 'Heart':
-        return 'Triglycerides and HDL are needed to calculate the lipid indicator.';
-      case 'Diabetes / Metabolic':
-        return 'Glucose values are needed to estimate the metabolic pattern.';
-      case 'Liver':
-        return 'AST, ALT, platelets, and related values help estimate liver indicators.';
-      case 'Kidney':
-        return 'Creatinine is needed to estimate kidney filtration.';
-      case 'Lung':
-        return 'SpO2 is needed to review the oxygen screening indicator.';
-      case 'Inflammation':
-        return 'Neutrophils and lymphocytes are needed for this marker.';
-      case 'Pancreas':
-        return 'Lipase and amylase are needed for this enzyme ratio.';
-      case 'Cancer Awareness':
-        return 'Tumor marker values are needed for awareness indicators.';
-      default:
-        return 'More report values are needed for this screening insight.';
-    }
-  }
-
   Map<String, int> _contributorCounts() {
     final general =
         Map<String, dynamic>.from(lastPayload?['general_health'] as Map? ?? {});
@@ -551,11 +990,55 @@ class _OverviewScreenState extends State<OverviewScreen> {
     };
   }
 
-  int _flagCount(List<bool> flags) {
-    return flags.where((flag) => flag).length;
+  int _flagCount(List<bool> flags) => flags.where((flag) => flag).length;
+
+  String _contributorLevel(int count) {
+    if (count >= 3) return 'High';
+    if (count >= 1) return 'Moderate';
+    return 'Low';
+  }
+
+  String _prettyMissing(String value) {
+    return value
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1)}')
+        .join(' ');
   }
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
+}
+
+class _OrganConfig {
+  const _OrganConfig({
+    required this.key,
+    required this.name,
+    required this.icon,
+    required this.background,
+    required this.accent,
+  });
+
+  final String key;
+  final String name;
+  final IconData icon;
+  final Color background;
+  final Color accent;
+}
+
+class _PatternConfig {
+  const _PatternConfig({
+    required this.title,
+    required this.count,
+    required this.items,
+    required this.style,
+  });
+
+  final String title;
+  final int count;
+  final List<String> items;
+  final ContributorStyle style;
 }

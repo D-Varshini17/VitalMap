@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'core/risk_rules.dart';
+
 class HealthStatusStyle {
   final String label;
   final Color background;
@@ -41,12 +43,13 @@ class ContributorStyle {
 class AppStyles {
   static const String logoAsset = 'assets/logo_medid.jpeg';
 
-  static const Color primary = Color(0xFF4BAFE3);
-  static const Color accent = Color(0xFF6FDCE8);
-  static const Color page = Colors.white;
+  static const Color primary = Color(0xFF0E86C8);
+  static const Color navy = Color(0xFF08264A);
+  static const Color accent = Color(0xFF23D6C8);
+  static const Color page = Color(0xFFF4FBFF);
   static const Color surface = Colors.white;
-  static const Color text = Color(0xFF17323D);
-  static const Color muted = Color(0xFF667E89);
+  static const Color text = Color(0xFF102B3F);
+  static const Color muted = Color(0xFF5F7886);
   static const Color border = Color(0xFFDDEEF5);
   static const Color softBlue = Color(0xFFEAF7FF);
   static const Color softBlueBorder = Color(0xFFCFEFFF);
@@ -157,11 +160,7 @@ class AppStyles {
   static String statusLabel(String? rawStatus) => statusStyle(rawStatus).label;
 
   static int statusRank(String? rawStatus) {
-    final style = statusStyle(rawStatus);
-    if (style.label == attentionStatus.label) return 3;
-    if (style.label == monitorStatus.label) return 2;
-    if (style.label == lowConcernStatus.label) return 1;
-    return 0;
+    return severityRank(rawStatus);
   }
 
   static ContributorStyle contributorStyle(String title) {
@@ -193,7 +192,7 @@ class AppStyles {
       selectedItemColor: primary,
       unselectedItemColor: muted,
       type: BottomNavigationBarType.fixed,
-      elevation: 8,
+      elevation: 0,
     ),
     cardTheme: CardThemeData(
       color: surface,
@@ -201,7 +200,7 @@ class AppStyles {
       surfaceTintColor: Colors.transparent,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         side: const BorderSide(color: border),
       ),
     ),
@@ -209,15 +208,15 @@ class AppStyles {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: primary, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -226,7 +225,7 @@ class AppStyles {
       style: ElevatedButton.styleFrom(
         backgroundColor: primary,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       ),
     ),
@@ -234,7 +233,7 @@ class AppStyles {
       style: OutlinedButton.styleFrom(
         foregroundColor: primary,
         side: const BorderSide(color: border),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     ),
     textTheme: const TextTheme(

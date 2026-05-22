@@ -100,6 +100,7 @@ class _HomeContainerState extends State<HomeContainer> {
       OverviewScreen(
         response: _lastResponse,
         lastChecked: _lastChecked,
+        onStartAnalysis: () => setState(() => _currentIndex = 0),
         onViewResults: () => setState(() => _currentIndex = 1),
         onRecalculated: _handleAnalysisComplete,
       ),
@@ -107,26 +108,48 @@ class _HomeContainerState extends State<HomeContainer> {
 
     return Scaffold(
       body: pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.edit_note_outlined),
-            activeIcon: Icon(Icons.edit_note),
-            label: 'Input',
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppStyles.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppStyles.navy.withValues(alpha: 0.10),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.insights_outlined),
-            activeIcon: Icon(Icons.insights),
-            label: 'Results',
+          clipBehavior: Clip.antiAlias,
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+            backgroundColor: Colors.white,
+            selectedItemColor: AppStyles.primary,
+            unselectedItemColor: AppStyles.muted,
+            elevation: 0,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.edit_note_outlined),
+                activeIcon: Icon(Icons.edit_note),
+                label: 'Input',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.insights_outlined),
+                activeIcon: Icon(Icons.insights),
+                label: 'Results',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.grid_view_outlined),
+                activeIcon: Icon(Icons.grid_view),
+                label: 'Overview',
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view_outlined),
-            activeIcon: Icon(Icons.grid_view),
-            label: 'Overview',
-          ),
-        ],
+        ),
       ),
     );
   }
