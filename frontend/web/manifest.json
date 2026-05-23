@@ -3,7 +3,7 @@
   "short_name": "VitalMap",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#FFFFFF",
+  "background_color": "#F4FBFF",
   "theme_color": "#4BAFE3",
   "description": "Organ Health Risk Indicator",
   "orientation": "portrait-primary",

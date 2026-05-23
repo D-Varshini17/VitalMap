@@ -43,10 +43,11 @@ class ContributorStyle {
 class AppStyles {
   static const String logoAsset = 'assets/logo_medid.jpeg';
 
-  static const Color primary = Color(0xFF0E86C8);
-  static const Color navy = Color(0xFF08264A);
-  static const Color accent = Color(0xFF23D6C8);
-  static const Color page = Color(0xFFF4FBFF);
+  static const Color primary = Color(0xFF0B63CE);
+  static const Color navy = Color(0xFF062B5F);
+  static const Color deepBlue = Color(0xFF064A8C);
+  static const Color accent = Color(0xFF12C7D8);
+  static const Color page = Color(0xFFF7FAFD);
   static const Color surface = Colors.white;
   static const Color text = Color(0xFF102B3F);
   static const Color muted = Color(0xFF5F7886);
@@ -158,6 +159,15 @@ class AppStyles {
   }
 
   static String statusLabel(String? rawStatus) => statusStyle(rawStatus).label;
+
+  static String displayStatusLabel(String? rawStatus, {String? indexName}) {
+    final label = statusStyle(rawStatus).label;
+    if (label == lowConcernStatus.label) {
+      return indexName == 'BMI' ? 'Normal' : 'Good';
+    }
+    if (label == moreDataStatus.label) return 'More Data Needed';
+    return label;
+  }
 
   static int statusRank(String? rawStatus) {
     return severityRank(rawStatus);

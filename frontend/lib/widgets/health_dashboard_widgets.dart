@@ -30,7 +30,7 @@ class VitalMapHeroCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF08264A), Color(0xFF0E5D7C), Color(0xFF24D1D1)],
+          colors: [AppStyles.navy, AppStyles.deepBlue, Color(0xFF0A86B8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -149,10 +149,21 @@ class PremiumProgressChips extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: i == activeIndex
-                  ? Colors.white.withValues(alpha: 0.22)
-                  : Colors.white.withValues(alpha: 0.12),
+                  ? AppStyles.primary
+                  : Colors.white.withValues(alpha: 0.88),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.26)),
+              border: Border.all(
+                color: i == activeIndex
+                    ? AppStyles.primary
+                    : AppStyles.primary.withValues(alpha: 0.22),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppStyles.primary.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -162,14 +173,13 @@ class PremiumProgressChips extends StatelessWidget {
                       ? Icons.check_circle
                       : Icons.radio_button_unchecked,
                   size: 14,
-                  color: Colors.white
-                      .withValues(alpha: i <= activeIndex ? 0.95 : 0.62),
+                  color: i == activeIndex ? Colors.white : AppStyles.primary,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   labels[i],
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.92),
+                    color: i == activeIndex ? Colors.white : AppStyles.text,
                     fontWeight: FontWeight.w800,
                     fontSize: 12,
                   ),
@@ -262,7 +272,7 @@ class StatusBadge extends StatelessWidget {
         border: Border.all(color: status.border),
       ),
       child: Text(
-        status.label,
+        AppStyles.displayStatusLabel(status.label),
         style: TextStyle(
           color: status.text,
           fontWeight: FontWeight.w800,
@@ -359,7 +369,8 @@ class OverallInsightRing extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 compact
-                    ? _HeroStatusBadge(label: status.label)
+                    ? _HeroStatusBadge(
+                        label: AppStyles.displayStatusLabel(status.label))
                     : StatusBadge(status: status),
                 const SizedBox(height: 8),
                 Text(
@@ -801,7 +812,7 @@ class _LegendChip extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          '${status.label}: $count',
+          '${AppStyles.displayStatusLabel(status.label)}: $count',
           style: const TextStyle(
             color: AppStyles.muted,
             fontWeight: FontWeight.w700,

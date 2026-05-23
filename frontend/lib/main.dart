@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'screens/history_screen.dart';
 import 'screens/input_screen.dart';
+import 'screens/more_screen.dart';
 import 'screens/overview_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/splash_screen.dart';
@@ -96,13 +98,26 @@ class _HomeContainerState extends State<HomeContainer> {
   Widget build(BuildContext context) {
     final pages = [
       InputScreen(onAnalysisComplete: _handleAnalysisComplete),
-      ResultsScreen(response: _lastResponse, lastChecked: _lastChecked),
+      ResultsScreen(
+        response: _lastResponse,
+        lastChecked: _lastChecked,
+        onViewOverview: () => setState(() => _currentIndex = 2),
+      ),
       OverviewScreen(
         response: _lastResponse,
         lastChecked: _lastChecked,
         onStartAnalysis: () => setState(() => _currentIndex = 0),
         onViewResults: () => setState(() => _currentIndex = 1),
         onRecalculated: _handleAnalysisComplete,
+      ),
+      HistoryScreen(
+        response: _lastResponse,
+        lastChecked: _lastChecked,
+        onViewResults: () => setState(() => _currentIndex = 1),
+      ),
+      MoreScreen(
+        onStartAnalysis: () => setState(() => _currentIndex = 0),
+        onViewResults: () => setState(() => _currentIndex = 1),
       ),
     ];
 
@@ -146,6 +161,16 @@ class _HomeContainerState extends State<HomeContainer> {
                 icon: Icon(Icons.grid_view_outlined),
                 activeIcon: Icon(Icons.grid_view),
                 label: 'Overview',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history_outlined),
+                activeIcon: Icon(Icons.history),
+                label: 'History',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.more_horiz),
+                activeIcon: Icon(Icons.more),
+                label: 'More',
               ),
             ],
           ),

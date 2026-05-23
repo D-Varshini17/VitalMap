@@ -29,8 +29,8 @@ flutter_icons:
   web:
     generate: true
     image_path: "assets/app_icon_legacy.png"
-    background_color: "#F7FDFF"
+    background_color: "#F4FBFF"
     theme_color: "#4BAFE3"
   image_path: "assets/app_icon_legacy.png"
-  adaptive_icon_background: "#F7FDFF"
+  adaptive_icon_background: "#F4FBFF"
   adaptive_icon_foreground: "assets/app_icon_foreground.png"

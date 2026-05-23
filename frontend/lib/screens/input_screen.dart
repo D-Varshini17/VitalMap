@@ -709,6 +709,7 @@ class _InputScreenState extends State<InputScreen> {
                 _IntroCard(),
                 _stepHeader('Step 1 of 3: General Health Details'),
                 _profileCard(),
+                _whyAskCard(),
                 _lifestyleCard(),
                 _foodCard(),
                 _environmentCard(),
@@ -819,6 +820,53 @@ class _InputScreenState extends State<InputScreen> {
             _currentBmi()?.toStringAsFixed(1) ?? '',
             'kg/m²',
             helper: 'Auto-calculated from height and weight.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _whyAskCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFEAF8F6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppStyles.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F7EE),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.verified_user_outlined,
+                color: Color(0xFF218A52)),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Why we ask this?',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'These details help calculate important health indicators.',
+                  style: TextStyle(color: AppStyles.muted, height: 1.3),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1109,9 +1157,9 @@ class _InputScreenState extends State<InputScreen> {
       builder: (context, constraints) {
         final analyzeButton = GradientActionButton(
           onPressed: loading ? null : analyze,
-          icon: Icons.insights,
+          icon: Icons.arrow_forward,
           loading: loading,
-          label: loading ? 'Analyzing...' : 'Analyze Available Values',
+          label: loading ? 'Analyzing...' : 'Save & Continue',
         );
         final saveButton = OutlinedButton.icon(
           onPressed: loading
@@ -1979,8 +2027,42 @@ class _IntroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const VitalMapHeroCard(
-      bottom: PremiumProgressChips(
-        labels: ['General Details', 'Report Values', 'Review'],
+      title: "Let's get to know you",
+      subtitle: '',
+      description:
+          'Accurate details help us provide deeper organ-wise insights.',
+      bottom: Column(
+        children: [
+          Row(
+            children: [
+              Text(
+                'Step 1 of 3',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Spacer(),
+              Text(
+                '33% Complete',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(999)),
+            child: LinearProgressIndicator(
+              minHeight: 7,
+              value: 0.33,
+              backgroundColor: Colors.white24,
+              color: AppStyles.accent,
+            ),
+          ),
+        ],
       ),
     );
   }

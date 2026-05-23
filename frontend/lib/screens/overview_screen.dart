@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../core/ui_result_adapter.dart';
 import '../services/api_service.dart';
 import '../storage/local_storage.dart';
 import '../styles.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
 import '../widgets/health_dashboard_widgets.dart';
+import '../widgets/organ_visual.dart';
+import 'organ_detail_screen.dart';
 
 class OverviewScreen extends StatefulWidget {
   const OverviewScreen({
@@ -37,56 +40,48 @@ class _OverviewScreenState extends State<OverviewScreen> {
     _OrganConfig(
       key: 'Heart',
       name: 'Heart',
-      icon: Icons.favorite_border,
       background: Color(0xFFFFF0F5),
       accent: Color(0xFFD970A0),
     ),
     _OrganConfig(
       key: 'Liver',
       name: 'Liver',
-      icon: Icons.science_outlined,
       background: Color(0xFFFFF7E7),
       accent: Color(0xFFD99D41),
     ),
     _OrganConfig(
       key: 'Kidney',
       name: 'Kidney',
-      icon: Icons.water_drop_outlined,
       background: Color(0xFFF5EEFF),
       accent: Color(0xFFA675D6),
     ),
     _OrganConfig(
       key: 'Lung',
-      name: 'Lung',
-      icon: Icons.air_outlined,
+      name: 'Lungs',
       background: Color(0xFFEAFBFD),
       accent: Color(0xFF49B6C8),
     ),
     _OrganConfig(
       key: 'Diabetes / Metabolic',
-      name: 'Metabolic',
-      icon: Icons.local_fire_department_outlined,
+      name: 'Brain / Metabolic',
       background: Color(0xFFFFF2E8),
       accent: Color(0xFFE49A52),
     ),
     _OrganConfig(
       key: 'Inflammation',
       name: 'Inflammation',
-      icon: Icons.bloodtype_outlined,
       background: Color(0xFFF5F3FA),
       accent: Color(0xFF9C89CD),
     ),
     _OrganConfig(
       key: 'Pancreas',
       name: 'Pancreas',
-      icon: Icons.biotech_outlined,
       background: Color(0xFFFFFAE8),
       accent: Color(0xFFD8A92F),
     ),
     _OrganConfig(
       key: 'Cancer Awareness',
       name: 'Cancer Awareness',
-      icon: Icons.health_and_safety_outlined,
       background: Color(0xFFEAF7FF),
       accent: Color(0xFF4BAFE3),
     ),
@@ -152,30 +147,42 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final moreNeeded = (response?['more_data_needed'] as List<dynamic>?) ?? [];
     final pattern =
         (response?['general_health_pattern'] as List<dynamic>?) ?? [];
-    final overallRisk =
-        response?['overall_risk']?.toString() ?? 'More Data Needed';
+    final completion = HealthUiAdapter.completionPercent(lastPayload);
+    final completedValues = HealthUiAdapter.completedValueCount(lastPayload);
 
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           title: const BrandAppBarTitle(title: 'Overview'),
+          actions: [
+            IconButton(
+              tooltip: 'Refresh overview',
+              onPressed:
+                  lastPayload == null || recalculating ? null : _recalculate,
+              icon: recalculating
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh),
+            ),
+          ],
         ),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             VitalMapHeroCard(
-              title: 'VitalMap Overview',
-              subtitle: 'Organ health screening snapshot',
-              description: 'Based on your latest available inputs',
-              trailing:
-                  _heroMeta(overallRisk, results.length, moreNeeded.length),
+              title: 'Organ Health Snapshot',
+              subtitle: 'Track. Understand. Improve.',
+              description: '',
+              trailing: _completionHeroCard(completion, completedValues),
             ),
             if (results.isEmpty) _emptyInsightCard(),
-            _sectionTitle('Organ Insight Grid'),
+            _sectionHeader('Organ Insight Grid', 'View All'),
             _organGrid(results, moreNeeded),
+            _needMoreDataCard(moreNeeded),
             _generalHealthPatternSection(pattern),
-            _quickActions(),
-            _moreDataSuggestions(moreNeeded),
             const SizedBox(height: 16),
             const DisclaimerWidget(),
           ],
@@ -184,55 +191,65 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  Widget _heroMeta(String overallRisk, int calculatedCount, int moreDataCount) {
-    final status = AppStyles.statusStyle(overallRisk);
+  Widget _completionHeroCard(int completion, int completedValues) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: 188,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            'Overall Status',
+            'Completion',
             style: TextStyle(
-              color: Colors.white,
+              color: AppStyles.muted,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            '$completion%',
+            style: const TextStyle(
+              color: AppStyles.primary,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 8),
-          StatusBadge(status: status),
-          const SizedBox(height: 8),
-          Text(
-            'Last checked: ${lastChecked == null ? 'Not checked yet' : _formatDate(lastChecked!)}',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.78),
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$calculatedCount calculated',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.78),
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            '$moreDataCount needing more data',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.78),
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
+          const Text(
+            'Data completeness',
+            style: TextStyle(color: AppStyles.muted, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              minHeight: 7,
+              value: completion / 100,
+              backgroundColor: AppStyles.border,
+              color: AppStyles.accent,
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$completedValues / ${HealthUiAdapter.totalExpectedValues} values',
+            style: const TextStyle(
+              color: AppStyles.text,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            lastChecked == null
+                ? 'Not checked yet'
+                : 'Updated ${_formatDate(lastChecked!)}',
+            style: const TextStyle(color: AppStyles.muted, fontSize: 11),
           ),
         ],
       ),
@@ -297,12 +314,25 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  Widget _sectionTitle(String title) {
+  Widget _sectionHeader(String title, String action) {
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            ),
+          ),
+          Text(
+            action,
+            style: const TextStyle(
+              color: AppStyles.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -356,116 +386,140 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ? _missingDataExplanation(organ.key, moreNeeded)
         : _organExplanation(organ.key, primaryResult, status);
 
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: organResults.isEmpty
+          ? widget.onStartAnalysis
+          : () => _openOrganDetails(organ.key, organ.name),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 154),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppStyles.border),
+          boxShadow: [
+            BoxShadow(
+              color: organ.accent.withValues(alpha: 0.10),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                OrganVisualIcon(organ: organ.key, size: 52),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    organ.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: AppStyles.text,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppStyles.primary),
+              ],
+            ),
+            const SizedBox(height: 10),
+            StatusBadge(status: status),
+            const SizedBox(height: 8),
+            Text(
+              indexes.isEmpty ? scoreText : scoreText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppStyles.text,
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: AppStyles.muted, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openOrganDetails(String organKey, String organName) {
+    final metrics = HealthUiAdapter.metricsFromResponse(
+      response,
+      payload: lastPayload,
+    ).where((metric) => metric.organKey == organKey).toList();
+    final missingCount = HealthUiAdapter.moreDataNeeded(response)
+        .where((item) => item['organ']?.toString() == organKey)
+        .length;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => OrganDetailScreen(
+          organKey: organKey,
+          organName: organName,
+          metrics: metrics,
+          missingCount: missingCount,
+        ),
+      ),
+    );
+  }
+
+  Widget _needMoreDataCard(List<dynamic> moreNeeded) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 266),
-      padding: const EdgeInsets.all(13),
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, organ.background],
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFEAF7FF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: status.border),
-        boxShadow: [
-          BoxShadow(
-            color: organ.accent.withValues(alpha: 0.10),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(color: AppStyles.softBlueBorder),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: organ.background,
-                  shape: BoxShape.circle,
-                  border:
-                      Border.all(color: organ.accent.withValues(alpha: 0.2)),
-                ),
-                child: Icon(organ.icon, color: organ.accent, size: 25),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  organ.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: AppStyles.text,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppStyles.softBlue,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child:
+                const Icon(Icons.add_chart_outlined, color: AppStyles.primary),
           ),
-          const SizedBox(height: 10),
-          StatusBadge(status: status),
-          const SizedBox(height: 10),
-          _metricLine(
-            'Index',
-            indexes.isEmpty ? 'More Data Needed' : indexes.join(', '),
-          ),
-          const SizedBox(height: 5),
-          _metricLine('Score', scoreText),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppStyles.text,
-              height: 1.3,
-              fontSize: 12,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Need to add more data?',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  moreNeeded.isEmpty
+                      ? 'Your latest screening has enough values for the current insights.'
+                      : 'Fill missing values to unlock deeper and more accurate insight.',
+                  style: const TextStyle(color: AppStyles.muted, height: 1.3),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Last checked: ${lastChecked == null ? 'Not checked yet' : _formatDate(lastChecked!)}',
-            style: const TextStyle(color: AppStyles.muted, fontSize: 12),
-          ),
-          const Spacer(),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton.icon(
-                onPressed: organResults.isEmpty
-                    ? widget.onStartAnalysis
-                    : widget.onViewResults,
-                icon: Icon(
-                  organResults.isEmpty
-                      ? Icons.add_circle_outline
-                      : Icons.visibility_outlined,
-                  size: 17,
-                ),
-                label:
-                    Text(organResults.isEmpty ? 'Add values' : 'View details'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppStyles.text,
-                  side: BorderSide(color: status.border),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                ),
-              ),
-              TextButton.icon(
-                onPressed:
-                    lastPayload == null || recalculating ? null : _recalculate,
-                icon: recalculating
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.refresh, size: 17),
-                label: const Text('Recalculate'),
-              ),
-            ],
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: widget.onStartAnalysis,
+            child: const Text('Add Missing Data'),
           ),
         ],
       ),
@@ -654,152 +708,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  Widget _quickActions() {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppStyles.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Quick Actions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth > 760 ? 4 : 2;
-              final width =
-                  (constraints.maxWidth - (10 * (columns - 1))) / columns;
-              return Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  SizedBox(
-                    width: width,
-                    child: _quickActionButton(Icons.add_circle_outline,
-                        'Add More Report Values', widget.onStartAnalysis),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: _quickActionButton(
-                      Icons.refresh,
-                      'Recalculate Insights',
-                      lastPayload == null || recalculating
-                          ? null
-                          : _recalculate,
-                    ),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: _quickActionButton(
-                        Icons.visibility_outlined,
-                        'View Results',
-                        response == null ? null : widget.onViewResults),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: _quickActionButton(
-                      Icons.ios_share_outlined,
-                      'Export Screening Summary',
-                      () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text('Export screening summary is coming soon.'),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _quickActionButton(
-      IconData icon, String label, VoidCallback? onPressed) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(
-        label,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      style: OutlinedButton.styleFrom(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      ),
-    );
-  }
-
-  Widget _moreDataSuggestions(List<dynamic> moreNeeded) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppStyles.moreDataStatus.background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppStyles.moreDataStatus.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('More Data Suggestions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 6),
-          const Text(
-            'Optional report values can improve organ-wise insights.',
-            style: TextStyle(color: AppStyles.muted),
-          ),
-          const SizedBox(height: 12),
-          if (moreNeeded.isEmpty)
-            const Text('No additional missing inputs highlighted right now.',
-                style: TextStyle(color: AppStyles.muted))
-          else
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                for (final item in moreNeeded.take(10))
-                  _missingDataChip(Map<String, dynamic>.from(item as Map)),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _missingDataChip(Map<String, dynamic> item) {
-    final missing = (item['missing_inputs'] as List<dynamic>? ?? [])
-        .map((value) => _prettyMissing(value.toString()))
-        .join(', ');
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 260),
-      padding: const EdgeInsets.all(11),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppStyles.moreDataStatus.border),
-      ),
-      child: Text(
-        '${item['index_name'] ?? 'Insight'} needs ${missing.isEmpty ? 'more values' : missing}',
-        style: const TextStyle(
-          color: AppStyles.text,
-          fontWeight: FontWeight.w700,
-          height: 1.25,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
   List<Map<String, dynamic>> _resultsForOrgan(
       List<dynamic> results, String organ) {
     return results
@@ -828,24 +736,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
       }
     }
     return topResult;
-  }
-
-  Widget _metricLine(String label, String value) {
-    return RichText(
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      text: TextSpan(
-        style:
-            const TextStyle(color: AppStyles.text, fontSize: 12, height: 1.2),
-        children: [
-          TextSpan(
-            text: '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-          TextSpan(text: value),
-        ],
-      ),
-    );
   }
 
   String _organExplanation(
@@ -1017,14 +907,12 @@ class _OrganConfig {
   const _OrganConfig({
     required this.key,
     required this.name,
-    required this.icon,
     required this.background,
     required this.accent,
   });
 
   final String key;
   final String name;
-  final IconData icon;
   final Color background;
   final Color accent;
 }

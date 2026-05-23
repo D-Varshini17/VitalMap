@@ -22,7 +22,7 @@ class ApiService {
           .post(url,
               headers: {'Content-Type': 'application/json'},
               body: jsonEncode(payload))
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 5));
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body) as Map<String, dynamic>;
         decoded['offline_mode'] = false;

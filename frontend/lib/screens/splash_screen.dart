@@ -80,13 +80,13 @@ class _SplashScreenState extends State<SplashScreen>
           children: [
             const DecoratedBox(
               decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(-0.35, -0.42),
-                  radius: 1.15,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF123B66),
-                    Color(0xFF0B294A),
-                    Color(0xFF071A31),
+                    Color(0xFFFFFFFF),
+                    Color(0xFFF4FBFF),
+                    Color(0xFFE6F8FC),
                   ],
                 ),
               ),
@@ -166,7 +166,7 @@ class _SplashScreenState extends State<SplashScreen>
                           'VitalMap',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppStyles.navy,
                             fontSize: 34,
                             fontWeight: FontWeight.w800,
                           ),
@@ -182,7 +182,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'Organ Health Risk Indicator',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Color(0xFFB9F2FF),
+                          color: AppStyles.primary,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -211,9 +211,9 @@ class _SplashLogo extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: const RadialGradient(
           colors: [
-            Color(0x665DE8FF),
-            Color(0x3329B8E6),
-            Color(0x0007132B),
+            Color(0x445DE8FF),
+            Color(0x2229B8E6),
+            Color(0x00FFFFFF),
           ],
         ),
         boxShadow: [
@@ -223,7 +223,7 @@ class _SplashLogo extends StatelessWidget {
             spreadRadius: 8,
           ),
           BoxShadow(
-            color: const Color(0xFF7B61FF).withValues(alpha: 0.22),
+            color: AppStyles.primary.withValues(alpha: 0.16),
             blurRadius: 68,
             spreadRadius: 12,
           ),
@@ -252,47 +252,7 @@ class _DepthGlowLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          left: -90,
-          top: 90,
-          child: _GlowOrb(
-            size: 250,
-            color: const Color(0xFF3CE1F5).withValues(alpha: 0.16),
-          ),
-        ),
-        Positioned(
-          right: -70,
-          bottom: 120,
-          child: _GlowOrb(
-            size: 220,
-            color: const Color(0xFF7C6CFF).withValues(alpha: 0.14),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  final double size;
-  final Color color;
-
-  const _GlowOrb({required this.size, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: color, blurRadius: size * 0.46, spreadRadius: 18),
-        ],
-      ),
-    );
+    return CustomPaint(painter: _SoftHealthGridPainter());
   }
 }
 
@@ -339,23 +299,54 @@ class _FloatingMedicalTile extends StatelessWidget {
         width: 72,
         height: 72,
         decoration: BoxDecoration(
-          color: const Color(0xFF102B4E).withValues(alpha: 0.62),
+          color: Colors.white.withValues(alpha: 0.84),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-              color: const Color(0xFF86ECFF).withValues(alpha: 0.28)),
+          border: Border.all(color: AppStyles.softBlueBorder),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF38DDF4).withValues(alpha: 0.16),
+              color: AppStyles.primary.withValues(alpha: 0.10),
               blurRadius: 28,
               offset: const Offset(0, 16),
             ),
           ],
         ),
-        child: Icon(icon,
-            color: const Color(0xFFB8F4FF).withValues(alpha: 0.92), size: 32),
+        child: Icon(icon, color: AppStyles.primary, size: 32),
       ),
     );
   }
+}
+
+class _SoftHealthGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = AppStyles.primary.withValues(alpha: 0.05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (var y = size.height * 0.14; y < size.height; y += 42) {
+      canvas.drawLine(
+          Offset(size.width * 0.08, y), Offset(size.width, y), line);
+    }
+    for (var x = size.width * 0.1; x < size.width; x += 56) {
+      canvas.drawLine(
+          Offset(x, size.height * 0.1), Offset(x, size.height), line);
+    }
+    final pulse = Paint()
+      ..color = AppStyles.accent.withValues(alpha: 0.10)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    final path = Path()
+      ..moveTo(size.width * 0.08, size.height * 0.28)
+      ..lineTo(size.width * 0.30, size.height * 0.28)
+      ..lineTo(size.width * 0.38, size.height * 0.22)
+      ..lineTo(size.width * 0.46, size.height * 0.33)
+      ..lineTo(size.width * 0.58, size.height * 0.25)
+      ..lineTo(size.width * 0.92, size.height * 0.25);
+    canvas.drawPath(path, pulse);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _ParticleFieldPainter extends CustomPainter {
@@ -375,7 +366,7 @@ class _ParticleFieldPainter extends CustomPainter {
           (baseY + progress * 28 + math.cos(phase * 0.8) * 8) % size.height;
       final radius = 1.1 + ((i % 5) * 0.34);
       final alpha = 0.2 + ((i % 4) * 0.08);
-      paint.color = const Color(0xFF9AF5FF).withValues(alpha: alpha);
+      paint.color = AppStyles.primary.withValues(alpha: alpha);
       canvas.drawCircle(Offset(x, y), radius, paint);
     }
   }
@@ -417,14 +408,14 @@ class _HeartbeatPainter extends CustomPainter {
     }
 
     final glowPaint = Paint()
-      ..color = const Color(0xFF5DE8FF).withValues(alpha: 0.34)
+      ..color = AppStyles.accent.withValues(alpha: 0.30)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     final linePaint = Paint()
-      ..color = const Color(0xFFB8F4FF).withValues(alpha: 0.94)
+      ..color = AppStyles.primary.withValues(alpha: 0.88)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.8
       ..strokeCap = StrokeCap.round
