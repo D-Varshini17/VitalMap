@@ -149,15 +149,77 @@ class _InputScreenState extends State<InputScreen> {
 
   bool loading = false;
 
+  final _profileKey = GlobalKey();
+  final _lifestyleKey = GlobalKey();
+  final _environmentKey = GlobalKey();
+  final _reportsKey = GlobalKey();
+  String _activeTop = 'basic';
+
   static const _reportSections = [
-    _ReportSection(id: 'heart', title: 'Heart / Lipid Profile', emoji: '❤️'),
-    _ReportSection(id: 'diabetes', title: 'Diabetes / Metabolic', emoji: '🍬'),
-    _ReportSection(id: 'liver', title: 'Liver Function Test', emoji: '🧪'),
-    _ReportSection(id: 'cbc', title: 'CBC / Differential', emoji: '🩸'),
-    _ReportSection(id: 'kidney', title: 'Kidney Function', emoji: '💧'),
-    _ReportSection(id: 'vitals', title: 'Lungs / Vitals', emoji: '🫁'),
-    _ReportSection(id: 'pancreas', title: 'Pancreatic Enzymes', emoji: '🔬'),
-    _ReportSection(id: 'cancer', title: 'Cancer Awareness', emoji: '🎗️'),
+    _ReportSection(
+      id: 'heart',
+      title: 'Heart / Lipid Profile',
+      subtitle: 'AIP',
+      icon: Icons.favorite_border,
+      background: Color(0xFFFFF0F5),
+      accent: Color(0xFFD970A0),
+    ),
+    _ReportSection(
+      id: 'diabetes',
+      title: 'Diabetes / Metabolic',
+      subtitle: 'TyG, metabolic insight',
+      icon: Icons.water_drop_outlined,
+      background: Color(0xFFFFF7E7),
+      accent: Color(0xFFD99D41),
+    ),
+    _ReportSection(
+      id: 'liver',
+      title: 'Liver Function Test',
+      subtitle: 'APRI, FIB-4, FLI, NAFLD',
+      icon: Icons.monitor_heart_outlined,
+      background: Color(0xFFECF8EF),
+      accent: Color(0xFF65B985),
+    ),
+    _ReportSection(
+      id: 'cbc',
+      title: 'CBC / Differential',
+      subtitle: 'NLR and liver support',
+      icon: Icons.bloodtype_outlined,
+      background: Color(0xFFF5F3FA),
+      accent: Color(0xFF9C89CD),
+    ),
+    _ReportSection(
+      id: 'kidney',
+      title: 'Kidney Function',
+      subtitle: 'eGFR',
+      icon: Icons.opacity_outlined,
+      background: Color(0xFFEAFBFD),
+      accent: Color(0xFF49B6C8),
+    ),
+    _ReportSection(
+      id: 'vitals',
+      title: 'Vitals',
+      subtitle: 'SpO2, BP support',
+      icon: Icons.speed_outlined,
+      background: Color(0xFFEAF7FF),
+      accent: Color(0xFF4BAFE3),
+    ),
+    _ReportSection(
+      id: 'pancreas',
+      title: 'Pancreatic Enzymes',
+      subtitle: 'LAR',
+      icon: Icons.science_outlined,
+      background: Color(0xFFFFF0ED),
+      accent: Color(0xFFE18170),
+    ),
+    _ReportSection(
+      id: 'cancer',
+      title: 'Cancer Awareness',
+      subtitle: 'Awareness markers only',
+      icon: Icons.health_and_safety_outlined,
+      background: Color(0xFFF3F2F8),
+      accent: Color(0xFF8B8FC7),
+    ),
   ];
 
   @override
@@ -639,72 +701,65 @@ class _InputScreenState extends State<InputScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const BrandAppBarTitle(title: 'VitalMap'),
-            actions: [
-              IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {}),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              BrandAppBarTitle(title: 'VitalMap'),
+              SizedBox(height: 2),
+              Text(
+                'Organ Health Risk Indicator',
+                style: TextStyle(fontSize: 12, color: AppStyles.muted),
+              ),
             ],
-            bottom: TabBar(
-              isScrollable: true,
-              labelColor: AppStyles.primary,
-              unselectedLabelColor: AppStyles.muted,
-              indicatorColor: AppStyles.primary,
-              tabs: const [
-                Tab(icon: Icon(Icons.person_outline), text: 'Basic Profile'),
-                Tab(icon: Icon(Icons.self_improvement), text: 'Lifestyle'),
-                Tab(icon: Icon(Icons.eco_outlined), text: 'Environment'),
-                Tab(icon: Icon(Icons.assignment_outlined), text: 'Reports'),
-              ],
-            ),
           ),
-          bottomNavigationBar: _actionButtons(),
-          body: Form(
-            key: _formKey,
-            child: TabBarView(
+          elevation: 0,
+          backgroundColor: AppStyles.page,
+        ),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTabContent([
-                  const SizedBox(height: 16),
-                  _profileCard(),
-                  const DisclaimerWidget(),
-                ]),
-                _buildTabContent([
-                  const SizedBox(height: 16),
-                  _lifestyleCard(),
-                  const DisclaimerWidget(),
-                ]),
-                _buildTabContent([
-                  const SizedBox(height: 16),
-                  _environmentCard(),
-                  const DisclaimerWidget(),
-                ]),
-                _buildTabContent([
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Select Reports (Optional)',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                _buildTopTabs(),
+                const SizedBox(height: 8),
+                _IntroCard(),
+                _stepHeader('Step 1 of 3: General Health Details'),
+                Container(key: _profileKey, child: _profileCard()),
+                _whyAskCard(),
+                Container(key: _lifestyleKey, child: _lifestyleCard()),
+                Container(key: null, child: _foodCard()),
+                Container(key: _environmentKey, child: _environmentCard()),
+                _stepHeader('Step 2 of 3: Optional Report-Based Lab Inputs'),
+                const Text(
+                  'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
+                  style: TextStyle(color: AppStyles.muted),
+                ),
+                const SizedBox(height: 12),
+                Container(key: _reportsKey, child: _reportPicker()),
+                const SizedBox(height: 6),
+                if (_selectedSections.contains('heart')) _heartCard(),
+                if (_selectedSections.contains('diabetes')) _diabetesCard(),
+                if (_selectedSections.contains('liver')) _liverCard(),
+                if (_selectedSections.contains('cbc')) _cbcCard(),
+                if (_selectedSections.contains('kidney')) _kidneyCard(),
+                if (_selectedSections.contains('vitals')) _vitalsCard(),
+                if (_selectedSections.contains('pancreas')) _pancreasCard(),
+                if (_selectedSections.contains('cancer')) _cancerCard(),
+                const SizedBox(height: 12),
+                _actionButtons(),
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Text(
+                    'Step 3 of 3: Review screening insights on the Results tab',
+                    style: TextStyle(
+                        color: AppStyles.primary, fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Choose reports to unlock insights. You can add any number.',
-                    style: TextStyle(color: AppStyles.muted, fontSize: 13),
-                  ),
-                  const SizedBox(height: 12),
-                  _reportPicker(),
-                  const SizedBox(height: 16),
-                  if (_selectedSections.contains('heart')) _heartCard(),
-                  if (_selectedSections.contains('diabetes')) _diabetesCard(),
-                  if (_selectedSections.contains('liver')) _liverCard(),
-                  if (_selectedSections.contains('cbc')) _cbcCard(),
-                  if (_selectedSections.contains('kidney')) _kidneyCard(),
-                  if (_selectedSections.contains('vitals')) _vitalsCard(),
-                  if (_selectedSections.contains('pancreas')) _pancreasCard(),
-                  if (_selectedSections.contains('cancer')) _cancerCard(),
-                  const SizedBox(height: 12),
-                  const DisclaimerWidget(),
-                ]),
+                ),
+                const DisclaimerWidget(),
               ],
             ),
           ),
@@ -713,17 +768,110 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _buildTabContent(List<Widget> children) {
+  Widget _buildTopTabs() {
+    final tabs = [
+      ('basic', Icons.person_outline, 'Basic Profile'),
+      ('lifestyle', Icons.self_improvement, 'Lifestyle'),
+      ('environment', Icons.eco, 'Environment'),
+      ('reports', Icons.article_outlined, 'Reports'),
+    ];
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: tabs.map((t) {
+          final id = t.$1;
+          final icon = t.$2;
+          final label = t.$3;
+          final active = _activeTop == id;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                setState(() => _activeTop = id);
+                Future.delayed(const Duration(milliseconds: 60), () {
+                  if (id == 'basic') {
+                    Scrollable.ensureVisible(_profileKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  } else if (id == 'lifestyle') {
+                    Scrollable.ensureVisible(_lifestyleKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  } else if (id == 'environment') {
+                    Scrollable.ensureVisible(_environmentKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  } else if (id == 'reports') {
+                    Scrollable.ensureVisible(_reportsKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  }
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: active ? Colors.white : AppStyles.page,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: active ? AppStyles.primary : AppStyles.border),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon,
+                        color: active ? AppStyles.primary : AppStyles.muted,
+                        size: 18),
+                    const SizedBox(height: 4),
+                    Text(label,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color:
+                                active ? AppStyles.primary : AppStyles.muted)),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 3,
+                      width: 36,
+                      decoration: BoxDecoration(
+                        color: active ? AppStyles.primary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
-
+  Widget _stepHeader(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: AppStyles.accent,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+              child:
+                  Text(text, style: Theme.of(context).textTheme.titleMedium)),
+        ],
+      ),
+    );
+  }
 
   Widget _profileCard() {
     return _SectionCard(
@@ -781,7 +929,52 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-
+  Widget _whyAskCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFEAF8F6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppStyles.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F7EE),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.verified_user_outlined,
+                color: Color(0xFF218A52)),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Why we ask this?',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'These details help calculate important health indicators.',
+                  style: TextStyle(color: AppStyles.muted, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   double? _currentBmi() {
     final height = _heightCm();
@@ -943,7 +1136,54 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-
+  Widget _foodCard() {
+    return _SectionCard(
+      title: 'Food Habits',
+      icon: Icons.restaurant_outlined,
+      background: const Color(0xFFFFF2E8),
+      accent: const Color(0xFFE49A52),
+      child: Column(
+        children: [
+          _twoColumn(
+            _choice(
+                'Diet type',
+                dietType,
+                const ['Vegetarian', 'Non-vegetarian', 'Mixed'],
+                (value) => setState(() => dietType = value)),
+            _choice(
+                'High sugar intake',
+                sugarIntake,
+                const ['Low', 'Moderate', 'High'],
+                (value) => setState(() => sugarIntake = value)),
+          ),
+          _twoColumn(
+            _choice(
+                'High salt intake',
+                saltIntake,
+                const ['Low', 'Moderate', 'High'],
+                (value) => setState(() => saltIntake = value)),
+            _choice(
+                'Fried / processed food',
+                processedFood,
+                const ['Rare', 'Sometimes', 'Frequent'],
+                (value) => setState(() => processedFood = value)),
+          ),
+          _twoColumn(
+            _choice(
+                'Fruit / vegetable intake',
+                fruitVeg,
+                const ['Low', 'Moderate', 'High'],
+                (value) => setState(() => fruitVeg = value)),
+            _choice(
+                'Sugary drinks',
+                sugaryDrinks,
+                const ['No', 'Occasionally', 'Frequently'],
+                (value) => setState(() => sugaryDrinks = value)),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _environmentCard() {
     return _SectionCard(
@@ -1016,65 +1256,48 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   Widget _actionButtons() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppStyles.navy.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final analyzeButton = GradientActionButton(
+          onPressed: loading ? null : analyze,
+          icon: Icons.arrow_forward,
+          loading: loading,
+          label: loading ? 'Analyzing...' : 'Save & Continue',
+        );
+        final saveButton = OutlinedButton.icon(
+          onPressed: loading
+              ? null
+              : () async {
+                  await LocalStorage.saveLastPayload(_payload());
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Saved for later.')),
+                  );
+                },
+          icon: const Icon(Icons.bookmark_border),
+          label: const Text('Save and Continue Later'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
           ),
-        ],
-      ),
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final analyzeButton = GradientActionButton(
-              onPressed: loading ? null : analyze,
-              icon: Icons.arrow_forward,
-              loading: loading,
-              label: loading ? 'Analyzing...' : 'Analyze Available Values',
-            );
-            final saveButton = OutlinedButton.icon(
-              onPressed: loading
-                  ? null
-                  : () async {
-                      await LocalStorage.saveLastPayload(_payload());
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Saved for later.')),
-                      );
-                    },
-              icon: const Icon(Icons.bookmark_border),
-              label: const Text('Save Draft'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
-              ),
-            );
-            if (constraints.maxWidth < 560) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(width: double.infinity, child: analyzeButton),
-                  const SizedBox(height: 10),
-                  SizedBox(width: double.infinity, child: saveButton),
-                ],
-              );
-            }
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(child: analyzeButton),
-                const SizedBox(width: 12),
-                Expanded(child: saveButton),
-              ],
-            );
-          },
-        ),
-      ),
+        );
+        if (constraints.maxWidth < 560) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(width: double.infinity, child: analyzeButton),
+              const SizedBox(height: 10),
+              SizedBox(width: double.infinity, child: saveButton),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: analyzeButton),
+            const SizedBox(width: 12),
+            Expanded(child: saveButton),
+          ],
+        );
+      },
     );
   }
 
@@ -1091,45 +1314,22 @@ class _InputScreenState extends State<InputScreen> {
       onClear: () => _clearControllers([
         tgCtl,
         hdlCtl,
-        ldlCtl,
-        totalCholesterolCtl,
-        vldlCtl,
       ]),
       child: Column(
         children: [
           _unitField(
-              tgCtl,
-              'Triglycerides',
-              tgUnit,
-              (value) => setState(() => tgUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Lipid Profile'),
+            tgCtl,
+            'Triglycerides',
+            tgUnit,
+            (value) => setState(() => tgUnit = value),
+            const ['mg/dL', 'mmol/L'],
+            helper: 'Found in: Lipid Profile',
+          ),
           _unitField(
-              hdlCtl,
-              'HDL cholesterol',
-              hdlUnit,
-              (value) => setState(() => hdlUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Lipid Profile'),
-          _unitField(
-              ldlCtl,
-              'LDL cholesterol',
-              ldlUnit,
-              (value) => setState(() => ldlUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Lipid Profile'),
-          _unitField(
-              totalCholesterolCtl,
-              'Total cholesterol',
-              totalCholesterolUnit,
-              (value) => setState(() => totalCholesterolUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Lipid Profile'),
-          _unitField(
-            vldlCtl,
-            'VLDL',
-            vldlUnit,
-            (value) => setState(() => vldlUnit = value),
+            hdlCtl,
+            'HDL cholesterol',
+            hdlUnit,
+            (value) => setState(() => hdlUnit = value),
             const ['mg/dL', 'mmol/L'],
             helper: 'Found in: Lipid Profile',
           ),
@@ -1150,41 +1350,17 @@ class _InputScreenState extends State<InputScreen> {
       chip: 'Used for: TyG, FLI, NAFLD',
       onClear: () => _clearControllers([
         fastingCtl,
-        hba1cCtl,
-        ppbsCtl,
-        randomSugarCtl,
       ]),
       child: Column(
         children: [
           _unitField(
-              fastingCtl,
-              'Fasting glucose',
-              glucoseUnit,
-              (value) => setState(() => glucoseUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Diabetes / Glucose Report'),
-          _unitField(
-            hba1cCtl,
-            'HbA1c',
-            hba1cUnit,
-            (value) => setState(() => hba1cUnit = value),
-            const ['%'],
+            fastingCtl,
+            'Fasting glucose',
+            glucoseUnit,
+            (value) => setState(() => glucoseUnit = value),
+            const ['mg/dL', 'mmol/L'],
             helper: 'Found in: Diabetes / Glucose Report',
           ),
-          _unitField(
-              ppbsCtl,
-              'PPBS',
-              ppbsUnit,
-              (value) => setState(() => ppbsUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Diabetes / Glucose Report'),
-          _unitField(
-              randomSugarCtl,
-              'Random blood sugar',
-              randomSugarUnit,
-              (value) => setState(() => randomSugarUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Diabetes / Glucose Report'),
         ],
       ),
     );
@@ -1204,12 +1380,7 @@ class _InputScreenState extends State<InputScreen> {
         astCtl,
         altCtl,
         ggtCtl,
-        alpCtl,
-        bilirubinCtl,
-        bilirubinDirectCtl,
-        bilirubinIndirectCtl,
         albuminCtl,
-        totalProteinCtl,
       ]),
       child: Column(
         children: [
@@ -1225,37 +1396,6 @@ class _InputScreenState extends State<InputScreen> {
             _unitField(ggtCtl, 'GGT', ggtUnit,
                 (value) => setState(() => ggtUnit = value), const ['U/L'],
                 helper: 'Found in: Liver Function Test'),
-            _unitField(alpCtl, 'ALP', alpUnit,
-                (value) => setState(() => alpUnit = value), const ['U/L'],
-                helper: 'Found in: Liver Function Test'),
-          ),
-          _twoColumn(
-            _unitField(
-              bilirubinCtl,
-              'Bilirubin total',
-              bilirubinUnit,
-              (value) => setState(() => bilirubinUnit = value),
-              const ['mg/dL', 'µmol/L'],
-              helper: 'Found in: Liver Function Test',
-            ),
-            _unitField(
-              bilirubinDirectCtl,
-              'Bilirubin direct',
-              bilirubinDirectUnit,
-              (value) => setState(() => bilirubinDirectUnit = value),
-              const ['mg/dL', 'µmol/L'],
-              helper: 'Found in: Liver Function Test',
-            ),
-          ),
-          _twoColumn(
-            _unitField(
-              bilirubinIndirectCtl,
-              'Bilirubin indirect',
-              bilirubinIndirectUnit,
-              (value) => setState(() => bilirubinIndirectUnit = value),
-              const ['mg/dL', 'µmol/L'],
-              helper: 'Found in: Liver Function Test',
-            ),
             _unitField(
               albuminCtl,
               'Albumin',
@@ -1264,14 +1404,6 @@ class _InputScreenState extends State<InputScreen> {
               const ['g/dL', 'g/L'],
               helper: 'Found in: Liver Function Test',
             ),
-          ),
-          _unitField(
-            totalProteinCtl,
-            'Total protein',
-            totalProteinUnit,
-            (value) => setState(() => totalProteinUnit = value),
-            const ['g/dL', 'g/L'],
-            helper: 'Found in: Liver Function Test',
           ),
         ],
       ),
@@ -1290,32 +1422,18 @@ class _InputScreenState extends State<InputScreen> {
       chip: 'Used for: NLR, APRI, FIB-4, NAFLD',
       onClear: () => _clearControllers([
         plateletsCtl,
-        wbcCtl,
         neutCtl,
         lymphCtl,
-        hemoglobinCtl,
-        rbcCtl,
-        esrCtl,
       ]),
       child: Column(
         children: [
-          _twoColumn(
-            _unitField(
-              plateletsCtl,
-              'Platelets',
-              plateletsUnit,
-              (value) => setState(() => plateletsUnit = value),
-              const ['10⁹/L', 'lakh/µL', 'cells/µL'],
-              helper: 'Found in: CBC Report',
-            ),
-            _unitField(
-              wbcCtl,
-              'WBC',
-              '10⁹/L',
-              (_) {},
-              const ['10⁹/L'],
-              helper: 'Found in: CBC Report',
-            ),
+          _unitField(
+            plateletsCtl,
+            'Platelets',
+            plateletsUnit,
+            (value) => setState(() => plateletsUnit = value),
+            const ['10⁹/L', 'lakh/µL', 'cells/µL'],
+            helper: 'Found in: CBC Report',
           ),
           _twoColumn(
             _unitField(
@@ -1335,32 +1453,6 @@ class _InputScreenState extends State<InputScreen> {
               helper: 'Found in: CBC Differential Count',
             ),
           ),
-          _twoColumn(
-            _unitField(
-              hemoglobinCtl,
-              'Hemoglobin',
-              hemoglobinUnit,
-              (value) => setState(() => hemoglobinUnit = value),
-              const ['g/dL'],
-              helper: 'Found in: CBC Report',
-            ),
-            _unitField(
-              rbcCtl,
-              'RBC',
-              rbcUnit,
-              (value) => setState(() => rbcUnit = value),
-              const ['million/µL'],
-              helper: 'Found in: CBC Report',
-            ),
-          ),
-          _unitField(
-            esrCtl,
-            'ESR',
-            esrUnit,
-            (value) => setState(() => esrUnit = value),
-            const ['mm/hr'],
-            helper: 'Found in: CBC Report',
-          ),
         ],
       ),
     );
@@ -1378,75 +1470,16 @@ class _InputScreenState extends State<InputScreen> {
       chip: 'Used for: eGFR',
       onClear: () => _clearControllers([
         creatCtl,
-        bloodUreaCtl,
-        bunCtl,
-        uricAcidCtl,
-        sodiumCtl,
-        potassiumCtl,
-        chlorideCtl,
       ]),
       child: Column(
         children: [
           _unitField(
-              creatCtl,
-              'Creatinine',
-              creatUnit,
-              (value) => setState(() => creatUnit = value),
-              const ['mg/dL', 'µmol/L'],
-              helper: 'Found in: Kidney Function Test'),
-          _twoColumn(
-            _unitField(
-              bloodUreaCtl,
-              'Blood urea',
-              bloodUreaUnit,
-              (value) => setState(() => bloodUreaUnit = value),
-              const ['mg/dL', 'mmol/L'],
-              helper: 'Found in: Kidney Function Test',
-            ),
-            _unitField(
-              bunCtl,
-              'Urea nitrogen / BUN',
-              bunUnit,
-              (value) => setState(() => bunUnit = value),
-              const ['mg/dL'],
-              helper: 'Found in: Kidney Function Test',
-            ),
-          ),
-          _twoColumn(
-            _unitField(
-              uricAcidCtl,
-              'Uric acid',
-              uricAcidUnit,
-              (value) => setState(() => uricAcidUnit = value),
-              const ['mg/dL', 'µmol/L'],
-              helper: 'Found in: Kidney Function Test',
-            ),
-            _unitField(
-              sodiumCtl,
-              'Sodium',
-              'mmol/L',
-              (_) {},
-              const ['mmol/L'],
-              helper: 'Found in: Kidney Function Test',
-            ),
-          ),
-          _twoColumn(
-            _unitField(
-              potassiumCtl,
-              'Potassium',
-              'mmol/L',
-              (_) {},
-              const ['mmol/L'],
-              helper: 'Found in: Kidney Function Test',
-            ),
-            _unitField(
-              chlorideCtl,
-              'Chloride',
-              'mmol/L',
-              (_) {},
-              const ['mmol/L'],
-              helper: 'Found in: Kidney Function Test',
-            ),
+            creatCtl,
+            'Creatinine',
+            creatUnit,
+            (value) => setState(() => creatUnit = value),
+            const ['mg/dL', 'µmol/L'],
+            helper: 'Found in: Kidney Function Test',
           ),
         ],
       ),
@@ -1464,68 +1497,17 @@ class _InputScreenState extends State<InputScreen> {
       onToggle: _toggleSection,
       chip: 'Used for: BP, SpO₂, pulse support',
       onClear: () => _clearControllers([
-        sysCtl,
-        diaCtl,
-        hrCtl,
         spo2Ctl,
-        temperatureCtl,
-        respiratoryRateCtl,
       ]),
       child: Column(
         children: [
-          _twoColumn(
-            _unitField(
-              sysCtl,
-              'Systolic BP',
-              systolicUnit,
-              (value) => setState(() => systolicUnit = value),
-              const ['mmHg'],
-              helper: 'Found in: Vitals',
-            ),
-            _unitField(
-              diaCtl,
-              'Diastolic BP',
-              diastolicUnit,
-              (value) => setState(() => diastolicUnit = value),
-              const ['mmHg'],
-              helper: 'Found in: Vitals',
-            ),
-          ),
-          _twoColumn(
-            _unitField(
-              hrCtl,
-              'Heart rate',
-              heartRateUnit,
-              (value) => setState(() => heartRateUnit = value),
-              const ['bpm'],
-              helper: 'Found in: Vitals',
-            ),
-            _unitField(
-              spo2Ctl,
-              'SpO₂',
-              spo2Unit,
-              (value) => setState(() => spo2Unit = value),
-              const ['%'],
-              helper: 'Measured using: Pulse oximeter',
-            ),
-          ),
-          _twoColumn(
-            _unitField(
-              temperatureCtl,
-              'Body temperature',
-              temperatureUnit,
-              (value) => setState(() => temperatureUnit = value),
-              const ['°C', '°F'],
-              helper: 'Found in: Vitals',
-            ),
-            _unitField(
-              respiratoryRateCtl,
-              'Respiratory rate',
-              respiratoryRateUnit,
-              (value) => setState(() => respiratoryRateUnit = value),
-              const ['breaths/min'],
-              helper: 'Found in: Vitals',
-            ),
+          _unitField(
+            spo2Ctl,
+            'SpO₂',
+            spo2Unit,
+            (value) => setState(() => spo2Unit = value),
+            const ['%'],
+            helper: 'Measured using: Pulse oximeter',
           ),
         ],
       ),
@@ -1901,7 +1883,52 @@ class _InputScreenState extends State<InputScreen> {
   }
 }
 
+class _IntroCard extends StatelessWidget {
+  const _IntroCard();
 
+  @override
+  Widget build(BuildContext context) {
+    return const VitalMapHeroCard(
+      title: "Let's get to know you",
+      subtitle: '',
+      description:
+          'Accurate details help us provide deeper organ-wise insights.',
+      bottom: Column(
+        children: [
+          Row(
+            children: [
+              Text(
+                'Step 1 of 3',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Spacer(),
+              Text(
+                '33% Complete',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(999)),
+            child: LinearProgressIndicator(
+              minHeight: 7,
+              value: 0.33,
+              backgroundColor: Colors.white24,
+              color: AppStyles.accent,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _SectionCard extends StatelessWidget {
   const _SectionCard({
@@ -2051,41 +2078,45 @@ class _ReportToggleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       onTap: onTap,
       child: Container(
-        height: 64,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        constraints: const BoxConstraints(minHeight: 126),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: selected ? AppStyles.primary : AppStyles.border,
-              width: selected ? 1.5 : 1.0),
+          color: selected ? section.background : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border:
+              Border.all(color: selected ? section.accent : AppStyles.border),
           boxShadow: [
             BoxShadow(
-              color: AppStyles.navy.withValues(alpha: 0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              color: section.accent.withValues(alpha: selected ? 0.12 : 0.03),
+              blurRadius: selected ? 12 : 6,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(section.emoji, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                section.title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: selected ? AppStyles.primary : AppStyles.text,
+            Row(
+              children: [
+                Icon(section.icon,
+                    color: selected ? section.accent : AppStyles.muted),
+                const Spacer(),
+                Icon(
+                  selected ? Icons.check_circle : Icons.add_circle_outline,
+                  color: selected ? section.accent : AppStyles.muted,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              ],
             ),
+            const SizedBox(height: 10),
+            Text(section.title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700, color: AppStyles.text)),
+            const SizedBox(height: 4),
+            Text(section.subtitle,
+                style: const TextStyle(fontSize: 12, color: AppStyles.muted)),
           ],
         ),
       ),
@@ -2097,10 +2128,16 @@ class _ReportSection {
   const _ReportSection({
     required this.id,
     required this.title,
-    required this.emoji,
+    required this.subtitle,
+    required this.icon,
+    required this.background,
+    required this.accent,
   });
 
   final String id;
   final String title;
-  final String emoji;
+  final String subtitle;
+  final IconData icon;
+  final Color background;
+  final Color accent;
 }

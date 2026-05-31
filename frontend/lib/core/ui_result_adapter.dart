@@ -73,9 +73,9 @@ class HealthUiAdapter {
     Map<String, dynamic>? response, {
     Map<String, dynamic>? payload,
   }) {
-    final metrics = <HealthMetric>[
-      ..._profileMetrics(payload),
-    ];
+    // Only include calculated indicators — profile-derived metrics (BMI, waist)
+    // should not appear as final result cards per product rules.
+    final metrics = <HealthMetric>[];
     final results = (response?['calculated_results'] as List<dynamic>?) ?? [];
     for (final item in results) {
       if (item is! Map) continue;
@@ -104,9 +104,28 @@ class HealthUiAdapter {
         ),
       );
     }
-    metrics.sort((a, b) =>
+    // Filter to approved final indicators only.
+    const approved = {
+      'AIP',
+      'APRI',
+      'FIB-4',
+      'FLI',
+      'NAFLD Fibrosis Score',
+      'SpO2',
+      'SpO₂',
+      'TyG',
+      'NLR',
+      'LAR',
+      'eGFR',
+      'AFP',
+      'CA 15-3',
+      'CA 27.29',
+    };
+    final filtered =
+        metrics.where((m) => approved.contains(m.indexName)).toList();
+    filtered.sort((a, b) =>
         _metricOrder(a.indexName).compareTo(_metricOrder(b.indexName)));
-    return metrics;
+    return filtered;
   }
 
   static List<Map<String, dynamic>> moreDataNeeded(
@@ -286,6 +305,7 @@ class HealthUiAdapter {
     return '${missing.length} values missing';
   }
 
+  // ignore: unused_element
   static List<HealthMetric> _profileMetrics(Map<String, dynamic>? payload) {
     final profile =
         Map<String, dynamic>.from(payload?['profile'] as Map? ?? const {});

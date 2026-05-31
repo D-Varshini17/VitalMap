@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'screens/input_screen.dart';
-import 'screens/more_screen.dart';
 import 'screens/results_screen.dart';
-import 'screens/splash_screen.dart';
 import 'screens/insight_screen.dart';
+import 'screens/more_screen.dart';
+import 'screens/splash_screen.dart';
 import 'storage/local_storage.dart';
 import 'styles.dart';
 
@@ -145,8 +145,8 @@ class _HomeContainerState extends State<HomeContainer> {
                 label: 'Result',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.menu_book_outlined),
-                activeIcon: Icon(Icons.menu_book),
+                icon: Icon(Icons.lightbulb_outline),
+                activeIcon: Icon(Icons.lightbulb),
                 label: 'Insight',
               ),
               BottomNavigationBarItem(
