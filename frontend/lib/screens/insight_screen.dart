@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/ui_result_adapter.dart';
 import '../styles.dart';
 import '../widgets/brand_logo.dart';
+import '../widgets/disclaimer.dart';
 import '../widgets/organ_visual.dart';
 import 'organ_detail_screen.dart';
 
@@ -60,28 +61,30 @@ class InsightScreen extends StatelessWidget {
 
   Widget _organTile(BuildContext context, String key) {
     final name = HealthUiAdapter.organName(key);
-    return Container(
-      margin: const EdgeInsets.only(top: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppStyles.border),
-      ),
-      child: ListTile(
-        onTap: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => OrganDetailScreen(
-              organKey: key,
-              organName: name,
-              metrics: const [],
-              missingCount: 0,
-            ),
-          ));
-        },
-        leading: OrganVisualIcon(organ: key, size: 44, iconSize: 22),
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w900)),
-        subtitle: const Text('Educational content and screening context.'),
-        trailing: const Icon(Icons.chevron_right),
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppStyles.border),
+        ),
+        child: ListTile(
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => OrganDetailScreen(
+                organKey: key,
+                organName: name,
+                metrics: const [],
+                missingCount: 0,
+              ),
+            ));
+          },
+          leading: OrganVisualIcon(organ: key, size: 44, iconSize: 22),
+          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w900)),
+          subtitle: const Text('Educational content and screening context.'),
+          trailing: const Icon(Icons.chevron_right),
+        ),
       ),
     );
   }

@@ -305,6 +305,7 @@ class HealthUiAdapter {
     return '${missing.length} values missing';
   }
 
+  // ignore: unused_element
   static List<HealthMetric> _profileMetrics(Map<String, dynamic>? payload) {
     final profile =
         Map<String, dynamic>.from(payload?['profile'] as Map? ?? const {});
