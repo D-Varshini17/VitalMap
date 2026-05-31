@@ -2,6 +2,37 @@ import 'package:flutter/material.dart';
 
 import '../styles.dart';
 
+String? getOrganImagePath(String organ) {
+  switch (organ.trim().toLowerCase()) {
+    case 'heart':
+      return 'assets/images/organs/heart.png';
+    case 'liver':
+      return 'assets/images/organs/liver.png';
+    case 'kidney':
+      return 'assets/images/organs/kidney.png';
+    case 'lung':
+    case 'lungs':
+      return 'assets/images/organs/lungs.png';
+    case 'diabetes / metabolic':
+    case 'diabetes':
+    case 'brain / metabolic':
+    case 'brain':
+      return 'assets/images/organs/brain_metabolic.png';
+    case 'inflammation':
+    case 'cbc / differential':
+    case 'cbc':
+      return 'assets/images/organs/inflammation.png';
+    case 'pancreas':
+    case 'pancreatic enzymes':
+      return 'assets/images/organs/pancreas.png';
+    case 'cancer awareness':
+    case 'cancer':
+      return 'assets/images/organs/cancer_awareness.png';
+    default:
+      return null;
+  }
+}
+
 class OrganVisualIcon extends StatelessWidget {
   const OrganVisualIcon({
     super.key,
@@ -19,6 +50,8 @@ class OrganVisualIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = organVisualStyle(organ);
+    final imagePath = getOrganImagePath(organ);
+
     return Container(
       width: size,
       height: size,
@@ -36,12 +69,33 @@ class OrganVisualIcon extends StatelessWidget {
               ]
             : null,
       ),
-      child: Center(
-        child: Text(
-          style.emoji,
-          style: TextStyle(
-            fontSize: iconSize ?? size * 0.52,
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(size * 0.28),
+        child: Padding(
+          padding: EdgeInsets.all(size * 0.12),
+          child: imagePath != null
+              ? Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Text(
+                        style.emoji,
+                        style: TextStyle(
+                          fontSize: iconSize ?? size * 0.45,
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : Center(
+                  child: Text(
+                    style.emoji,
+                    style: TextStyle(
+                      fontSize: iconSize ?? size * 0.52,
+                    ),
+                  ),
+                ),
         ),
       ),
     );
@@ -66,21 +120,21 @@ OrganVisualStyle organVisualStyle(String organ) {
   switch (organ.trim().toLowerCase()) {
     case 'heart':
       return const OrganVisualStyle(
-        emoji: '❤️',
+        emoji: '🫀',
         background: Color(0xFFFFEAF1),
         border: Color(0xFFFFD1DE),
         accent: Color(0xFFD84D72),
       );
     case 'liver':
       return const OrganVisualStyle(
-        emoji: '🧪',
+        emoji: '🩸',
         background: Color(0xFFFFF0E4),
         border: Color(0xFFFFD9BA),
         accent: Color(0xFFD46B25),
       );
     case 'kidney':
       return const OrganVisualStyle(
-        emoji: '💧',
+        emoji: '🫘',
         background: Color(0xFFEDE9FF),
         border: Color(0xFFD9D0FF),
         accent: Color(0xFF7653D9),
@@ -113,7 +167,7 @@ OrganVisualStyle organVisualStyle(String organ) {
     case 'cbc / differential':
     case 'cbc':
       return const OrganVisualStyle(
-        emoji: '🩸',
+        emoji: '🦠',
         background: Color(0xFFF0E9FF),
         border: Color(0xFFDED1FF),
         accent: Color(0xFF7653D9),
@@ -121,7 +175,7 @@ OrganVisualStyle organVisualStyle(String organ) {
     case 'pancreas':
     case 'pancreatic enzymes':
       return const OrganVisualStyle(
-        emoji: '🔬',
+        emoji: '🥐',
         background: Color(0xFFFFF2E8),
         border: Color(0xFFFFD7C0),
         accent: Color(0xFFE1813A),

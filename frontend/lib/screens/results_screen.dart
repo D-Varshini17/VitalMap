@@ -356,7 +356,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           mainAxisSpacing: 12,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.35,
+          childAspectRatio: 0.76,
           children: [
             _organGridCard('Heart', 'AIP', metrics, moreData),
             _organGridCard('Liver', 'FIB-4', metrics, moreData),
@@ -373,17 +373,27 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _organGridCard(String organName, String defaultIndex, List<HealthMetric> metrics, List<Map<String, dynamic>> moreData) {
-    final organMetrics = metrics.where((m) => m.organName == organName || m.organKey == organName.toLowerCase()).toList();
-    HealthStatusStyle status = AppStyles.moreDataStatus;
+    final organKey = organName.toLowerCase();
+    final organMetrics = metrics.where((m) => m.organName == organName || m.organKey == organKey).toList();
+    HealthStatusStyle statusStyle = AppStyles.moreDataStatus;
     String scoreText = '';
-    String label = 'More Data Needed';
+    String label = 'More Data';
+    String message = 'Add values to calculate.';
+    HealthMetric? matchedMetric;
 
     if (organMetrics.isNotEmpty) {
-      final primary = organMetrics.first;
-      status = AppStyles.statusStyle(primary.rawStatus);
-      scoreText = primary.scoreText;
-      defaultIndex = primary.indexName;
-      label = status.label;
+      matchedMetric = organMetrics.first;
+      statusStyle = AppStyles.statusStyle(matchedMetric.rawStatus);
+      scoreText = matchedMetric.scoreText;
+      defaultIndex = matchedMetric.indexName;
+      label = statusStyle.label;
+      message = matchedMetric.summary;
+    } else {
+      final missingForOrgan = moreData.where((m) => m['organ']?.toString().toLowerCase() == organKey).toList();
+      if (missingForOrgan.isNotEmpty) {
+        final missingList = missingForOrgan.map((m) => HealthUiAdapter.missingText(m)).join(', ');
+        message = 'Missing: $missingList';
+      }
     }
 
     return Container(
@@ -401,26 +411,80 @@ class _ResultsScreenState extends State<ResultsScreen> {
         ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          OrganVisualIcon(organ: organName.toLowerCase(), size: 36, iconSize: 22, showGlow: false),
+          Row(
+            children: [
+              OrganVisualIcon(organ: organKey, size: 36),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      organName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppStyles.navy),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      defaultIndex,
+                      style: const TextStyle(fontSize: 10, color: AppStyles.muted, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          Text(organName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center, maxLines: 1),
-          if (scoreText.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text('$defaultIndex: $scoreText', style: const TextStyle(fontSize: 10, color: AppStyles.text)),
-            ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: status.badgeBackground,
-              borderRadius: BorderRadius.circular(4),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusStyle.badgeBackground,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  AppStyles.displayStatusLabel(label),
+                  style: TextStyle(color: statusStyle.text, fontSize: 9, fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (scoreText.isNotEmpty)
+                Text(
+                  scoreText,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppStyles.navy),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Expanded(
             child: Text(
-              AppStyles.displayStatusLabel(label),
-              style: TextStyle(color: status.text, fontSize: 9, fontWeight: FontWeight.bold),
+              message,
+              style: const TextStyle(fontSize: 10, color: AppStyles.text, height: 1.3),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                if (matchedMetric != null) {
+                  _openDetail(matchedMetric);
+                } else {
+                  // Fallback or navigate to input
+                }
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: AppStyles.primary,
+                side: const BorderSide(color: AppStyles.border),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                minimumSize: const Size(double.infinity, 28),
+                padding: EdgeInsets.zero,
+              ),
+              child: const Text('View Details', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
