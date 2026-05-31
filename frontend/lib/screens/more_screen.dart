@@ -128,30 +128,32 @@ class MoreScreen extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppStyles.softBlue,
-            borderRadius: BorderRadius.circular(13),
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppStyles.border),
+        ),
+        child: ListTile(
+          onTap: onTap,
+          leading: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppStyles.softBlue,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(icon, color: AppStyles.primary),
           ),
-          child: Icon(icon, color: AppStyles.primary),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          subtitle: Text(subtitle),
+          trailing: const Icon(Icons.chevron_right),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }

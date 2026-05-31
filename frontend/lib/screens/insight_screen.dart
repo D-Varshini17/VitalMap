@@ -48,9 +48,13 @@ class InsightScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Insight', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                Text('Insight',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                 SizedBox(height: 6),
-                Text('Learn about organ-wise screening and what common indicators mean.', style: TextStyle(color: AppStyles.muted)),
+                Text(
+                    'Learn about organ-wise screening and what common indicators mean.',
+                    style: TextStyle(color: AppStyles.muted)),
               ],
             ),
           ),
@@ -81,7 +85,8 @@ class InsightScreen extends StatelessWidget {
             ));
           },
           leading: OrganVisualIcon(organ: key, size: 44, iconSize: 22),
-          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w900)),
+          title:
+              Text(name, style: const TextStyle(fontWeight: FontWeight.w900)),
           subtitle: const Text('Educational content and screening context.'),
           trailing: const Icon(Icons.chevron_right),
         ),
