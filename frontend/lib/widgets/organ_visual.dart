@@ -36,10 +36,13 @@ class OrganVisualIcon extends StatelessWidget {
               ]
             : null,
       ),
-      child: Icon(
-        style.icon,
-        color: style.accent,
-        size: iconSize ?? size * 0.52,
+      child: Center(
+        child: Text(
+          style.emoji,
+          style: TextStyle(
+            fontSize: iconSize ?? size * 0.52,
+          ),
+        ),
       ),
     );
   }
@@ -47,82 +50,93 @@ class OrganVisualIcon extends StatelessWidget {
 
 class OrganVisualStyle {
   const OrganVisualStyle({
-    required this.icon,
+    required this.emoji,
     required this.background,
     required this.border,
     required this.accent,
   });
 
-  final IconData icon;
+  final String emoji;
   final Color background;
   final Color border;
   final Color accent;
 }
 
 OrganVisualStyle organVisualStyle(String organ) {
-  switch (organ) {
-    case 'Heart':
+  switch (organ.trim().toLowerCase()) {
+    case 'heart':
       return const OrganVisualStyle(
-        icon: Icons.favorite,
+        emoji: '❤️',
         background: Color(0xFFFFEAF1),
         border: Color(0xFFFFD1DE),
         accent: Color(0xFFD84D72),
       );
-    case 'Liver':
+    case 'liver':
       return const OrganVisualStyle(
-        icon: Icons.science,
+        emoji: '🧪',
         background: Color(0xFFFFF0E4),
         border: Color(0xFFFFD9BA),
         accent: Color(0xFFD46B25),
       );
-    case 'Kidney':
+    case 'kidney':
       return const OrganVisualStyle(
-        icon: Icons.water_drop,
+        emoji: '💧',
         background: Color(0xFFEDE9FF),
         border: Color(0xFFD9D0FF),
         accent: Color(0xFF7653D9),
       );
-    case 'Lung':
-    case 'Lungs':
+    case 'lung':
+    case 'lungs':
       return const OrganVisualStyle(
-        icon: Icons.air,
+        emoji: '🫁',
         background: Color(0xFFE7FBFF),
         border: Color(0xFFC8F1F7),
         accent: Color(0xFF21AFC2),
       );
-    case 'Diabetes / Metabolic':
-    case 'Brain / Metabolic':
-    case 'Brain':
+    case 'diabetes / metabolic':
+    case 'diabetes':
       return const OrganVisualStyle(
-        icon: Icons.psychology_alt,
+        emoji: '🍬',
         background: Color(0xFFFFF4E2),
         border: Color(0xFFFFDFB5),
         accent: Color(0xFFE28C25),
       );
-    case 'Inflammation':
+    case 'brain / metabolic':
+    case 'brain':
       return const OrganVisualStyle(
-        icon: Icons.bloodtype,
+        emoji: '🧠',
+        background: Color(0xFFFFF4E2),
+        border: Color(0xFFFFDFB5),
+        accent: Color(0xFFE28C25),
+      );
+    case 'inflammation':
+    case 'cbc / differential':
+    case 'cbc':
+      return const OrganVisualStyle(
+        emoji: '🩸',
         background: Color(0xFFF0E9FF),
         border: Color(0xFFDED1FF),
         accent: Color(0xFF7653D9),
       );
-    case 'Pancreas':
+    case 'pancreas':
+    case 'pancreatic enzymes':
       return const OrganVisualStyle(
-        icon: Icons.biotech,
+        emoji: '🔬',
         background: Color(0xFFFFF2E8),
         border: Color(0xFFFFD7C0),
         accent: Color(0xFFE1813A),
       );
-    case 'Cancer Awareness':
+    case 'cancer awareness':
+    case 'cancer':
       return const OrganVisualStyle(
-        icon: Icons.health_and_safety,
+        emoji: '🎗️',
         background: Color(0xFFEAF7FF),
         border: AppStyles.softBlueBorder,
         accent: AppStyles.primary,
       );
     default:
       return const OrganVisualStyle(
-        icon: Icons.monitor_heart,
+        emoji: '❤️',
         background: AppStyles.softBlue,
         border: AppStyles.softBlueBorder,
         accent: AppStyles.primary,

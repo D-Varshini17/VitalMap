@@ -57,7 +57,7 @@ class AppStyles {
   static const Color softBlueText = Color(0xFF245D7A);
 
   static const HealthStatusStyle lowConcernStatus = HealthStatusStyle(
-    label: 'Low Concern',
+    label: 'Good',
     background: Color(0xFFECF8EF),
     badgeBackground: Color(0xFFDDF2E4),
     border: Color(0xFFCBEAD5),
@@ -152,7 +152,8 @@ class AppStyles {
     }
     if (value.startsWith('low') ||
         value.contains('optimal') ||
-        value.contains('within awareness threshold')) {
+        value.contains('within awareness threshold') ||
+        value.contains('good')) {
       return lowConcernStatus;
     }
     return moreDataStatus;
@@ -162,10 +163,9 @@ class AppStyles {
 
   static String displayStatusLabel(String? rawStatus, {String? indexName}) {
     final label = statusStyle(rawStatus).label;
-    if (label == lowConcernStatus.label) {
+    if (label == 'Good') {
       return indexName == 'BMI' ? 'Normal' : 'Good';
     }
-    if (label == moreDataStatus.label) return 'More Data Needed';
     return label;
   }
 

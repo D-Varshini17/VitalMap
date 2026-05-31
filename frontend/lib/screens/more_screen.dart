@@ -20,57 +20,39 @@ class MoreScreen extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const BrandAppBarTitle(title: 'More'),
+          title: const BrandAppBarTitle(title: 'VitalMap'),
         ),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             _aboutCard(),
-            const SizedBox(height: 10),
-            _menuItem(
-              icon: Icons.person_outline,
-              title: 'Profile',
-              subtitle: 'Review your saved basic details',
-              onTap: onStartAnalysis,
-            ),
-            _menuItem(
-              icon: Icons.health_and_safety_outlined,
-              title: 'App Safety Note',
-              subtitle: 'How to interpret screening insights safely',
-              onTap: () => _showSafetySheet(context),
-            ),
-            _menuItem(
-              icon: Icons.privacy_tip_outlined,
-              title: 'Privacy note',
-              subtitle: 'Data stays on your device unless analysis is sent',
-              onTap: () => _showPrivacySheet(context),
-            ),
-            _menuItem(
-              icon: Icons.info_outline,
-              title: 'About VitalMap',
-              subtitle: 'Organ Health Risk Indicator',
-              onTap: () => _showAboutSheet(context),
-            ),
-            _menuItem(
-              icon: Icons.ios_share_outlined,
-              title: 'Export Screening Summary',
-              subtitle: 'Create a shareable screening summary',
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Export screening summary is coming soon.'),
-                ),
-              ),
-            ),
-            _menuItem(
-              icon: Icons.help_outline,
-              title: 'Help',
-              subtitle: 'Understand inputs, results, and organ cards',
-              onTap: () => _showHelpSheet(context),
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            _sectionTitle('Profile & Health'),
+            _menuItem(icon: Icons.person_outline, title: 'My Profile', onTap: onStartAnalysis),
+            _menuItem(icon: Icons.health_and_safety_outlined, title: 'Edit General Health Questions', onTap: onStartAnalysis),
+            _menuItem(icon: Icons.fact_check_outlined, title: 'Saved Report Values', onTap: onStartAnalysis),
+            const SizedBox(height: 16),
+            _sectionTitle('Reports & Export'),
+            _menuItem(icon: Icons.picture_as_pdf_outlined, title: 'Export Screening Summary PDF', onTap: () => _comingSoon(context)),
+            _menuItem(icon: Icons.share_outlined, title: 'Share Result Summary', onTap: () => _comingSoon(context)),
+            _menuItem(icon: Icons.download_outlined, title: 'Download Last Result', onTap: () => _comingSoon(context)),
+            const SizedBox(height: 16),
+            _sectionTitle('App Safety'),
+            _menuItem(icon: Icons.gavel_outlined, title: 'Disclaimer', onTap: () => _showDisclaimerSheet(context)),
+            _menuItem(icon: Icons.privacy_tip_outlined, title: 'Privacy & Data Safety', onTap: () => _showPrivacySheet(context)),
+            _menuItem(icon: Icons.medical_information_outlined, title: 'Medical Safety Note', onTap: () => _showSafetySheet(context)),
+            const SizedBox(height: 16),
+            _sectionTitle('Settings'),
+            _menuItem(icon: Icons.settings_outlined, title: 'Units Preference', onTap: () => _comingSoon(context)),
+            _menuItem(icon: Icons.delete_outline, title: 'Clear Saved Data', onTap: () => _comingSoon(context)),
+            const SizedBox(height: 16),
+            _sectionTitle('Support'),
+            _menuItem(icon: Icons.help_outline, title: 'Help & FAQ', onTap: () => _showHelpSheet(context)),
+            _menuItem(icon: Icons.support_agent_outlined, title: 'Contact Support', onTap: () => _comingSoon(context)),
+            _menuItem(icon: Icons.info_outline, title: 'About VitalMap', onTap: () => _showAboutSheet(context)),
+            _menuItem(icon: Icons.update_outlined, title: 'App Version', subtitle: '1.0.0', onTap: () {}),
+            const SizedBox(height: 24),
             const DisclaimerWidget(),
-            const SizedBox(height: 10),
-            _uiNotesCard(),
           ],
         ),
       ),
@@ -81,16 +63,11 @@ class MoreScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.white, Color(0xFFEAF7FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppStyles.navy,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppStyles.softBlueBorder),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.primary.withValues(alpha: 0.07),
+            color: AppStyles.navy.withValues(alpha: 0.15),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -98,7 +75,7 @@ class MoreScreen extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          BrandLogoMark(size: 58, glow: true),
+          BrandLogoMark(size: 58, glow: false),
           SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -106,14 +83,14 @@ class MoreScreen extends StatelessWidget {
               children: [
                 Text(
                   'VitalMap',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 SizedBox(height: 3),
                 Text(
                   'Organ Health Risk Indicator',
                   style: TextStyle(
-                    color: AppStyles.muted,
-                    fontWeight: FontWeight.w700,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -124,144 +101,63 @@ class MoreScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppStyles.softBlue,
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: Icon(icon, color: AppStyles.primary),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppStyles.muted),
       ),
     );
   }
 
-  Widget _uiNotesCard() {
-    final items = [
-      (
-        Icons.favorite_border,
-        'Organ-Centric Design',
-        'Focus on each organ with intuitive icons and status.'
-      ),
-      (
-        Icons.verified_user_outlined,
-        'Clear Health Status',
-        'Easy-to-understand status badges and risk indicators.'
-      ),
-      (
-        Icons.donut_large_outlined,
-        'Progress & Completion',
-        'Track your data completeness and health improvement.'
-      ),
-      (
-        Icons.flash_on_outlined,
-        'Action-Oriented',
-        'Smart prompts to add missing data and view recommendations.'
-      ),
-      (
-        Icons.auto_awesome_outlined,
-        'Modern & Clean UI',
-        'Soft colors, clean cards, and simple navigation.'
-      ),
-    ];
+  Widget _menuItem({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppStyles.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Why this UI?',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 12),
-          for (final item in items)
-            Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppStyles.page,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppStyles.border),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child: Icon(item.$1, color: AppStyles.primary),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.$2,
-                          style: const TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.$3,
-                          style: const TextStyle(
-                            color: AppStyles.muted,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
+      child: ListTile(
+        onTap: onTap,
+        dense: true,
+        leading: Icon(icon, color: AppStyles.primary),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppStyles.text)),
+        subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(color: AppStyles.muted)) : null,
+        trailing: subtitle != null ? null : const Icon(Icons.chevron_right, color: AppStyles.muted),
       ),
     );
+  }
+
+  void _comingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Feature coming soon.')),
+    );
+  }
+
+  void _showDisclaimerSheet(BuildContext context) {
+    _showInfoSheet(context, 'Disclaimer', HealthUiAdapter.disclaimer);
   }
 
   void _showSafetySheet(BuildContext context) {
     _showInfoSheet(
       context,
-      'App Safety Note',
-      HealthUiAdapter.disclaimer,
+      'Medical Safety Note',
+      'The information provided by VitalMap is for awareness and educational purposes only. It does not replace professional medical advice, diagnosis, or treatment.',
     );
   }
 
   void _showPrivacySheet(BuildContext context) {
     _showInfoSheet(
       context,
-      'Privacy note',
-      'Your last input and result are stored locally on this device for continuity. AI recommendations require sending available screening context to the backend service.',
+      'Privacy & Data Safety',
+      'Your last input and result are stored locally on this device for continuity. AI recommendations require sending available screening context to the backend service. We do not store your data remotely.',
     );
   }
 
@@ -276,8 +172,8 @@ class MoreScreen extends StatelessWidget {
   void _showHelpSheet(BuildContext context) {
     _showInfoSheet(
       context,
-      'Help',
-      'Complete compulsory general details, add only the report values you have, then review Results and Overview for organ-wise insights.',
+      'Help & FAQ',
+      'Complete compulsory general details, add only the report values you have, then review Results and Insight for organ-wise knowledge.',
     );
   }
 
@@ -299,7 +195,7 @@ class MoreScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            Text(text, style: const TextStyle(height: 1.4)),
+            Text(text, style: const TextStyle(height: 1.4, color: AppStyles.text)),
           ],
         ),
       ),

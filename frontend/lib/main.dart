@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'screens/history_screen.dart';
 import 'screens/input_screen.dart';
 import 'screens/more_screen.dart';
-import 'screens/overview_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/insight_screen.dart';
 import 'storage/local_storage.dart';
 import 'styles.dart';
 
@@ -101,20 +100,8 @@ class _HomeContainerState extends State<HomeContainer> {
       ResultsScreen(
         response: _lastResponse,
         lastChecked: _lastChecked,
-        onViewOverview: () => setState(() => _currentIndex = 2),
       ),
-      OverviewScreen(
-        response: _lastResponse,
-        lastChecked: _lastChecked,
-        onStartAnalysis: () => setState(() => _currentIndex = 0),
-        onViewResults: () => setState(() => _currentIndex = 1),
-        onRecalculated: _handleAnalysisComplete,
-      ),
-      HistoryScreen(
-        response: _lastResponse,
-        lastChecked: _lastChecked,
-        onViewResults: () => setState(() => _currentIndex = 1),
-      ),
+      const InsightScreen(),
       MoreScreen(
         onStartAnalysis: () => setState(() => _currentIndex = 0),
         onViewResults: () => setState(() => _currentIndex = 1),
@@ -155,17 +142,12 @@ class _HomeContainerState extends State<HomeContainer> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.insights_outlined),
                 activeIcon: Icon(Icons.insights),
-                label: 'Results',
+                label: 'Result',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.grid_view_outlined),
-                activeIcon: Icon(Icons.grid_view),
-                label: 'Overview',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history_outlined),
-                activeIcon: Icon(Icons.history),
-                label: 'History',
+                icon: Icon(Icons.menu_book_outlined),
+                activeIcon: Icon(Icons.menu_book),
+                label: 'Insight',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.more_horiz),

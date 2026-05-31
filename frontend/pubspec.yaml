@@ -28,9 +28,9 @@ flutter_icons:
   ios: false
   web:
     generate: true
-    image_path: "assets/app_icon_legacy.png"
-    background_color: "#F4FBFF"
-    theme_color: "#4BAFE3"
-  image_path: "assets/app_icon_legacy.png"
-  adaptive_icon_background: "#F4FBFF"
-  adaptive_icon_foreground: "assets/app_icon_foreground.png"
+    image_path: "assets/logo_medid.jpeg"
+    background_color: "#FFFFFF"
+    theme_color: "#0B63CE"
+  image_path: "assets/logo_medid.jpeg"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/logo_medid.jpeg"
