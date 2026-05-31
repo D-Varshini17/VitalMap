@@ -10,6 +10,7 @@ import '../widgets/disclaimer.dart';
 import '../widgets/health_dashboard_widgets.dart';
 import '../widgets/organ_visual.dart';
 import 'organ_detail_screen.dart';
+import 'add_missing_screen.dart';
 
 class ResultsScreen extends StatefulWidget {
   const ResultsScreen({
@@ -572,12 +573,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
             runSpacing: 8,
             children: [
               for (final item in moreData.take(8))
-                Chip(
+                ActionChip(
                   backgroundColor: Colors.white,
                   side: const BorderSide(color: AppStyles.border),
                   label: Text(
                     '${item['index_name'] ?? 'Insight'}: ${HealthUiAdapter.missingText(item)}',
                   ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const AddMissingScreen()),
+                    );
+                  },
                 ),
             ],
           ),

@@ -1,0 +1,26 @@
+{
+  "patient": {
+    "age": 52,
+    "sex": "female",
+    "height_cm": 165,
+    "weight_kg": 72,
+    "smoker": false
+  },
+  "labs": {
+    "fasting_glucose_mg_dl": 110,
+    "triglycerides_mg_dl": 180,
+    "hdl_mg_dl": 45,
+    "creatinine_mg_dl": 1.0,
+    "ast_u_l": 28,
+    "alt_u_l": 35,
+    "platelets_per_uL": 220000,
+    "neutrophils_percent": 60,
+    "lymphocytes_percent": 30,
+    "albumin_g_dl": 4.2,
+    "spo2_percent": 98
+  },
+  "history": {
+    "diabetes": false,
+    "hypertension": true
+  }
+}

@@ -69,8 +69,6 @@ class MoreScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const DisclaimerWidget(),
-            const SizedBox(height: 10),
-            _uiNotesCard(),
           ],
         ),
       ),
@@ -154,97 +152,6 @@ class MoreScreen extends StatelessWidget {
         ),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
-      ),
-    );
-  }
-
-  Widget _uiNotesCard() {
-    final items = [
-      (
-        Icons.favorite_border,
-        'Organ-Centric Design',
-        'Focus on each organ with intuitive icons and status.'
-      ),
-      (
-        Icons.verified_user_outlined,
-        'Clear Health Status',
-        'Easy-to-understand status badges and risk indicators.'
-      ),
-      (
-        Icons.donut_large_outlined,
-        'Progress & Completion',
-        'Track your data completeness and health improvement.'
-      ),
-      (
-        Icons.flash_on_outlined,
-        'Action-Oriented',
-        'Smart prompts to add missing data and view recommendations.'
-      ),
-      (
-        Icons.auto_awesome_outlined,
-        'Modern & Clean UI',
-        'Soft colors, clean cards, and simple navigation.'
-      ),
-    ];
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppStyles.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Why this UI?',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 12),
-          for (final item in items)
-            Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppStyles.page,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppStyles.border),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child: Icon(item.$1, color: AppStyles.primary),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.$2,
-                          style: const TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.$3,
-                          style: const TextStyle(
-                            color: AppStyles.muted,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
       ),
     );
   }

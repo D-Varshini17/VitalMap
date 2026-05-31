@@ -9,6 +9,7 @@ import '../widgets/disclaimer.dart';
 import '../widgets/health_dashboard_widgets.dart';
 import '../widgets/organ_visual.dart';
 import 'organ_detail_screen.dart';
+import 'add_missing_screen.dart';
 
 class OverviewScreen extends StatefulWidget {
   const OverviewScreen({
@@ -518,7 +519,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ),
           const SizedBox(width: 10),
           TextButton(
-            onPressed: widget.onStartAnalysis,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AddMissingScreen()),
+              );
+            },
             child: const Text('Add Missing Data'),
           ),
         ],

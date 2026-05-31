@@ -149,6 +149,12 @@ class _InputScreenState extends State<InputScreen> {
 
   bool loading = false;
 
+  final _profileKey = GlobalKey();
+  final _lifestyleKey = GlobalKey();
+  final _environmentKey = GlobalKey();
+  final _reportsKey = GlobalKey();
+  String _activeTop = 'basic';
+
   static const _reportSections = [
     _ReportSection(
       id: 'heart',
@@ -697,7 +703,19 @@ class _InputScreenState extends State<InputScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const BrandAppBarTitle(title: 'VitalMap'),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              BrandAppBarTitle(title: 'VitalMap'),
+              SizedBox(height: 2),
+              Text(
+                'Organ Health Risk Indicator',
+                style: TextStyle(fontSize: 12, color: AppStyles.muted),
+              ),
+            ],
+          ),
+          elevation: 0,
+          backgroundColor: AppStyles.page,
         ),
         body: Form(
           key: _formKey,
@@ -706,20 +724,22 @@ class _InputScreenState extends State<InputScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildTopTabs(),
+                const SizedBox(height: 8),
                 _IntroCard(),
                 _stepHeader('Step 1 of 3: General Health Details'),
-                _profileCard(),
+                Container(key: _profileKey, child: _profileCard()),
                 _whyAskCard(),
-                _lifestyleCard(),
-                _foodCard(),
-                _environmentCard(),
+                Container(key: _lifestyleKey, child: _lifestyleCard()),
+                Container(key: null, child: _foodCard()),
+                Container(key: _environmentKey, child: _environmentCard()),
                 _stepHeader('Step 2 of 3: Optional Report-Based Lab Inputs'),
                 const Text(
                   'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
                   style: TextStyle(color: AppStyles.muted),
                 ),
                 const SizedBox(height: 12),
-                _reportPicker(),
+                Container(key: _reportsKey, child: _reportPicker()),
                 const SizedBox(height: 6),
                 if (_selectedSections.contains('heart')) _heartCard(),
                 if (_selectedSections.contains('diabetes')) _diabetesCard(),
@@ -744,6 +764,86 @@ class _InputScreenState extends State<InputScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTopTabs() {
+    final tabs = [
+      ('basic', Icons.person_outline, 'Basic Profile'),
+      ('lifestyle', Icons.self_improvement, 'Lifestyle'),
+      ('environment', Icons.eco, 'Environment'),
+      ('reports', Icons.article_outlined, 'Reports'),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: tabs.map((t) {
+          final id = t.$1;
+          final icon = t.$2;
+          final label = t.$3;
+          final active = _activeTop == id;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                setState(() => _activeTop = id);
+                Future.delayed(const Duration(milliseconds: 60), () {
+                  if (id == 'basic') {
+                    Scrollable.ensureVisible(_profileKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  } else if (id == 'lifestyle') {
+                    Scrollable.ensureVisible(_lifestyleKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  } else if (id == 'environment') {
+                    Scrollable.ensureVisible(
+                        _environmentKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  } else if (id == 'reports') {
+                    Scrollable.ensureVisible(_reportsKey.currentContext!,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: active ? Colors.white : AppStyles.page,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: active ? AppStyles.primary : AppStyles.border),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, color: active ? AppStyles.primary : AppStyles.muted, size: 18),
+                    const SizedBox(height: 4),
+                    Text(label,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: active ? AppStyles.primary : AppStyles.muted)),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 3,
+                      width: 36,
+                      decoration: BoxDecoration(
+                        color: active ? AppStyles.primary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
