@@ -800,8 +800,7 @@ class _InputScreenState extends State<InputScreen> {
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut);
                   } else if (id == 'environment') {
-                    Scrollable.ensureVisible(
-                        _environmentKey.currentContext!,
+                    Scrollable.ensureVisible(_environmentKey.currentContext!,
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut);
                   } else if (id == 'reports') {
@@ -812,7 +811,8 @@ class _InputScreenState extends State<InputScreen> {
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: active ? Colors.white : AppStyles.page,
                   borderRadius: BorderRadius.circular(12),
@@ -822,13 +822,16 @@ class _InputScreenState extends State<InputScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, color: active ? AppStyles.primary : AppStyles.muted, size: 18),
+                    Icon(icon,
+                        color: active ? AppStyles.primary : AppStyles.muted,
+                        size: 18),
                     const SizedBox(height: 4),
                     Text(label,
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: active ? AppStyles.primary : AppStyles.muted)),
+                            color:
+                                active ? AppStyles.primary : AppStyles.muted)),
                     const SizedBox(height: 4),
                     Container(
                       height: 3,

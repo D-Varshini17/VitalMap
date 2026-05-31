@@ -121,7 +121,8 @@ class HealthUiAdapter {
       'CA 15-3',
       'CA 27.29',
     };
-    final filtered = metrics.where((m) => approved.contains(m.indexName)).toList();
+    final filtered =
+        metrics.where((m) => approved.contains(m.indexName)).toList();
     filtered.sort((a, b) =>
         _metricOrder(a.indexName).compareTo(_metricOrder(b.indexName)));
     return filtered;
