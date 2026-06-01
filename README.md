@@ -80,5 +80,22 @@ Notes:
 - The Dockerfile exposes port 8000 and runs `uvicorn backend.app.main:app` using the `$PORT` env var Render provides.
 - After deployment, update the Flutter frontend API base URL to point to the Render service domain (HTTPS).
 
+Deploying the web frontend to Vercel
+------------------------------------
+
+The repository includes a checked-in Flutter web release export in
+`frontend/vercel-dist/`. The root `vercel.json` file tells Vercel to publish
+that directory without trying to install Flutter during deployment.
+
+To refresh the export after changing Flutter code, run:
+
+```powershell
+.\frontend\export_vercel.ps1
+```
+
+When importing the repository in Vercel, leave the Root Directory empty. A
+second `frontend/vercel.json` file is included for projects that use `frontend`
+as the Root Directory.
+
 
 
