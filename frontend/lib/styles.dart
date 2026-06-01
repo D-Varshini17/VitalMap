@@ -49,9 +49,11 @@ class AppStyles {
   static const Color accent = Color(0xFF12C7D8);
   static const Color page = Color(0xFFF7FAFD);
   static const Color surface = Colors.white;
-  static const Color text = Color(0xFF102B3F);
-  static const Color muted = Color(0xFF5F7886);
-  static const Color border = Color(0xFFDDEEF5);
+  static const Color text = Color(0xFF1F2937);
+  static const Color muted = Color(0xFF6B7280);
+  static const Color tertiaryText = Color(0xFF94A3B8);
+  static const Color unitText = Color(0xFF64748B);
+  static const Color border = Color(0xFFD9E5EA);
   static const Color softBlue = Color(0xFFEAF7FF);
   static const Color softBlueBorder = Color(0xFFCFEFFF);
   static const Color softBlueText = Color(0xFF245D7A);
@@ -191,6 +193,20 @@ class AppStyles {
       secondary: accent,
       surface: surface,
     ),
+    textTheme: const TextTheme(
+      titleLarge:
+          TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: text),
+      titleMedium:
+          TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: text),
+      titleSmall:
+          TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: text),
+      bodyLarge:
+          TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: text),
+      bodyMedium:
+          TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: muted),
+      bodySmall: TextStyle(
+          fontSize: 12, fontWeight: FontWeight.w500, color: tertiaryText),
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: page,
       foregroundColor: text,
@@ -229,7 +245,16 @@ class AppStyles {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: primary, width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      labelStyle: const TextStyle(
+          color: muted, fontSize: 13, fontWeight: FontWeight.w600),
+      hintStyle: const TextStyle(
+          color: tertiaryText, fontSize: 13, fontWeight: FontWeight.w500),
+      suffixStyle: const TextStyle(
+          color: unitText,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.1),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -246,12 +271,6 @@ class AppStyles {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     ),
-    textTheme: const TextTheme(
-      titleLarge: TextStyle(color: text, fontWeight: FontWeight.w700),
-      titleMedium: TextStyle(color: text, fontWeight: FontWeight.w700),
-      bodyLarge: TextStyle(color: text),
-      bodyMedium: TextStyle(color: muted),
-      labelLarge: TextStyle(fontWeight: FontWeight.w700),
-    ),
+    // Consolidated textTheme is defined earlier; avoid duplicate named argument.
   );
 }

@@ -11,6 +11,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   http: ^0.13.5
   shared_preferences: ^2.0.15
+  image: ^3.3.0
 
 dev_dependencies:
   flutter_test:
@@ -22,17 +23,14 @@ flutter:
   assets:
     - assets/logo_medid.jpeg
     - assets/images/organs/
+    - assets/organs/images/
     - assets/images/logo/
 
-# Configuration for flutter_launcher_icons
+# Launcher icons (will be regenerated from the padded/foreground images)
 flutter_icons:
   android: true
   ios: false
-  web:
-    generate: true
-    image_path: "assets/logo_medid.jpeg"
-    background_color: "#FFFFFF"
-    theme_color: "#0B63CE"
-  image_path: "assets/logo_medid.jpeg"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/logo_medid.jpeg"
+  image_path: "assets/images/logo/app_icon_padded.png"
+  adaptive_icon_background: "#F8FBFF"
+  adaptive_icon_foreground: "assets/images/logo/app_icon_foreground.png"
+  min_sdk_android: 23

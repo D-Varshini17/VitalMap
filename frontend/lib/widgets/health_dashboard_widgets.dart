@@ -44,14 +44,12 @@ class VitalMapHeroCard extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomPaint(painter: _PulsePatternPainter()),
-          ),
-          Padding(
-            padding: EdgeInsets.all(compact ? 14 : 18),
-            child: Column(
+      child: Padding(
+        padding: EdgeInsets.all(compact ? 14 : 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 LayoutBuilder(
@@ -67,7 +65,7 @@ class VitalMapHeroCard extends StatelessWidget {
                             children: [
                               Text(
                                 title,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w900,
@@ -116,13 +114,13 @@ class VitalMapHeroCard extends StatelessWidget {
                   },
                 ),
                 if (bottom != null) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   bottom!,
                 ],
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -880,36 +878,7 @@ class _RingPainter extends CustomPainter {
   }
 }
 
-class _PulsePatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-    for (var y = 22.0; y < size.height; y += 34) {
-      final path = Path()..moveTo(size.width * 0.42, y);
-      path.lineTo(size.width * 0.50, y);
-      path.lineTo(size.width * 0.53, y - 10);
-      path.lineTo(size.width * 0.57, y + 13);
-      path.lineTo(size.width * 0.61, y - 5);
-      path.lineTo(size.width * 0.66, y);
-      path.lineTo(size.width - 18, y);
-      canvas.drawPath(path, paint);
-    }
-    final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.055)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    for (var x = 18.0; x < size.width; x += 42) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
+// Pulse/ECG painter removed — kept here as a reference in case we need it later.
 
 String _formatDate(DateTime date) {
   return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';

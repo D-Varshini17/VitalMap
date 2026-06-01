@@ -64,7 +64,7 @@ class MoreScreen extends StatelessWidget {
             _menuItem(
               icon: Icons.help_outline,
               title: 'Help',
-              subtitle: 'Understand inputs, results, and organ cards',
+              subtitle: 'Understand inputs, results, insight cards, and safety notes',
               onTap: () => _showHelpSheet(context),
             ),
             const SizedBox(height: 10),
@@ -182,7 +182,7 @@ class MoreScreen extends StatelessWidget {
     _showInfoSheet(
       context,
       'Help',
-      'Complete compulsory general details, add only the report values you have, then review Results and Overview for organ-wise insights.',
+      'Complete compulsory general details, add only the report values you have, then open Result for organ-wise screening insights and Insight for detailed body knowledge.',
     );
   }
 

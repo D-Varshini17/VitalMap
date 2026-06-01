@@ -91,7 +91,6 @@ class FormulaEngine:
 
         self._calculate_aip(results, more_needed, general, tg, hdl, ldl, total_cholesterol, vldl)
         self._calculate_tyg(results, more_needed, general, tg, fasting)
-        self._calculate_metabolic(results, more_needed, general, fasting, hba1c, ppbs, random_glucose)
         self._calculate_apri(results, more_needed, general, ast, platelets)
         self._calculate_fib4(results, more_needed, general, age, ast, alt, platelets)
         self._calculate_fli(results, more_needed, general, bmi, waist, ggt, tg)

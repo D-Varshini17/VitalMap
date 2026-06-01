@@ -63,7 +63,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final metrics = HealthUiAdapter.metricsFromResponse(response, payload: payload);
+    final metrics =
+        HealthUiAdapter.metricsFromResponse(response, payload: payload);
     final moreData = HealthUiAdapter.moreDataNeeded(response);
     final counts = HealthUiAdapter.statusCounts(metrics, moreData);
     final overallRaw = HealthUiAdapter.overallStatus(metrics);
@@ -99,6 +100,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   const SizedBox(height: 24),
                   _organWiseOverview(metrics, moreData),
                   const SizedBox(height: 24),
+                  _calculatedIndicators(metrics),
+                  const SizedBox(height: 24),
+                  _personalizedRecommendations(metrics),
+                  const SizedBox(height: 24),
                   if (moreData.isNotEmpty) _moreDataNeededCards(moreData),
                   const SizedBox(height: 24),
                   const DisclaimerWidget(),
@@ -130,7 +135,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
           ),
           child: const Column(
             children: [
-              Icon(Icons.assignment_outlined, size: 46, color: AppStyles.primary),
+              Icon(Icons.assignment_outlined,
+                  size: 46, color: AppStyles.primary),
               SizedBox(height: 12),
               Text(
                 'No screening insight yet',
@@ -157,62 +163,59 @@ class _ResultsScreenState extends State<ResultsScreen> {
     required int attentionCount,
     required int moreDataCount,
   }) {
+    // Compact, balanced hero summary
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppStyles.navy,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.navy.withValues(alpha: 0.15),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: AppStyles.navy.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          const Text(
-            'Your Health Summary',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _ScoreRing(score: score),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text('Status', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  _heroStatusBadge(status),
-                  const SizedBox(height: 16),
-                  const Text('Last checked', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  const SizedBox(height: 4),
-                  Text(
-                    lastChecked == null ? 'Not checked yet' : _formatDate(lastChecked!),
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                ],
-              ),
+              const Text('Your Health Summary',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text('Calculated from available data',
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.88),
+                      fontSize: 12)),
+              const SizedBox(height: 8),
+              _heroStatusBadge(status),
             ],
           ),
-          const SizedBox(height: 24),
-          const Divider(color: Colors.white24, height: 1),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const Spacer(),
+          _ScoreRing(score: score),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _statItem(calculatedCount.toString(), 'Calculated\nIndicators'),
-              _statItem(monitorCount.toString(), 'Monitor\nIndicators'),
-              _statItem(attentionCount.toString(), 'Attention\nIndicators'),
-              _statItem(moreDataCount.toString(), 'More Data\nIndicators'),
+              Text(
+                  lastChecked == null
+                      ? 'Not checked yet'
+                      : _formatDate(lastChecked!),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _statItem(calculatedCount.toString(), 'Calculated'),
+                  const SizedBox(width: 12),
+                  _statItem(moreDataCount.toString(), 'More Data'),
+                ],
+              ),
             ],
           )
         ],
@@ -224,9 +227,15 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold)),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10, height: 1.2)),
+        Text(label,
+            style: const TextStyle(
+                color: Colors.white70, fontSize: 10, height: 1.2)),
       ],
     );
   }
@@ -264,13 +273,20 @@ class _ResultsScreenState extends State<ResultsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: Color(0xFFFFF0E4), shape: BoxShape.circle),
-              child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFD46B25), size: 16),
+              decoration: const BoxDecoration(
+                  color: Color(0xFFFFF0E4), shape: BoxShape.circle),
+              child: const Icon(Icons.warning_amber_rounded,
+                  color: Color(0xFFD46B25), size: 16),
             ),
             const SizedBox(width: 8),
-            const Text('Needs Your Attention', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Needs Your Attention',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const Spacer(),
-            const Text('View All', style: TextStyle(color: AppStyles.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+            const Text('View All',
+                style: TextStyle(
+                    color: AppStyles.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 12),
@@ -309,15 +325,23 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(metric.indexName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text(metric.indexName,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14)),
                       const SizedBox(width: 8),
                       _smallStatusBadge(status),
                       const Spacer(),
-                      Text('${metric.scoreText} >', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text('${metric.scoreText} >',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14)),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(metric.summary, style: const TextStyle(fontSize: 12, color: AppStyles.muted), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(metric.summary,
+                      style:
+                          const TextStyle(fontSize: 12, color: AppStyles.muted),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
@@ -338,15 +362,21 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  Widget _organWiseOverview(List<HealthMetric> metrics, List<Map<String, dynamic>> moreData) {
+  Widget _organWiseOverview(
+      List<HealthMetric> metrics, List<Map<String, dynamic>> moreData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Organ-wise Overview', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('View All', style: TextStyle(color: AppStyles.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text('Organ-wise Result Cards',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('View All',
+                style: TextStyle(
+                    color: AppStyles.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 12),
@@ -372,9 +402,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  Widget _organGridCard(String organName, String defaultIndex, List<HealthMetric> metrics, List<Map<String, dynamic>> moreData) {
+  Widget _organGridCard(String organName, String defaultIndex,
+      List<HealthMetric> metrics, List<Map<String, dynamic>> moreData) {
     final organKey = organName.toLowerCase();
-    final organMetrics = metrics.where((m) => m.organName == organName || m.organKey == organKey).toList();
+    final organMetrics = metrics
+        .where((m) => m.organName == organName || m.organKey == organKey)
+        .toList();
     HealthStatusStyle statusStyle = AppStyles.moreDataStatus;
     String scoreText = '';
     String label = 'More Data';
@@ -389,9 +422,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
       label = statusStyle.label;
       message = matchedMetric.summary;
     } else {
-      final missingForOrgan = moreData.where((m) => m['organ']?.toString().toLowerCase() == organKey).toList();
+      final missingForOrgan = moreData
+          .where((m) => m['organ']?.toString().toLowerCase() == organKey)
+          .toList();
       if (missingForOrgan.isNotEmpty) {
-        final missingList = missingForOrgan.map((m) => HealthUiAdapter.missingText(m)).join(', ');
+        final missingList = missingForOrgan
+            .map((m) => HealthUiAdapter.missingText(m))
+            .join(', ');
         message = 'Missing: $missingList';
       }
     }
@@ -415,7 +452,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         children: [
           Row(
             children: [
-              OrganVisualIcon(organ: organKey, size: 36),
+              OrganVisualIcon(organ: organKey, size: 64),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -423,13 +460,19 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   children: [
                     Text(
                       organName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppStyles.navy),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: AppStyles.navy),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       defaultIndex,
-                      style: const TextStyle(fontSize: 10, color: AppStyles.muted, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 10,
+                          color: AppStyles.muted,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -448,21 +491,29 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 ),
                 child: Text(
                   AppStyles.displayStatusLabel(label),
-                  style: TextStyle(color: statusStyle.text, fontSize: 9, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: statusStyle.text,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
               if (scoreText.isNotEmpty)
                 Text(
                   scoreText,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppStyles.navy),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.navy),
                 ),
             ],
           ),
           const SizedBox(height: 8),
-          Expanded(
+          SizedBox(
+            height: 44,
             child: Text(
               message,
-              style: const TextStyle(fontSize: 10, color: AppStyles.text, height: 1.3),
+              style: const TextStyle(
+                  fontSize: 11, color: AppStyles.text, height: 1.3),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -480,13 +531,223 @@ class _ResultsScreenState extends State<ResultsScreen> {
               style: TextButton.styleFrom(
                 foregroundColor: AppStyles.primary,
                 side: const BorderSide(color: AppStyles.border),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
                 minimumSize: const Size(double.infinity, 28),
                 padding: EdgeInsets.zero,
               ),
-              child: const Text('View Details', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+              child: const Text('View Details',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _calculatedIndicators(List<HealthMetric> metrics) {
+    if (metrics.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Calculated Indicators',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Tap to view details',
+                style: TextStyle(
+                    color: AppStyles.muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppStyles.border),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < metrics.length; i++) ...[
+                _indicatorRow(metrics[i]),
+                if (i != metrics.length - 1)
+                  const Divider(height: 1, color: AppStyles.border),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _indicatorRow(HealthMetric metric) {
+    final status = AppStyles.statusStyle(metric.rawStatus);
+    return InkWell(
+      onTap: () => _openDetail(metric),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            OrganVisualIcon(organ: metric.organKey, size: 34, iconSize: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(metric.indexName,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppStyles.text)),
+                  const SizedBox(height: 2),
+                  Text(metric.displayName,
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppStyles.muted),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            Text(
+                metric.unit.isEmpty
+                    ? metric.scoreText
+                    : '${metric.scoreText} ${metric.unit}',
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppStyles.navy)),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                  color: status.badgeBackground,
+                  borderRadius: BorderRadius.circular(999)),
+              child: Text(AppStyles.displayStatusLabel(status.label),
+                  style: TextStyle(
+                      color: status.text,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800)),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right, size: 18, color: AppStyles.muted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _personalizedRecommendations(List<HealthMetric> metrics) {
+    final cards = _recommendationCards(metrics);
+    if (cards.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Personalized Recommendations',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        GridView.count(
+          crossAxisCount: MediaQuery.of(context).size.width > 620 ? 4 : 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio:
+              MediaQuery.of(context).size.width > 620 ? 1.55 : 1.18,
+          children: cards,
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _recommendationCards(List<HealthMetric> metrics) {
+    final allSources =
+        metrics.map((m) => m.source ?? const <String, dynamic>{}).toList();
+    final lifestyle = _firstItems(
+        allSources, ['lifestyle_improvement', 'suggestions'],
+        fallback:
+            'Keep regular activity, consistent sleep, and stress control based on your profile.');
+    final food = _firstItems(
+        allSources, ['food_recommendations', 'suggestions'],
+        fallback:
+            'Maintain balanced meals, reduce excess sugar/salt, and limit processed food.');
+    final environment = _firstItems(allSources, ['environment_recommendations'],
+        fallback: 'Reduce smoke, dust, and pollution exposure where possible.');
+    final follow = _firstText(allSources, 'doctor_followup') ??
+        'Discuss persistent abnormal values with a qualified healthcare professional.';
+    return [
+      _recommendationCard(Icons.directions_walk, 'Lifestyle', lifestyle,
+          AppStyles.lifestyleContributor),
+      _recommendationCard(Icons.restaurant_menu, 'Food Habits', food,
+          AppStyles.foodContributor),
+      _recommendationCard(Icons.eco_outlined, 'Environment', environment,
+          AppStyles.environmentContributor),
+      _recommendationCard(Icons.medical_services_outlined, 'Follow-up', follow,
+          AppStyles.generalInfo),
+    ];
+  }
+
+  String _firstItems(List<Map<String, dynamic>> sources, List<String> keys,
+      {required String fallback}) {
+    for (final source in sources) {
+      for (final key in keys) {
+        final raw = source[key];
+        if (raw is List && raw.isNotEmpty) return raw.first.toString();
+        if (raw is String && raw.trim().isNotEmpty) return raw;
+        final ai = source['ai_recommendation'];
+        if (ai is Map) {
+          final aiRaw = ai[key];
+          if (aiRaw is List && aiRaw.isNotEmpty) return aiRaw.first.toString();
+          if (aiRaw is String && aiRaw.trim().isNotEmpty) return aiRaw;
+        }
+      }
+    }
+    return fallback;
+  }
+
+  String? _firstText(List<Map<String, dynamic>> sources, String key) {
+    for (final source in sources) {
+      final raw = source[key];
+      if (raw is String && raw.trim().isNotEmpty) return raw;
+      final ai = source['ai_recommendation'];
+      if (ai is Map) {
+        final aiRaw = ai[key];
+        if (aiRaw is String && aiRaw.trim().isNotEmpty) return aiRaw;
+      }
+    }
+    return null;
+  }
+
+  Widget _recommendationCard(
+      IconData icon, String title, String text, ContributorStyle style) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: style.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: style.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: style.accent, size: 22),
+          const SizedBox(height: 8),
+          Text(title,
+              style: TextStyle(
+                  color: style.text,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900)),
+          const SizedBox(height: 5),
+          Expanded(
+              child: Text(text,
+                  style: const TextStyle(
+                      color: AppStyles.text, fontSize: 11, height: 1.25),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -496,7 +757,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('More Data Can Improve Insights', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const Text('More Data Can Improve Insights',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         ...moreData.map((item) => Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -508,13 +770,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
               ),
               child: Row(
                 children: [
-                  OrganVisualIcon(organ: item['organ']?.toString() ?? '', size: 36, iconSize: 20),
+                  OrganVisualIcon(
+                      organ: item['organ']?.toString() ?? '',
+                      size: 36,
+                      iconSize: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Add ${HealthUiAdapter.missingText(item)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('Add ${HealthUiAdapter.missingText(item)}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -522,10 +789,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 0),
                       minimumSize: const Size(0, 32),
                     ),
-                    child: const Text('Add Data', style: TextStyle(fontSize: 11)),
+                    child:
+                        const Text('Add Data', style: TextStyle(fontSize: 11)),
                   ),
                 ],
               ),
@@ -544,7 +813,20 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }

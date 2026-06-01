@@ -160,7 +160,7 @@ class _InputScreenState extends State<InputScreen> {
       id: 'heart',
       title: 'Heart / Lipid Profile',
       subtitle: 'AIP',
-      icon: Icons.favorite_border,
+      emoji: '❤️',
       background: Color(0xFFFFF0F5),
       accent: Color(0xFFD970A0),
     ),
@@ -168,7 +168,7 @@ class _InputScreenState extends State<InputScreen> {
       id: 'diabetes',
       title: 'Diabetes / Metabolic',
       subtitle: 'TyG, metabolic insight',
-      icon: Icons.water_drop_outlined,
+      emoji: '🍬',
       background: Color(0xFFFFF7E7),
       accent: Color(0xFFD99D41),
     ),
@@ -176,7 +176,7 @@ class _InputScreenState extends State<InputScreen> {
       id: 'liver',
       title: 'Liver Function Test',
       subtitle: 'APRI, FIB-4, FLI, NAFLD',
-      icon: Icons.monitor_heart_outlined,
+      emoji: '🧪',
       background: Color(0xFFECF8EF),
       accent: Color(0xFF65B985),
     ),
@@ -184,7 +184,7 @@ class _InputScreenState extends State<InputScreen> {
       id: 'cbc',
       title: 'CBC / Differential',
       subtitle: 'NLR and liver support',
-      icon: Icons.bloodtype_outlined,
+      emoji: '🩸',
       background: Color(0xFFF5F3FA),
       accent: Color(0xFF9C89CD),
     ),
@@ -192,15 +192,15 @@ class _InputScreenState extends State<InputScreen> {
       id: 'kidney',
       title: 'Kidney Function',
       subtitle: 'eGFR',
-      icon: Icons.opacity_outlined,
+      emoji: '💧',
       background: Color(0xFFEAFBFD),
       accent: Color(0xFF49B6C8),
     ),
     _ReportSection(
       id: 'vitals',
-      title: 'Vitals',
-      subtitle: 'SpO2, BP support',
-      icon: Icons.speed_outlined,
+      title: 'Lungs / Vitals',
+      subtitle: 'SpO₂',
+      emoji: '🫁',
       background: Color(0xFFEAF7FF),
       accent: Color(0xFF4BAFE3),
     ),
@@ -208,15 +208,15 @@ class _InputScreenState extends State<InputScreen> {
       id: 'pancreas',
       title: 'Pancreatic Enzymes',
       subtitle: 'LAR',
-      icon: Icons.science_outlined,
+      emoji: '🔬',
       background: Color(0xFFFFF0ED),
       accent: Color(0xFFE18170),
     ),
     _ReportSection(
       id: 'cancer',
       title: 'Cancer Awareness',
-      subtitle: 'Awareness markers only',
-      icon: Icons.health_and_safety_outlined,
+      subtitle: 'AFP, CA 15-3, CA 27.29',
+      emoji: '🎗️',
       background: Color(0xFFF3F2F8),
       accent: Color(0xFF8B8FC7),
     ),
@@ -724,16 +724,16 @@ class _InputScreenState extends State<InputScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTopTabs(),
-                const SizedBox(height: 8),
                 _IntroCard(),
-                _stepHeader('Step 1 of 3: General Health Details'),
+                const SizedBox(height: 8),
+                _buildTopTabs(),
+                _stepHeader('General health details'),
                 Container(key: _profileKey, child: _profileCard()),
                 _whyAskCard(),
                 Container(key: _lifestyleKey, child: _lifestyleCard()),
                 Container(key: null, child: _foodCard()),
                 Container(key: _environmentKey, child: _environmentCard()),
-                _stepHeader('Step 2 of 3: Optional Report-Based Lab Inputs'),
+                _stepHeader('Optional report values'),
                 const Text(
                   'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
                   style: TextStyle(color: AppStyles.muted),
@@ -754,9 +754,9 @@ class _InputScreenState extends State<InputScreen> {
                 const Padding(
                   padding: EdgeInsets.only(top: 12),
                   child: Text(
-                    'Step 3 of 3: Review screening insights on the Results tab',
+                    'Review screening insights on the Result tab',
                     style: TextStyle(
-                        color: AppStyles.primary, fontWeight: FontWeight.w700),
+                        color: AppStyles.muted, fontWeight: FontWeight.w700),
                   ),
                 ),
                 const DisclaimerWidget(),
@@ -1262,7 +1262,7 @@ class _InputScreenState extends State<InputScreen> {
           onPressed: loading ? null : analyze,
           icon: Icons.arrow_forward,
           loading: loading,
-          label: loading ? 'Analyzing...' : 'Save & Continue',
+          label: loading ? 'Analyzing...' : 'Analyze Available Values',
         );
         final saveButton = OutlinedButton.icon(
           onPressed: loading
@@ -1275,7 +1275,7 @@ class _InputScreenState extends State<InputScreen> {
                   );
                 },
           icon: const Icon(Icons.bookmark_border),
-          label: const Text('Save and Continue Later'),
+          label: const Text('Save Draft'),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
           ),
@@ -1649,6 +1649,8 @@ class _InputScreenState extends State<InputScreen> {
     return TextFormField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: const TextStyle(
+          fontSize: 18, fontWeight: FontWeight.w600, color: AppStyles.text),
       onChanged: (_) => setState(() {}),
       decoration: InputDecoration(
         labelText: label,
@@ -1743,7 +1745,7 @@ class _InputScreenState extends State<InputScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(width: 120, child: _fixedUnitLabel('Read-only')),
+              SizedBox(width: 120, child: _fixedUnitLabel('Auto-calculated')),
             ],
           ),
           _fieldHelper(helper, allowSkip: false),
@@ -1758,17 +1760,18 @@ class _InputScreenState extends State<InputScreen> {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7FCFF),
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFF8FBFF),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppStyles.border),
       ),
       child: Text(
         unit,
         textAlign: TextAlign.center,
         style: const TextStyle(
-          color: AppStyles.primary,
-          fontWeight: FontWeight.w800,
-          fontSize: 12,
+          color: AppStyles.unitText,
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          letterSpacing: 0.1,
         ),
       ),
     );
@@ -1782,6 +1785,8 @@ class _InputScreenState extends State<InputScreen> {
     return DropdownButtonFormField<String>(
       initialValue: unit,
       isExpanded: true,
+      style: const TextStyle(
+          color: AppStyles.unitText, fontSize: 15, fontWeight: FontWeight.w600),
       decoration: const InputDecoration(labelText: 'Unit'),
       items: units
           .map((item) => DropdownMenuItem(value: item, child: Text(item)))
@@ -1803,20 +1808,27 @@ class _InputScreenState extends State<InputScreen> {
         children: [
           Text(
             helper ?? 'Select the unit exactly as shown in your report.',
-            style: const TextStyle(color: AppStyles.muted, fontSize: 12),
+            style: const TextStyle(
+                color: AppStyles.tertiaryText,
+                fontSize: 12,
+                fontWeight: FontWeight.w500),
           ),
           if (allowSkip && controller != null)
-            TextButton.icon(
+            OutlinedButton(
               onPressed: () => setState(() => controller.clear()),
-              icon: const Icon(Icons.remove_circle_outline, size: 16),
-              label: const Text("I don't have this value"),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppStyles.muted,
+                side: const BorderSide(color: AppStyles.border),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 minimumSize: const Size(0, 28),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999)),
                 textStyle:
                     const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
               ),
+              child: const Text('Skip'),
             ),
         ],
       ),
@@ -1852,6 +1864,8 @@ class _InputScreenState extends State<InputScreen> {
       child: DropdownButtonFormField<String>(
         initialValue: value,
         isExpanded: true,
+        style: const TextStyle(
+            color: AppStyles.text, fontSize: 15, fontWeight: FontWeight.w600),
         decoration: InputDecoration(labelText: label),
         items: options
             .map((item) => DropdownMenuItem(value: item, child: Text(item)))
@@ -1891,6 +1905,7 @@ class _IntroCard extends StatelessWidget {
     return const VitalMapHeroCard(
       title: "Let's get to know you",
       subtitle: '',
+      compact: true,
       description:
           'Accurate details help us provide deeper organ-wise insights.',
       bottom: Column(
@@ -1898,7 +1913,7 @@ class _IntroCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Step 1 of 3',
+                'Input progress',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
@@ -1957,14 +1972,14 @@ class _SectionCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: background,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accent.withValues(alpha: 0.22)),
+        border: Border.all(color: AppStyles.border),
         boxShadow: [
           BoxShadow(
-            color: accent.withValues(alpha: 0.10),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: AppStyles.navy.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -2055,8 +2070,8 @@ class _SectionChip extends StatelessWidget {
         label,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w800,
+          color: AppStyles.muted,
+          fontWeight: FontWeight.w700,
           fontSize: 11,
         ),
       ),
@@ -2101,22 +2116,30 @@ class _ReportToggleCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(section.icon,
-                    color: selected ? section.accent : AppStyles.muted),
+                Text(
+                  section.emoji,
+                  style: TextStyle(fontSize: 26),
+                ),
                 const Spacer(),
                 Icon(
                   selected ? Icons.check_circle : Icons.add_circle_outline,
-                  color: selected ? section.accent : AppStyles.muted,
+                  color: selected ? AppStyles.primary : AppStyles.unitText,
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            Text(section.title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700, color: AppStyles.text)),
+            Text(
+              section.title,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: AppStyles.text),
+            ),
             const SizedBox(height: 4),
-            Text(section.subtitle,
-                style: const TextStyle(fontSize: 12, color: AppStyles.muted)),
+            Text(
+              section.subtitle,
+              style: const TextStyle(fontSize: 13, color: AppStyles.muted),
+            ),
           ],
         ),
       ),
@@ -2129,7 +2152,7 @@ class _ReportSection {
     required this.id,
     required this.title,
     required this.subtitle,
-    required this.icon,
+    required this.emoji,
     required this.background,
     required this.accent,
   });
@@ -2137,7 +2160,7 @@ class _ReportSection {
   final String id;
   final String title;
   final String subtitle;
-  final IconData icon;
+  final String emoji;
   final Color background;
   final Color accent;
 }

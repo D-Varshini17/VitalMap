@@ -59,7 +59,7 @@ class OrganDetailScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     _tabs(),
                     SizedBox(
-                      height: 520,
+                      height: MediaQuery.of(context).size.height * 0.66,
                       child: TabBarView(
                         children: [
                           _overviewTab(primary, status),
@@ -96,7 +96,7 @@ class OrganDetailScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          OrganVisualIcon(organ: organKey, size: 88, iconSize: 50),
+          OrganVisualIcon(organ: organKey, size: 200, iconSize: 90),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -159,7 +159,7 @@ class OrganDetailScreen extends StatelessWidget {
         indicatorColor: AppStyles.primary,
         labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
         tabs: [
-          Tab(text: 'Overview'),
+          Tab(text: 'Summary'),
           Tab(text: 'Indicators'),
           Tab(text: 'Insights'),
           Tab(text: 'Tips'),

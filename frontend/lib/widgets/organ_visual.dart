@@ -5,29 +5,29 @@ import '../styles.dart';
 String? getOrganImagePath(String organ) {
   switch (organ.trim().toLowerCase()) {
     case 'heart':
-      return 'assets/images/organs/heart.png';
+      return 'assets/organs/images/heart.jpeg';
     case 'liver':
-      return 'assets/images/organs/liver.png';
+      return 'assets/organs/images/liver.jpeg';
     case 'kidney':
-      return 'assets/images/organs/kidney.png';
+      return 'assets/organs/images/kidney.jpeg';
     case 'lung':
     case 'lungs':
-      return 'assets/images/organs/lungs.png';
+      return 'assets/organs/images/lungs.jpeg';
     case 'diabetes / metabolic':
     case 'diabetes':
     case 'brain / metabolic':
     case 'brain':
-      return 'assets/images/organs/brain_metabolic.png';
+      return 'assets/organs/images/brain_metabolic.jpeg';
     case 'inflammation':
     case 'cbc / differential':
     case 'cbc':
-      return 'assets/images/organs/inflammation.png';
+      return 'assets/organs/images/inflammation.jpeg';
     case 'pancreas':
     case 'pancreatic enzymes':
-      return 'assets/images/organs/pancreas.png';
+      return 'assets/organs/images/pancreas.jpeg';
     case 'cancer awareness':
     case 'cancer':
-      return 'assets/images/organs/cancer_awareness.png';
+      return 'assets/organs/images/cancer_awareness.jpeg';
     default:
       return null;
   }

@@ -84,15 +84,6 @@ class LocalAnalysisEngine {
     _calculateAip(
         results, moreNeeded, general, tg, hdl, ldl, totalCholesterol, vldl);
     _calculateTyg(results, moreNeeded, general, tg, fasting);
-    _calculateMetabolic(
-      results,
-      moreNeeded,
-      general,
-      fasting,
-      hba1c,
-      ppbs,
-      randomGlucose,
-    );
     _calculateApri(results, moreNeeded, general, ast, platelets);
     _calculateFib4(results, moreNeeded, general, age, ast, alt, platelets);
     _calculateFli(results, moreNeeded, general, bmi, waist, ggt, tg);
@@ -202,45 +193,8 @@ class LocalAnalysisEngine {
     }
   }
 
-  void _calculateMetabolic(
-    List<Map<String, dynamic>> results,
-    List<Map<String, dynamic>> moreNeeded,
-    Map<String, dynamic> general,
-    double? fasting,
-    double? hba1c,
-    double? ppbs,
-    double? randomGlucose,
-  ) {
-    if ([fasting, hba1c, ppbs, randomGlucose].any((value) => value != null)) {
-      final values = <String, dynamic>{};
-      if (fasting != null) values['fasting_glucose_mg/dL'] = _round(fasting, 2);
-      if (hba1c != null) values['hba1c_%'] = hba1c;
-      if (ppbs != null) values['ppbs_mg/dL'] = _round(ppbs, 2);
-      if (randomGlucose != null) {
-        values['random_blood_sugar_mg/dL'] = _round(randomGlucose, 2);
-      }
-      final score = hba1c ?? fasting ?? ppbs ?? randomGlucose;
-      results.add(_result(
-        organ: 'Diabetes / Metabolic',
-        indexName: 'Metabolic screening insight',
-        score: score == null ? null : _round(score, 2),
-        risk: metabolicRisk(
-          fasting: fasting,
-          hba1c: hba1c,
-          ppbs: ppbs,
-          randomBloodSugar: randomGlucose,
-        ),
-        valuesUsed: values,
-        formulaUsed: 'Direct glucose and HbA1c screening interpretation',
-        general: general,
-      ));
-    } else {
-      _moreNeeded(
-          moreNeeded, 'Metabolic screening insight', 'Diabetes / Metabolic', {
-        'fasting_glucose_or_hba1c_or_ppbs_or_random_blood_sugar': null,
-      });
-    }
-  }
+  // Metabolic screening helper removed — not referenced elsewhere.
+
 
   void _calculateApri(
     List<Map<String, dynamic>> results,
