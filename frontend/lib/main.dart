@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/responsive.dart';
 import 'screens/input_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/insight_screen.dart';
@@ -97,10 +98,7 @@ class _HomeContainerState extends State<HomeContainer> {
   Widget build(BuildContext context) {
     final pages = [
       InputScreen(onAnalysisComplete: _handleAnalysisComplete),
-      ResultsScreen(
-        response: _lastResponse,
-        lastChecked: _lastChecked,
-      ),
+      ResultsScreen(response: _lastResponse, lastChecked: _lastChecked),
       const InsightScreen(),
       MoreScreen(
         onStartAnalysis: () => setState(() => _currentIndex = 0),
@@ -112,49 +110,58 @@ class _HomeContainerState extends State<HomeContainer> {
       body: pages[_currentIndex],
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppStyles.border),
-            boxShadow: [
-              BoxShadow(
-                color: AppStyles.navy.withValues(alpha: 0.10),
-                blurRadius: 22,
-                offset: const Offset(0, 8),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: Responsive.isMobile(context) ? double.infinity : 720,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppStyles.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppStyles.navy.withValues(alpha: 0.10),
+                    blurRadius: 22,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            backgroundColor: Colors.white,
-            selectedItemColor: AppStyles.primary,
-            unselectedItemColor: AppStyles.muted,
-            elevation: 0,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.edit_note_outlined),
-                activeIcon: Icon(Icons.edit_note),
-                label: 'Input',
+              clipBehavior: Clip.antiAlias,
+              child: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: (index) => setState(() => _currentIndex = index),
+                backgroundColor: Colors.white,
+                selectedItemColor: AppStyles.primary,
+                unselectedItemColor: AppStyles.muted,
+                elevation: 0,
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.edit_note_outlined),
+                    activeIcon: Icon(Icons.edit_note),
+                    label: 'Input',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.insights_outlined),
+                    activeIcon: Icon(Icons.insights),
+                    label: 'Result',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.lightbulb_outline),
+                    activeIcon: Icon(Icons.lightbulb),
+                    label: 'Insight',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.more_horiz),
+                    activeIcon: Icon(Icons.more),
+                    label: 'More',
+                  ),
+                ],
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.insights_outlined),
-                activeIcon: Icon(Icons.insights),
-                label: 'Result',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.lightbulb_outline),
-                activeIcon: Icon(Icons.lightbulb),
-                label: 'Insight',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.more_horiz),
-                activeIcon: Icon(Icons.more),
-                label: 'More',
-              ),
-            ],
+            ),
           ),
         ),
       ),

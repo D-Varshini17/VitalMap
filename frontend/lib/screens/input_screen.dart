@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/responsive.dart';
 import '../services/api_service.dart';
 import '../storage/local_storage.dart';
 import '../styles.dart';
@@ -290,7 +291,8 @@ class _InputScreenState extends State<InputScreen> {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Please complete the general questions first.')),
+          content: Text('Please complete the general questions first.'),
+        ),
       );
       return;
     }
@@ -306,7 +308,8 @@ class _InputScreenState extends State<InputScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Unable to analyze right now. Please check your input values and try again.'),
+            'Unable to analyze right now. Please check your input values and try again.',
+          ),
         ),
       );
       return;
@@ -320,22 +323,29 @@ class _InputScreenState extends State<InputScreen> {
     final payload = await LocalStorage.loadLastPayload();
     if (!mounted || payload == null) return;
     final profile = Map<String, dynamic>.from(payload['profile'] as Map? ?? {});
-    final general =
-        Map<String, dynamic>.from(payload['general_health'] as Map? ?? {});
+    final general = Map<String, dynamic>.from(
+      payload['general_health'] as Map? ?? {},
+    );
     final vitals = Map<String, dynamic>.from(payload['vitals'] as Map? ?? {});
-    final lipids =
-        Map<String, dynamic>.from(payload['lipid_profile'] as Map? ?? {});
-    final diabetes =
-        Map<String, dynamic>.from(payload['diabetes_profile'] as Map? ?? {});
-    final liver =
-        Map<String, dynamic>.from(payload['liver_function'] as Map? ?? {});
+    final lipids = Map<String, dynamic>.from(
+      payload['lipid_profile'] as Map? ?? {},
+    );
+    final diabetes = Map<String, dynamic>.from(
+      payload['diabetes_profile'] as Map? ?? {},
+    );
+    final liver = Map<String, dynamic>.from(
+      payload['liver_function'] as Map? ?? {},
+    );
     final cbc = Map<String, dynamic>.from(payload['cbc'] as Map? ?? {});
-    final kidney =
-        Map<String, dynamic>.from(payload['kidney_function'] as Map? ?? {});
-    final pancreas =
-        Map<String, dynamic>.from(payload['pancreatic_enzymes'] as Map? ?? {});
-    final tumor =
-        Map<String, dynamic>.from(payload['tumor_markers'] as Map? ?? {});
+    final kidney = Map<String, dynamic>.from(
+      payload['kidney_function'] as Map? ?? {},
+    );
+    final pancreas = Map<String, dynamic>.from(
+      payload['pancreatic_enzymes'] as Map? ?? {},
+    );
+    final tumor = Map<String, dynamic>.from(
+      payload['tumor_markers'] as Map? ?? {},
+    );
     final selectedSections = _inferSelectedSections(payload);
 
     setState(() {
@@ -383,8 +393,10 @@ class _InputScreenState extends State<InputScreen> {
       spo2Unit = vitals['spo2_unit'] as String? ?? spo2Unit;
       temperatureUnit =
           vitals['body_temperature_unit'] as String? ?? temperatureUnit;
-      _setText(temperatureCtl,
-          vitals['body_temperature_input'] ?? vitals['body_temperature']);
+      _setText(
+        temperatureCtl,
+        vitals['body_temperature_input'] ?? vitals['body_temperature'],
+      );
       respiratoryRateUnit =
           vitals['respiratory_rate_unit'] as String? ?? respiratoryRateUnit;
       _setText(respiratoryRateCtl, vitals['respiratory_rate']);
@@ -531,15 +543,19 @@ class _InputScreenState extends State<InputScreen> {
         "spo2": _sectionNum('vitals', spo2Ctl),
         "spo2_unit": spo2Unit,
         "body_temperature": _ifSection(
-            'vitals', temperatureToC(_num(temperatureCtl), temperatureUnit)),
+          'vitals',
+          temperatureToC(_num(temperatureCtl), temperatureUnit),
+        ),
         "body_temperature_unit": temperatureUnit,
         "body_temperature_input": _sectionNum('vitals', temperatureCtl),
         "respiratory_rate": _sectionInt('vitals', respiratoryRateCtl),
         "respiratory_rate_unit": respiratoryRateUnit,
       },
       "lipid_profile": {
-        "triglycerides":
-            _ifSection('heart', triglyceridesToMgdl(_num(tgCtl), tgUnit)),
+        "triglycerides": _ifSection(
+          'heart',
+          triglyceridesToMgdl(_num(tgCtl), tgUnit),
+        ),
         "triglycerides_unit": "mg/dL",
         "triglycerides_input": _sectionNum('heart', tgCtl),
         "triglycerides_input_unit": tgUnit,
@@ -551,8 +567,10 @@ class _InputScreenState extends State<InputScreen> {
         "ldl_unit": "mg/dL",
         "ldl_input": _sectionNum('heart', ldlCtl),
         "ldl_input_unit": ldlUnit,
-        "total_cholesterol": _ifSection('heart',
-            cholesterolToMgdl(_num(totalCholesterolCtl), totalCholesterolUnit)),
+        "total_cholesterol": _ifSection(
+          'heart',
+          cholesterolToMgdl(_num(totalCholesterolCtl), totalCholesterolUnit),
+        ),
         "total_cholesterol_unit": "mg/dL",
         "total_cholesterol_input": _sectionNum('heart', totalCholesterolCtl),
         "total_cholesterol_input_unit": totalCholesterolUnit,
@@ -563,7 +581,9 @@ class _InputScreenState extends State<InputScreen> {
       },
       "diabetes_profile": {
         "fasting_glucose": _ifSection(
-            'diabetes', glucoseToMgdl(_num(fastingCtl), glucoseUnit)),
+          'diabetes',
+          glucoseToMgdl(_num(fastingCtl), glucoseUnit),
+        ),
         "fasting_glucose_unit": "mg/dL",
         "fasting_glucose_input": _sectionNum('diabetes', fastingCtl),
         "fasting_glucose_input_unit": glucoseUnit,
@@ -574,7 +594,9 @@ class _InputScreenState extends State<InputScreen> {
         "ppbs_input": _sectionNum('diabetes', ppbsCtl),
         "ppbs_input_unit": ppbsUnit,
         "random_blood_sugar": _ifSection(
-            'diabetes', glucoseToMgdl(_num(randomSugarCtl), randomSugarUnit)),
+          'diabetes',
+          glucoseToMgdl(_num(randomSugarCtl), randomSugarUnit),
+        ),
         "random_blood_sugar_unit": "mg/dL",
         "random_blood_sugar_input": _sectionNum('diabetes', randomSugarCtl),
         "random_blood_sugar_input_unit": randomSugarUnit,
@@ -589,30 +611,42 @@ class _InputScreenState extends State<InputScreen> {
         "alp": _sectionNum('liver', alpCtl),
         "alp_unit": alpUnit,
         "bilirubin": _ifSection(
-            'liver', bilirubinToMgdl(_num(bilirubinCtl), bilirubinUnit)),
+          'liver',
+          bilirubinToMgdl(_num(bilirubinCtl), bilirubinUnit),
+        ),
         "bilirubin_unit": "mg/dL",
         "bilirubin_input": _sectionNum('liver', bilirubinCtl),
         "bilirubin_input_unit": bilirubinUnit,
-        "bilirubin_direct": _ifSection('liver',
-            bilirubinToMgdl(_num(bilirubinDirectCtl), bilirubinDirectUnit)),
+        "bilirubin_direct": _ifSection(
+          'liver',
+          bilirubinToMgdl(_num(bilirubinDirectCtl), bilirubinDirectUnit),
+        ),
         "bilirubin_direct_unit": "mg/dL",
-        "bilirubin_indirect": _ifSection('liver',
-            bilirubinToMgdl(_num(bilirubinIndirectCtl), bilirubinIndirectUnit)),
+        "bilirubin_indirect": _ifSection(
+          'liver',
+          bilirubinToMgdl(_num(bilirubinIndirectCtl), bilirubinIndirectUnit),
+        ),
         "bilirubin_indirect_unit": "mg/dL",
-        "albumin":
-            _ifSection('liver', albuminToGdl(_num(albuminCtl), albuminUnit)),
+        "albumin": _ifSection(
+          'liver',
+          albuminToGdl(_num(albuminCtl), albuminUnit),
+        ),
         "albumin_unit": "g/dL",
         "albumin_input": _sectionNum('liver', albuminCtl),
         "albumin_input_unit": albuminUnit,
-        "total_protein": _ifSection('liver',
-            totalProteinToGdl(_num(totalProteinCtl), totalProteinUnit)),
+        "total_protein": _ifSection(
+          'liver',
+          totalProteinToGdl(_num(totalProteinCtl), totalProteinUnit),
+        ),
         "total_protein_unit": "g/dL",
         "total_protein_input": _sectionNum('liver', totalProteinCtl),
         "total_protein_input_unit": totalProteinUnit,
       },
       "cbc": {
         "platelets": _ifSection(
-            'cbc', plateletsTo10e9L(_num(plateletsCtl), plateletsUnit)),
+          'cbc',
+          plateletsTo10e9L(_num(plateletsCtl), plateletsUnit),
+        ),
         "platelets_unit": "10⁹/L",
         "platelets_input": _sectionNum('cbc', plateletsCtl),
         "platelets_input_unit": plateletsUnit,
@@ -632,18 +666,24 @@ class _InputScreenState extends State<InputScreen> {
         "esr_unit": "mm/hr",
       },
       "kidney_function": {
-        "creatinine":
-            _ifSection('kidney', creatinineToMgdl(_num(creatCtl), creatUnit)),
+        "creatinine": _ifSection(
+          'kidney',
+          creatinineToMgdl(_num(creatCtl), creatUnit),
+        ),
         "creatinine_unit": "mg/dL",
         "creatinine_input": _sectionNum('kidney', creatCtl),
         "creatinine_input_unit": creatUnit,
         "blood_urea": _ifSection(
-            'kidney', bloodUreaToMgdl(_num(bloodUreaCtl), bloodUreaUnit)),
+          'kidney',
+          bloodUreaToMgdl(_num(bloodUreaCtl), bloodUreaUnit),
+        ),
         "blood_urea_unit": "mg/dL",
         "bun": _sectionNum('kidney', bunCtl),
         "bun_unit": bunUnit,
         "uric_acid": _ifSection(
-            'kidney', uricAcidToMgdl(_num(uricAcidCtl), uricAcidUnit)),
+          'kidney',
+          uricAcidToMgdl(_num(uricAcidCtl), uricAcidUnit),
+        ),
         "uric_acid_unit": "mg/dL",
         "sodium": _sectionNum('kidney', sodiumCtl),
         "sodium_unit": "mmol/L",
@@ -719,52 +759,87 @@ class _InputScreenState extends State<InputScreen> {
         ),
         body: Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _IntroCard(),
-                const SizedBox(height: 8),
-                _buildTopTabs(),
-                _stepHeader('General health details'),
-                Container(key: _profileKey, child: _profileCard()),
-                _whyAskCard(),
-                Container(key: _lifestyleKey, child: _lifestyleCard()),
-                Container(key: null, child: _foodCard()),
-                Container(key: _environmentKey, child: _environmentCard()),
-                _stepHeader('Optional report values'),
-                const Text(
-                  'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
-                  style: TextStyle(color: AppStyles.muted),
-                ),
-                const SizedBox(height: 12),
-                Container(key: _reportsKey, child: _reportPicker()),
-                const SizedBox(height: 6),
-                if (_selectedSections.contains('heart')) _heartCard(),
-                if (_selectedSections.contains('diabetes')) _diabetesCard(),
-                if (_selectedSections.contains('liver')) _liverCard(),
-                if (_selectedSections.contains('cbc')) _cbcCard(),
-                if (_selectedSections.contains('kidney')) _kidneyCard(),
-                if (_selectedSections.contains('vitals')) _vitalsCard(),
-                if (_selectedSections.contains('pancreas')) _pancreasCard(),
-                if (_selectedSections.contains('cancer')) _cancerCard(),
-                const SizedBox(height: 12),
-                _actionButtons(),
-                const Padding(
-                  padding: EdgeInsets.only(top: 12),
-                  child: Text(
-                    'Review screening insights on the Result tab',
-                    style: TextStyle(
-                        color: AppStyles.muted, fontWeight: FontWeight.w700),
-                  ),
-                ),
-                const DisclaimerWidget(),
-              ],
+          child: ResponsiveContainer(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _IntroCard(),
+                  const SizedBox(height: 8),
+                  _buildTopTabs(),
+                  const SizedBox(height: 4),
+                  if (Responsive.isDesktop(context))
+                    Row(
+                      key: const ValueKey('desktop-input-columns'),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _generalDetailsColumn()),
+                        const SizedBox(width: 24),
+                        Expanded(child: _reportValuesColumn()),
+                      ],
+                    )
+                  else ...[
+                    _generalDetailsColumn(),
+                    _reportValuesColumn(),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _generalDetailsColumn() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _stepHeader('General health details'),
+        Container(key: _profileKey, child: _profileCard()),
+        _whyAskCard(),
+        Container(key: _lifestyleKey, child: _lifestyleCard()),
+        _foodCard(),
+        Container(key: _environmentKey, child: _environmentCard()),
+      ],
+    );
+  }
+
+  Widget _reportValuesColumn() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _stepHeader('Optional report values'),
+        const Text(
+          'Choose the report values you have. You do not need to enter all reports. The app will automatically calculate all possible risk indicators.',
+          style: TextStyle(color: AppStyles.muted),
+        ),
+        const SizedBox(height: 12),
+        Container(key: _reportsKey, child: _reportPicker()),
+        const SizedBox(height: 6),
+        if (_selectedSections.contains('heart')) _heartCard(),
+        if (_selectedSections.contains('diabetes')) _diabetesCard(),
+        if (_selectedSections.contains('liver')) _liverCard(),
+        if (_selectedSections.contains('cbc')) _cbcCard(),
+        if (_selectedSections.contains('kidney')) _kidneyCard(),
+        if (_selectedSections.contains('vitals')) _vitalsCard(),
+        if (_selectedSections.contains('pancreas')) _pancreasCard(),
+        if (_selectedSections.contains('cancer')) _cancerCard(),
+        const SizedBox(height: 12),
+        _actionButtons(),
+        const Padding(
+          padding: EdgeInsets.only(top: 12),
+          child: Text(
+            'Review screening insights on the Result tab',
+            style: TextStyle(
+              color: AppStyles.muted,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const DisclaimerWidget(),
+      ],
     );
   }
 
@@ -792,46 +867,61 @@ class _InputScreenState extends State<InputScreen> {
                 setState(() => _activeTop = id);
                 Future.delayed(const Duration(milliseconds: 60), () {
                   if (id == 'basic') {
-                    Scrollable.ensureVisible(_profileKey.currentContext!,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
+                    Scrollable.ensureVisible(
+                      _profileKey.currentContext!,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                   } else if (id == 'lifestyle') {
-                    Scrollable.ensureVisible(_lifestyleKey.currentContext!,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
+                    Scrollable.ensureVisible(
+                      _lifestyleKey.currentContext!,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                   } else if (id == 'environment') {
-                    Scrollable.ensureVisible(_environmentKey.currentContext!,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
+                    Scrollable.ensureVisible(
+                      _environmentKey.currentContext!,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                   } else if (id == 'reports') {
-                    Scrollable.ensureVisible(_reportsKey.currentContext!,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
+                    Scrollable.ensureVisible(
+                      _reportsKey.currentContext!,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                   }
                 });
               },
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: active ? Colors.white : AppStyles.page,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: active ? AppStyles.primary : AppStyles.border),
+                    color: active ? AppStyles.primary : AppStyles.border,
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon,
-                        color: active ? AppStyles.primary : AppStyles.muted,
-                        size: 18),
+                    Icon(
+                      icon,
+                      color: active ? AppStyles.primary : AppStyles.muted,
+                      size: 18,
+                    ),
                     const SizedBox(height: 4),
-                    Text(label,
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color:
-                                active ? AppStyles.primary : AppStyles.muted)),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: active ? AppStyles.primary : AppStyles.muted,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Container(
                       height: 3,
@@ -840,7 +930,7 @@ class _InputScreenState extends State<InputScreen> {
                         color: active ? AppStyles.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(3),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -866,8 +956,8 @@ class _InputScreenState extends State<InputScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
-              child:
-                  Text(text, style: Theme.of(context).textTheme.titleMedium)),
+            child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+          ),
         ],
       ),
     );
@@ -892,7 +982,14 @@ class _InputScreenState extends State<InputScreen> {
               required: true,
               allowSkip: false,
             ),
-            _choice('Sex', sex, const ['Female', 'Male', 'Other'],
+            _choice(
+                'Sex',
+                sex,
+                const [
+                  'Female',
+                  'Male',
+                  'Other',
+                ],
                 (value) => setState(() => sex = value)),
           ),
           _twoColumn(
@@ -951,8 +1048,10 @@ class _InputScreenState extends State<InputScreen> {
               color: const Color(0xFFE8F7EE),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.verified_user_outlined,
-                color: Color(0xFF218A52)),
+            child: const Icon(
+              Icons.verified_user_outlined,
+              color: Color(0xFF218A52),
+            ),
           ),
           const SizedBox(width: 12),
           const Expanded(
@@ -988,35 +1087,50 @@ class _InputScreenState extends State<InputScreen> {
     if (saved is List) return saved.whereType<String>().toSet();
     final sections = <String>{};
     final vitals = Map<String, dynamic>.from(payload['vitals'] as Map? ?? {});
-    final lipids =
-        Map<String, dynamic>.from(payload['lipid_profile'] as Map? ?? {});
-    final diabetes =
-        Map<String, dynamic>.from(payload['diabetes_profile'] as Map? ?? {});
-    final liver =
-        Map<String, dynamic>.from(payload['liver_function'] as Map? ?? {});
+    final lipids = Map<String, dynamic>.from(
+      payload['lipid_profile'] as Map? ?? {},
+    );
+    final diabetes = Map<String, dynamic>.from(
+      payload['diabetes_profile'] as Map? ?? {},
+    );
+    final liver = Map<String, dynamic>.from(
+      payload['liver_function'] as Map? ?? {},
+    );
     final cbc = Map<String, dynamic>.from(payload['cbc'] as Map? ?? {});
-    final kidney =
-        Map<String, dynamic>.from(payload['kidney_function'] as Map? ?? {});
-    final pancreas =
-        Map<String, dynamic>.from(payload['pancreatic_enzymes'] as Map? ?? {});
-    final tumor =
-        Map<String, dynamic>.from(payload['tumor_markers'] as Map? ?? {});
+    final kidney = Map<String, dynamic>.from(
+      payload['kidney_function'] as Map? ?? {},
+    );
+    final pancreas = Map<String, dynamic>.from(
+      payload['pancreatic_enzymes'] as Map? ?? {},
+    );
+    final tumor = Map<String, dynamic>.from(
+      payload['tumor_markers'] as Map? ?? {},
+    );
     if (_hasSavedValues(vitals, [
       'systolic',
       'diastolic',
       'heart_rate',
       'spo2',
       'body_temperature',
-      'respiratory_rate'
+      'respiratory_rate',
     ])) {
       sections.add('vitals');
     }
-    if (_hasSavedValues(
-        lipids, ['triglycerides', 'hdl', 'ldl', 'total_cholesterol', 'vldl'])) {
+    if (_hasSavedValues(lipids, [
+      'triglycerides',
+      'hdl',
+      'ldl',
+      'total_cholesterol',
+      'vldl',
+    ])) {
       sections.add('heart');
     }
-    if (_hasSavedValues(
-        diabetes, ['fasting_glucose', 'hba1c', 'ppbs', 'random_blood_sugar'])) {
+    if (_hasSavedValues(diabetes, [
+      'fasting_glucose',
+      'hba1c',
+      'ppbs',
+      'random_blood_sugar',
+    ])) {
       sections.add('diabetes');
     }
     if (_hasSavedValues(liver, [
@@ -1028,7 +1142,7 @@ class _InputScreenState extends State<InputScreen> {
       'bilirubin_direct',
       'bilirubin_indirect',
       'albumin',
-      'total_protein'
+      'total_protein',
     ])) {
       sections.add('liver');
     }
@@ -1039,7 +1153,7 @@ class _InputScreenState extends State<InputScreen> {
       'lymphocytes',
       'hemoglobin',
       'rbc',
-      'esr'
+      'esr',
     ])) {
       sections.add('cbc');
     }
@@ -1050,7 +1164,7 @@ class _InputScreenState extends State<InputScreen> {
       'uric_acid',
       'sodium',
       'potassium',
-      'chloride'
+      'chloride',
     ])) {
       sections.add('kidney');
     }
@@ -1064,8 +1178,9 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   bool _hasSavedValues(Map<String, dynamic> map, List<String> keys) {
-    return keys
-        .any((key) => map[key] != null && map[key].toString().isNotEmpty);
+    return keys.any(
+      (key) => map[key] != null && map[key].toString().isNotEmpty,
+    );
   }
 
   void _toggleSection(String id, bool enabled) {
@@ -1095,41 +1210,59 @@ class _InputScreenState extends State<InputScreen> {
       child: Column(
         children: [
           _twoColumn(
-            _choice('Smoking', smoking, const ['No', 'Former', 'Yes'],
+            _choice(
+                'Smoking',
+                smoking,
+                const [
+                  'No',
+                  'Former',
+                  'Yes',
+                ],
                 (value) => setState(() => smoking = value)),
-            _choice('Alcohol', alcohol, const ['No', 'Occasional', 'Frequent'],
+            _choice(
+                'Alcohol',
+                alcohol,
+                const [
+                  'No',
+                  'Occasional',
+                  'Frequent',
+                ],
                 (value) => setState(() => alcohol = value)),
           ),
           _twoColumn(
             _choice(
-                'Physical activity',
-                physicalActivity,
-                const ['Low', 'Moderate', 'High'],
-                (value) => setState(() => physicalActivity = value)),
+              'Physical activity',
+              physicalActivity,
+              const ['Low', 'Moderate', 'High'],
+              (value) => setState(() => physicalActivity = value),
+            ),
             _choice(
-                'Sleep duration',
-                sleepDuration,
-                const ['<5 hrs', '5-7 hrs', '>7 hrs'],
-                (value) => setState(() => sleepDuration = value)),
+              'Sleep duration',
+              sleepDuration,
+              const ['<5 hrs', '5-7 hrs', '>7 hrs'],
+              (value) => setState(() => sleepDuration = value),
+            ),
           ),
           _twoColumn(
             _choice(
-                'Stress level',
-                stressLevel,
-                const ['Low', 'Moderate', 'High'],
-                (value) => setState(() => stressLevel = value)),
+              'Stress level',
+              stressLevel,
+              const ['Low', 'Moderate', 'High'],
+              (value) => setState(() => stressLevel = value),
+            ),
             _choice(
-                'Family history',
-                familyHistory,
-                const [
-                  'None',
-                  'Diabetes',
-                  'Heart disease',
-                  'Cancer',
-                  'Kidney disease',
-                  'Multiple'
-                ],
-                (value) => setState(() => familyHistory = value)),
+              'Family history',
+              familyHistory,
+              const [
+                'None',
+                'Diabetes',
+                'Heart disease',
+                'Cancer',
+                'Kidney disease',
+                'Multiple',
+              ],
+              (value) => setState(() => familyHistory = value),
+            ),
           ),
         ],
       ),
@@ -1148,37 +1281,46 @@ class _InputScreenState extends State<InputScreen> {
             _choice(
                 'Diet type',
                 dietType,
-                const ['Vegetarian', 'Non-vegetarian', 'Mixed'],
+                const [
+                  'Vegetarian',
+                  'Non-vegetarian',
+                  'Mixed',
+                ],
                 (value) => setState(() => dietType = value)),
             _choice(
-                'High sugar intake',
-                sugarIntake,
-                const ['Low', 'Moderate', 'High'],
-                (value) => setState(() => sugarIntake = value)),
+              'High sugar intake',
+              sugarIntake,
+              const ['Low', 'Moderate', 'High'],
+              (value) => setState(() => sugarIntake = value),
+            ),
           ),
           _twoColumn(
             _choice(
-                'High salt intake',
-                saltIntake,
-                const ['Low', 'Moderate', 'High'],
-                (value) => setState(() => saltIntake = value)),
+              'High salt intake',
+              saltIntake,
+              const ['Low', 'Moderate', 'High'],
+              (value) => setState(() => saltIntake = value),
+            ),
             _choice(
-                'Fried / processed food',
-                processedFood,
-                const ['Rare', 'Sometimes', 'Frequent'],
-                (value) => setState(() => processedFood = value)),
+              'Fried / processed food',
+              processedFood,
+              const ['Rare', 'Sometimes', 'Frequent'],
+              (value) => setState(() => processedFood = value),
+            ),
           ),
           _twoColumn(
             _choice(
-                'Fruit / vegetable intake',
-                fruitVeg,
-                const ['Low', 'Moderate', 'High'],
-                (value) => setState(() => fruitVeg = value)),
+              'Fruit / vegetable intake',
+              fruitVeg,
+              const ['Low', 'Moderate', 'High'],
+              (value) => setState(() => fruitVeg = value),
+            ),
             _choice(
-                'Sugary drinks',
-                sugaryDrinks,
-                const ['No', 'Occasionally', 'Frequently'],
-                (value) => setState(() => sugaryDrinks = value)),
+              'Sugary drinks',
+              sugaryDrinks,
+              const ['No', 'Occasionally', 'Frequently'],
+              (value) => setState(() => sugaryDrinks = value),
+            ),
           ),
         ],
       ),
@@ -1195,27 +1337,45 @@ class _InputScreenState extends State<InputScreen> {
         children: [
           _twoColumn(
             _choice(
-                'Air pollution exposure',
-                airPollution,
-                const ['Low', 'Moderate', 'High'],
-                (value) => setState(() => airPollution = value)),
+              'Air pollution exposure',
+              airPollution,
+              const ['Low', 'Moderate', 'High'],
+              (value) => setState(() => airPollution = value),
+            ),
             _choice(
-                'Dust / chemical exposure',
-                occupationalExposure,
-                const ['No', 'Yes'],
-                (value) => setState(() => occupationalExposure = value)),
+              'Dust / chemical exposure',
+              occupationalExposure,
+              const ['No', 'Yes'],
+              (value) => setState(() => occupationalExposure = value),
+            ),
           ),
           _twoColumn(
-            _choice('Passive smoking', passiveSmoking, const ['No', 'Yes'],
-                (value) => setState(() => passiveSmoking = value)),
-            _choice('Cooking smoke', cookingSmoke, const ['No', 'Yes'],
-                (value) => setState(() => cookingSmoke = value)),
+            _choice(
+              'Passive smoking',
+              passiveSmoking,
+              const ['No', 'Yes'],
+              (value) => setState(() => passiveSmoking = value),
+            ),
+            _choice(
+              'Cooking smoke',
+              cookingSmoke,
+              const ['No', 'Yes'],
+              (value) => setState(() => cookingSmoke = value),
+            ),
           ),
           _twoColumn(
-            _choice('Cooking fuel smoke', cookingFuelSmoke, const ['No', 'Yes'],
-                (value) => setState(() => cookingFuelSmoke = value)),
-            _choice('Location type', locationType, const ['Urban', 'Rural'],
-                (value) => setState(() => locationType = value)),
+            _choice(
+              'Cooking fuel smoke',
+              cookingFuelSmoke,
+              const ['No', 'Yes'],
+              (value) => setState(() => cookingFuelSmoke = value),
+            ),
+            _choice(
+              'Location type',
+              locationType,
+              const ['Urban', 'Rural'],
+              (value) => setState(() => locationType = value),
+            ),
           ),
         ],
       ),
@@ -1311,10 +1471,7 @@ class _InputScreenState extends State<InputScreen> {
       enabled: _selectedSections.contains('heart'),
       onToggle: _toggleSection,
       chip: 'Used for: AIP, TyG, FLI',
-      onClear: () => _clearControllers([
-        tgCtl,
-        hdlCtl,
-      ]),
+      onClear: () => _clearControllers([tgCtl, hdlCtl]),
       child: Column(
         children: [
           _unitField(
@@ -1348,9 +1505,7 @@ class _InputScreenState extends State<InputScreen> {
       enabled: _selectedSections.contains('diabetes'),
       onToggle: _toggleSection,
       chip: 'Used for: TyG, FLI, NAFLD',
-      onClear: () => _clearControllers([
-        fastingCtl,
-      ]),
+      onClear: () => _clearControllers([fastingCtl]),
       child: Column(
         children: [
           _unitField(
@@ -1376,26 +1531,36 @@ class _InputScreenState extends State<InputScreen> {
       enabled: _selectedSections.contains('liver'),
       onToggle: _toggleSection,
       chip: 'Used for: APRI, FIB-4, FLI, NAFLD',
-      onClear: () => _clearControllers([
-        astCtl,
-        altCtl,
-        ggtCtl,
-        albuminCtl,
-      ]),
+      onClear: () => _clearControllers([astCtl, altCtl, ggtCtl, albuminCtl]),
       child: Column(
         children: [
           _twoColumn(
-            _unitField(astCtl, 'AST / SGOT', astUnit,
-                (value) => setState(() => astUnit = value), const ['U/L'],
-                helper: 'Found in: Liver Function Test'),
-            _unitField(altCtl, 'ALT / SGPT', altUnit,
-                (value) => setState(() => altUnit = value), const ['U/L'],
-                helper: 'Found in: Liver Function Test'),
+            _unitField(
+              astCtl,
+              'AST / SGOT',
+              astUnit,
+              (value) => setState(() => astUnit = value),
+              const ['U/L'],
+              helper: 'Found in: Liver Function Test',
+            ),
+            _unitField(
+              altCtl,
+              'ALT / SGPT',
+              altUnit,
+              (value) => setState(() => altUnit = value),
+              const ['U/L'],
+              helper: 'Found in: Liver Function Test',
+            ),
           ),
           _twoColumn(
-            _unitField(ggtCtl, 'GGT', ggtUnit,
-                (value) => setState(() => ggtUnit = value), const ['U/L'],
-                helper: 'Found in: Liver Function Test'),
+            _unitField(
+              ggtCtl,
+              'GGT',
+              ggtUnit,
+              (value) => setState(() => ggtUnit = value),
+              const ['U/L'],
+              helper: 'Found in: Liver Function Test',
+            ),
             _unitField(
               albuminCtl,
               'Albumin',
@@ -1420,11 +1585,7 @@ class _InputScreenState extends State<InputScreen> {
       enabled: _selectedSections.contains('cbc'),
       onToggle: _toggleSection,
       chip: 'Used for: NLR, APRI, FIB-4, NAFLD',
-      onClear: () => _clearControllers([
-        plateletsCtl,
-        neutCtl,
-        lymphCtl,
-      ]),
+      onClear: () => _clearControllers([plateletsCtl, neutCtl, lymphCtl]),
       child: Column(
         children: [
           _unitField(
@@ -1468,9 +1629,7 @@ class _InputScreenState extends State<InputScreen> {
       enabled: _selectedSections.contains('kidney'),
       onToggle: _toggleSection,
       chip: 'Used for: eGFR',
-      onClear: () => _clearControllers([
-        creatCtl,
-      ]),
+      onClear: () => _clearControllers([creatCtl]),
       child: Column(
         children: [
           _unitField(
@@ -1496,9 +1655,7 @@ class _InputScreenState extends State<InputScreen> {
       enabled: _selectedSections.contains('vitals'),
       onToggle: _toggleSection,
       chip: 'Used for: BP, SpO₂, pulse support',
-      onClear: () => _clearControllers([
-        spo2Ctl,
-      ]),
+      onClear: () => _clearControllers([spo2Ctl]),
       child: Column(
         children: [
           _unitField(
@@ -1620,10 +1777,12 @@ class _InputScreenState extends State<InputScreen> {
                 SizedBox(
                   width: 112,
                   child: _unitDropdown(
-                    heightUnit,
-                    const ['cm', 'ft-in'],
-                    (value) => setState(() => heightUnit = value),
-                  ),
+                      heightUnit,
+                      const [
+                        'cm',
+                        'ft-in',
+                      ],
+                      (value) => setState(() => heightUnit = value)),
                 ),
               ],
             ),
@@ -1644,13 +1803,20 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _numberField(TextEditingController controller, String label,
-      {bool required = false, String? unitSuffix}) {
+  Widget _numberField(
+    TextEditingController controller,
+    String label, {
+    bool required = false,
+    String? unitSuffix,
+  }) {
     return TextFormField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       style: const TextStyle(
-          fontSize: 18, fontWeight: FontWeight.w600, color: AppStyles.text),
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: AppStyles.text,
+      ),
       onChanged: (_) => setState(() {}),
       decoration: InputDecoration(
         labelText: label,
@@ -1786,7 +1952,10 @@ class _InputScreenState extends State<InputScreen> {
       initialValue: unit,
       isExpanded: true,
       style: const TextStyle(
-          color: AppStyles.unitText, fontSize: 15, fontWeight: FontWeight.w600),
+        color: AppStyles.unitText,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+      ),
       decoration: const InputDecoration(labelText: 'Unit'),
       items: units
           .map((item) => DropdownMenuItem(value: item, child: Text(item)))
@@ -1797,8 +1966,11 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _fieldHelper(String? helper,
-      {bool allowSkip = true, TextEditingController? controller}) {
+  Widget _fieldHelper(
+    String? helper, {
+    bool allowSkip = true,
+    TextEditingController? controller,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Wrap(
@@ -1809,9 +1981,10 @@ class _InputScreenState extends State<InputScreen> {
           Text(
             helper ?? 'Select the unit exactly as shown in your report.',
             style: const TextStyle(
-                color: AppStyles.tertiaryText,
-                fontSize: 12,
-                fontWeight: FontWeight.w500),
+              color: AppStyles.tertiaryText,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           if (allowSkip && controller != null)
             OutlinedButton(
@@ -1819,14 +1992,19 @@ class _InputScreenState extends State<InputScreen> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppStyles.muted,
                 side: const BorderSide(color: AppStyles.border),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 2,
+                ),
                 minimumSize: const Size(0, 28),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(999)),
-                textStyle:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               child: const Text('Skip'),
             ),
@@ -1865,7 +2043,10 @@ class _InputScreenState extends State<InputScreen> {
         initialValue: value,
         isExpanded: true,
         style: const TextStyle(
-            color: AppStyles.text, fontSize: 15, fontWeight: FontWeight.w600),
+          color: AppStyles.text,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
         decoration: InputDecoration(labelText: label),
         items: options
             .map((item) => DropdownMenuItem(value: item, child: Text(item)))
@@ -1920,11 +2101,14 @@ class _IntroCard extends StatelessWidget {
                 ),
               ),
               Spacer(),
-              Text(
-                '33% Complete',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
+              Flexible(
+                child: Text(
+                  '33% Complete',
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
@@ -2007,8 +2191,9 @@ class _SectionCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.78),
                         borderRadius: BorderRadius.circular(12),
-                        border:
-                            Border.all(color: accent.withValues(alpha: 0.16)),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.16),
+                        ),
                       ),
                       child: Icon(icon, color: accent, size: 20),
                     ),
@@ -2035,8 +2220,10 @@ class _SectionCard extends StatelessWidget {
                       IconButton(
                         tooltip: 'Clear this section',
                         onPressed: onClear,
-                        icon: Icon(Icons.cleaning_services_outlined,
-                            color: accent),
+                        icon: Icon(
+                          Icons.cleaning_services_outlined,
+                          color: accent,
+                        ),
                       ),
                   ],
                 ),
@@ -2101,8 +2288,9 @@ class _ReportToggleCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? section.background : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border:
-              Border.all(color: selected ? section.accent : AppStyles.border),
+          border: Border.all(
+            color: selected ? section.accent : AppStyles.border,
+          ),
           boxShadow: [
             BoxShadow(
               color: section.accent.withValues(alpha: selected ? 0.12 : 0.03),
@@ -2116,10 +2304,7 @@ class _ReportToggleCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(
-                  section.emoji,
-                  style: TextStyle(fontSize: 26),
-                ),
+                Text(section.emoji, style: TextStyle(fontSize: 26)),
                 const Spacer(),
                 Icon(
                   selected ? Icons.check_circle : Icons.add_circle_outline,
@@ -2131,9 +2316,10 @@ class _ReportToggleCard extends StatelessWidget {
             Text(
               section.title,
               style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: AppStyles.text),
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: AppStyles.text,
+              ),
             ),
             const SizedBox(height: 4),
             Text(

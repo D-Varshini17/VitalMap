@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../core/responsive.dart';
 import '../core/ui_result_adapter.dart';
 import '../styles.dart';
 import '../widgets/organ_visual.dart';
 
 class IndexDetailScreen extends StatelessWidget {
-  const IndexDetailScreen({
-    super.key,
-    required this.metric,
-  });
+  const IndexDetailScreen({super.key, required this.metric});
 
   final HealthMetric metric;
 
@@ -44,87 +42,120 @@ class IndexDetailScreen extends StatelessWidget {
             ),
           ],
         ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppStyles.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppStyles.navy.withValues(alpha: 0.06),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  OrganVisualIcon(organ: metric.organKey, size: 66, iconSize: 32, showGlow: true),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          metric.indexName,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: AppStyles.text,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          metric.displayName,
-                          style: const TextStyle(color: AppStyles.muted, fontSize: 13, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            _statusBadge(status),
-                            Text(
-                              metric.unit.isEmpty ? metric.scoreText : '${metric.scoreText} ${metric.unit}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: AppStyles.navy,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+        body: ResponsiveContainer(
+          maxWidth: Responsive.detailMaxWidth,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(0, 20, 0, 32),
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppStyles.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppStyles.navy.withValues(alpha: 0.06),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
                     ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    OrganVisualIcon(
+                      organ: metric.organKey,
+                      size: 66,
+                      iconSize: 32,
+                      showGlow: true,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            metric.indexName,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: AppStyles.text,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            metric.displayName,
+                            style: const TextStyle(
+                              color: AppStyles.muted,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              _statusBadge(status),
+                              Text(
+                                metric.unit.isEmpty
+                                    ? metric.scoreText
+                                    : '${metric.scoreText} ${metric.unit}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppStyles.navy,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              _section('What this means', [metric.summary]),
+              _section('Values used', values),
+              _section(
+                'Possible contributors',
+                contributors.isEmpty
+                    ? [
+                        'No major lifestyle, food, or environment contributors were identified from the entered answers.',
+                      ]
+                    : contributors,
+              ),
+              _section(
+                'Suggestions',
+                suggestions.isEmpty
+                    ? [
+                        'Maintain healthy habits and review this value with a qualified healthcare professional if it remains outside the expected range.',
+                      ]
+                    : suggestions,
+                checkmarks: true,
+              ),
+              _section('Doctor follow-up', [doctorFollowup]),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7FAFD),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppStyles.border),
+                ),
+                child: const Text(
+                  'For informational purposes only. This app is not a substitute for clinical diagnosis, treatment, or medical advice. Please consult a qualified healthcare professional for medical decisions.',
+                  style: TextStyle(
+                    color: AppStyles.muted,
+                    fontSize: 12,
+                    height: 1.35,
                   ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 18),
-            _section('What this means', [metric.summary]),
-            _section('Values used', values),
-            _section('Possible contributors', contributors.isEmpty ? ['No major lifestyle, food, or environment contributors were identified from the entered answers.'] : contributors),
-            _section('Suggestions', suggestions.isEmpty ? ['Maintain healthy habits and review this value with a qualified healthcare professional if it remains outside the expected range.'] : suggestions, checkmarks: true),
-            _section('Doctor follow-up', [doctorFollowup]),
-            const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7FAFD),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppStyles.border),
-              ),
-              child: const Text(
-                'For informational purposes only. This app is not a substitute for clinical diagnosis, treatment, or medical advice. Please consult a qualified healthcare professional for medical decisions.',
-                style: TextStyle(color: AppStyles.muted, fontSize: 12, height: 1.35),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -140,7 +171,11 @@ class IndexDetailScreen extends StatelessWidget {
       ),
       child: Text(
         AppStyles.displayStatusLabel(status.label),
-        style: TextStyle(color: status.text, fontSize: 12, fontWeight: FontWeight.w800),
+        style: TextStyle(
+          color: status.text,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -157,7 +192,14 @@ class IndexDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppStyles.text)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppStyles.text,
+            ),
+          ),
           const SizedBox(height: 10),
           ...items.map((item) => _bullet(item, checkmarks: checkmarks)),
         ],
@@ -176,23 +218,41 @@ class IndexDetailScreen extends StatelessWidget {
             child: Icon(
               checkmarks ? Icons.check_circle_outline : Icons.circle,
               size: checkmarks ? 16 : 7,
-              color: checkmarks ? AppStyles.lowConcernStatus.accent : AppStyles.navy,
+              color: checkmarks
+                  ? AppStyles.lowConcernStatus.accent
+                  : AppStyles.navy,
             ),
           ),
-          Expanded(child: Text(item, style: const TextStyle(fontSize: 14, color: AppStyles.text, height: 1.35))),
+          Expanded(
+            child: Text(
+              item,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppStyles.text,
+                height: 1.35,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   List<String> _valuesUsed(Map<String, dynamic> values) {
-    if (values.isEmpty) return ['No individual source values were provided for this indicator.'];
-    return values.entries.map((entry) => '${_prettyKey(entry.key)}: ${entry.value}').toList();
+    if (values.isEmpty) {
+      return ['No individual source values were provided for this indicator.'];
+    }
+    return values.entries
+        .map((entry) => '${_prettyKey(entry.key)}: ${entry.value}')
+        .toList();
   }
 
   List<String> _stringList(dynamic raw) {
     if (raw is List) {
-      return raw.map((e) => e.toString()).where((e) => e.trim().isNotEmpty).toList();
+      return raw
+          .map((e) => e.toString())
+          .where((e) => e.trim().isNotEmpty)
+          .toList();
     }
     if (raw is String && raw.trim().isNotEmpty) return [raw];
     return const [];
@@ -206,7 +266,11 @@ class IndexDetailScreen extends StatelessWidget {
         .replaceAll('_', ' ')
         .trim()
         .split(' ')
-        .map((word) => word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1)}',
+        )
         .join(' ');
   }
 }

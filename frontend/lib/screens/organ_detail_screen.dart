@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/responsive.dart';
 import '../core/ui_result_adapter.dart';
 import '../styles.dart';
 import '../widgets/disclaimer.dart';
@@ -49,30 +50,33 @@ class OrganDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  children: [
-                    _topCard(primary, status),
-                    const SizedBox(height: 12),
-                    _tabs(),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.66,
-                      child: TabBarView(
-                        children: [
-                          _overviewTab(primary, status),
-                          _indicatorsTab(),
-                          _insightsTab(primary),
-                          _tipsTab(primary),
-                        ],
+          body: ResponsiveContainer(
+            maxWidth: Responsive.detailMaxWidth,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
+                    children: [
+                      _topCard(primary, status),
+                      const SizedBox(height: 12),
+                      _tabs(),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.66,
+                        child: TabBarView(
+                          children: [
+                            _overviewTab(primary, status),
+                            _indicatorsTab(),
+                            _insightsTab(primary),
+                            _tipsTab(primary),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -94,56 +98,75 @@ class OrganDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          OrganVisualIcon(organ: organKey, size: 200, iconSize: 90),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final imageSize = constraints.maxWidth < 520 ? 112.0 : 160.0;
+          final image = OrganVisualIcon(
+            organ: organKey,
+            size: imageSize,
+            iconSize: imageSize * 0.45,
+          );
+          final details = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$organName Health',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              StatusBadge(status: status),
+              const SizedBox(height: 10),
+              Text(
+                primary?.displayName ?? 'More Data Needed',
+                style: const TextStyle(
+                  color: AppStyles.muted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                primary == null
+                    ? 'Add report values'
+                    : '${primary.scoreText}${primary.unit.isEmpty ? '' : ' ${primary.unit}'}',
+                style: TextStyle(
+                  color: status.text,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  minHeight: 7,
+                  value: _progressForStatus(status),
+                  backgroundColor: AppStyles.border,
+                  color: status.accent,
+                ),
+              ),
+            ],
+          );
+          if (constraints.maxWidth < 520) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '$organName Health',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                StatusBadge(status: status),
-                const SizedBox(height: 10),
-                Text(
-                  primary?.displayName ?? 'More Data Needed',
-                  style: const TextStyle(
-                    color: AppStyles.muted,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  primary == null
-                      ? 'Add report values'
-                      : '${primary.scoreText}${primary.unit.isEmpty ? '' : ' ${primary.unit}'}',
-                  style: TextStyle(
-                    color: status.text,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    minHeight: 7,
-                    value: _progressForStatus(status),
-                    backgroundColor: AppStyles.border,
-                    color: status.accent,
-                  ),
-                ),
+                Center(child: image),
+                const SizedBox(height: 14),
+                details,
               ],
-            ),
-          ),
-        ],
+            );
+          }
+          return Row(
+            children: [
+              image,
+              const SizedBox(width: 16),
+              Expanded(child: details),
+            ],
+          );
+        },
       ),
     );
   }
@@ -247,9 +270,7 @@ class OrganDetailScreen extends StatelessWidget {
               style: const TextStyle(color: AppStyles.muted),
             )
           : Column(
-              children: [
-                for (final metric in metrics) _indicatorRow(metric),
-              ],
+              children: [for (final metric in metrics) _indicatorRow(metric)],
             ),
     );
   }
@@ -292,8 +313,10 @@ class OrganDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (final metric in metrics) ...[
-                      Text(metric.displayName,
-                          style: const TextStyle(fontWeight: FontWeight.w900)),
+                      Text(
+                        metric.displayName,
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
@@ -303,7 +326,8 @@ class OrganDetailScreen extends StatelessWidget {
                             Chip(
                               backgroundColor: AppStyles.softBlue,
                               side: const BorderSide(
-                                  color: AppStyles.softBlueBorder),
+                                color: AppStyles.softBlueBorder,
+                              ),
                               label: Text(
                                 '${HealthUiAdapter.cleanKey(entry.key)}: ${entry.value}',
                               ),
@@ -359,8 +383,11 @@ class OrganDetailScreen extends StatelessWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.check_circle_outline,
-                                color: AppStyles.primary, size: 18),
+                            const Icon(
+                              Icons.check_circle_outline,
+                              color: AppStyles.primary,
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(child: Text(item)),
                           ],
@@ -411,9 +438,11 @@ class OrganDetailScreen extends StatelessWidget {
 
   HealthMetric? _primaryMetric() {
     if (metrics.isEmpty) return null;
-    final ordered = [...metrics]..sort(
-        (a, b) => AppStyles.statusRank(b.rawStatus)
-            .compareTo(AppStyles.statusRank(a.rawStatus)),
+    final ordered = [...metrics]
+      ..sort(
+        (a, b) => AppStyles.statusRank(
+          b.rawStatus,
+        ).compareTo(AppStyles.statusRank(a.rawStatus)),
       );
     return ordered.first;
   }

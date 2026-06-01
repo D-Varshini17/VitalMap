@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../core/responsive.dart';
 import '../styles.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/organ_visual.dart';
@@ -10,103 +12,120 @@ class InsightScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: const BrandAppBarTitle(title: 'VitalMap'),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Insight',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppStyles.navy,
+        appBar: AppBar(title: const BrandAppBarTitle(title: 'VitalMap')),
+        body: ResponsiveContainer(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Insight',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppStyles.navy,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Understand your body, organs, and screening indicators.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppStyles.muted,
+                const SizedBox(height: 4),
+                const Text(
+                  'Understand your body, organs, and screening indicators.',
+                  style: TextStyle(fontSize: 16, color: AppStyles.muted),
                 ),
-              ),
-              const SizedBox(height: 24),
-              GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 0.82,
-                children: [
-                  _OrganInsightCard(
-                    organName: 'Heart',
-                    organKey: 'heart',
-                    explanation: 'Pumps blood and oxygen throughout the body.',
-                    relatedIndex: 'AIP',
-                    onTap: () => _openDetail(context, 'Heart'),
-                  ),
-                  _OrganInsightCard(
-                    organName: 'Liver',
-                    organKey: 'liver',
-                    explanation:
-                        'Supports metabolism, detoxification and fat processing.',
-                    relatedIndex: 'APRI, FIB-4, FLI, NAFLD',
-                    onTap: () => _openDetail(context, 'Liver'),
-                  ),
-                  _OrganInsightCard(
-                    organName: 'Kidney',
-                    organKey: 'kidney',
-                    explanation: 'Filters waste and balances body fluids.',
-                    relatedIndex: 'eGFR',
-                    onTap: () => _openDetail(context, 'Kidney'),
-                  ),
-                  _OrganInsightCard(
-                    organName: 'Lungs',
-                    organKey: 'lungs',
-                    explanation:
-                        'Exchange oxygen and carbon dioxide for breathing.',
-                    relatedIndex: 'SpO₂',
-                    onTap: () => _openDetail(context, 'Lungs'),
-                  ),
-                  _OrganInsightCard(
-                    organName: 'Brain / Metabolic',
-                    organKey: 'brain',
-                    explanation:
-                        'Controls metabolism, energy and hormone balance.',
-                    relatedIndex: 'TyG',
-                    onTap: () => _openDetail(context, 'Brain / Metabolic'),
-                  ),
-                  _OrganInsightCard(
-                    organName: 'Inflammation',
-                    organKey: 'inflammation',
-                    explanation:
-                        'Body\'s defense system against infections & stress.',
-                    relatedIndex: 'NLR',
-                    onTap: () => _openDetail(context, 'Inflammation'),
-                  ),
-                  _OrganInsightCard(
-                    organName: 'Pancreas',
-                    organKey: 'pancreas',
-                    explanation: 'Aids digestion and regulates blood sugar.',
-                    relatedIndex: 'LAR, TyG',
-                    onTap: () => _openDetail(context, 'Pancreas'),
-                  ),
-                  _OrganInsightCard(
-                    organName: 'Cancer Awareness',
-                    organKey: 'cancer',
-                    explanation: 'Tumor markers are awareness indicators only.',
-                    relatedIndex: 'AFP, CA 15-3, CA 27.29',
-                    onTap: () => _openDetail(context, 'Cancer Awareness'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 24),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final columns = Responsive.columns(
+                      context,
+                      mobile: 2,
+                      tablet: 3,
+                      desktop: 4,
+                    );
+                    final aspectRatio = switch (columns) {
+                      4 => 0.98,
+                      3 => 0.88,
+                      _ => 0.82,
+                    };
+                    return GridView.count(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: aspectRatio,
+                      children: [
+                        _OrganInsightCard(
+                          organName: 'Heart',
+                          organKey: 'heart',
+                          explanation:
+                              'Pumps blood and oxygen throughout the body.',
+                          relatedIndex: 'AIP',
+                          onTap: () => _openDetail(context, 'Heart'),
+                        ),
+                        _OrganInsightCard(
+                          organName: 'Liver',
+                          organKey: 'liver',
+                          explanation:
+                              'Supports metabolism, detoxification and fat processing.',
+                          relatedIndex: 'APRI, FIB-4, FLI, NAFLD',
+                          onTap: () => _openDetail(context, 'Liver'),
+                        ),
+                        _OrganInsightCard(
+                          organName: 'Kidney',
+                          organKey: 'kidney',
+                          explanation:
+                              'Filters waste and balances body fluids.',
+                          relatedIndex: 'eGFR',
+                          onTap: () => _openDetail(context, 'Kidney'),
+                        ),
+                        _OrganInsightCard(
+                          organName: 'Lungs',
+                          organKey: 'lungs',
+                          explanation:
+                              'Exchange oxygen and carbon dioxide for breathing.',
+                          relatedIndex: 'SpO₂',
+                          onTap: () => _openDetail(context, 'Lungs'),
+                        ),
+                        _OrganInsightCard(
+                          organName: 'Brain / Metabolic',
+                          organKey: 'brain',
+                          explanation:
+                              'Controls metabolism, energy and hormone balance.',
+                          relatedIndex: 'TyG',
+                          onTap: () =>
+                              _openDetail(context, 'Brain / Metabolic'),
+                        ),
+                        _OrganInsightCard(
+                          organName: 'Inflammation',
+                          organKey: 'inflammation',
+                          explanation:
+                              'Body\'s defense system against infections & stress.',
+                          relatedIndex: 'NLR',
+                          onTap: () => _openDetail(context, 'Inflammation'),
+                        ),
+                        _OrganInsightCard(
+                          organName: 'Pancreas',
+                          organKey: 'pancreas',
+                          explanation:
+                              'Aids digestion and regulates blood sugar.',
+                          relatedIndex: 'LAR, TyG',
+                          onTap: () => _openDetail(context, 'Pancreas'),
+                        ),
+                        _OrganInsightCard(
+                          organName: 'Cancer Awareness',
+                          organKey: 'cancer',
+                          explanation:
+                              'Tumor markers are awareness indicators only.',
+                          relatedIndex: 'AFP, CA 15-3, CA 27.29',
+                          onTap: () => _openDetail(context, 'Cancer Awareness'),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
@@ -151,29 +170,31 @@ class _OrganInsightCard extends StatelessWidget {
               color: AppStyles.navy.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: OrganVisualIcon(organ: organKey, size: 100),
-            ),
+            Center(child: OrganVisualIcon(organ: organKey, size: 100)),
             const SizedBox(height: 8),
             Text(
               organName,
               style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: AppStyles.navy),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: AppStyles.navy,
+              ),
             ),
             const SizedBox(height: 4),
             Expanded(
               child: Text(
                 explanation,
                 style: const TextStyle(
-                    fontSize: 11, color: AppStyles.muted, height: 1.35),
+                  fontSize: 11,
+                  color: AppStyles.muted,
+                  height: 1.35,
+                ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -182,9 +203,10 @@ class _OrganInsightCard extends StatelessWidget {
             Text(
               'Related: $relatedIndex',
               style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: AppStyles.primary),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: AppStyles.primary,
+              ),
             ),
             const SizedBox(height: 8),
             Center(
@@ -194,7 +216,8 @@ class _OrganInsightCard extends StatelessWidget {
                   foregroundColor: AppStyles.primary,
                   side: const BorderSide(color: AppStyles.border),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   minimumSize: const Size(double.infinity, 32),
                 ),
                 child: const Text('Learn More', style: TextStyle(fontSize: 11)),
@@ -345,121 +368,149 @@ class OrganEducationScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(organ,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: AppStyles.navy)),
+        title: Text(
+          organ,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppStyles.navy,
+          ),
+        ),
         iconTheme: const IconThemeData(color: AppStyles.primary),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Large organ visual
-            Center(
-              child: OrganVisualIcon(organ: organ, size: 200, showGlow: true),
-            ),
-            const SizedBox(height: 12),
-            // Top Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppStyles.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppStyles.navy.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
+      body: ResponsiveContainer(
+        maxWidth: Responsive.detailMaxWidth,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Large organ visual
+              Center(
+                child: OrganVisualIcon(organ: organ, size: 200, showGlow: true),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  OrganVisualIcon(organ: organ, size: 80, showGlow: true),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          organ,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppStyles.navy,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          howItWorks,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppStyles.text,
-                            height: 1.35,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppStyles.softBlue,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'Related: $relatedIndexes',
+              const SizedBox(height: 12),
+              // Top Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppStyles.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppStyles.navy.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    OrganVisualIcon(organ: organ, size: 80, showGlow: true),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            organ,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: AppStyles.primary,
+                              color: AppStyles.navy,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 6),
+                          Text(
+                            howItWorks,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppStyles.text,
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppStyles.softBlue,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Related: $relatedIndexes',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppStyles.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            // Accordion sections
-            _infoBlock(context, '1. How this organ works', howItWorks),
-            _infoBlock(context, '2. Why this organ is important', whyImportant),
-            _infoBlock(
-                context, '3. Related indexes in VitalMap', relatedIndexes),
-            _infoBlock(context, '4. What these indexes generally indicate',
-                whatIndexesIndicate),
-            _infoBlock(
-                context, '5. Possible risk patterns', possibleRiskPatterns),
-            _infoBlock(
-                context, '6. How to maintain proper health', howToMaintain),
-            _infoBlock(context, '7. When to consult a healthcare professional',
-                whenToConsult),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F7FA),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppStyles.border),
+              const SizedBox(height: 24),
+              // Accordion sections
+              _infoBlock(context, '1. How this organ works', howItWorks),
+              _infoBlock(
+                context,
+                '2. Why this organ is important',
+                whyImportant,
               ),
-              child: const Row(
-                children: [
-                  Icon(Icons.shield_outlined, color: AppStyles.muted),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Safety disclaimer\nThe information here is for awareness and educational purposes only. It does not replace professional medical advice, diagnosis, or treatment.',
-                      style: TextStyle(fontSize: 12, color: AppStyles.muted),
+              _infoBlock(
+                context,
+                '3. Related indexes in VitalMap',
+                relatedIndexes,
+              ),
+              _infoBlock(
+                context,
+                '4. What these indexes generally indicate',
+                whatIndexesIndicate,
+              ),
+              _infoBlock(
+                context,
+                '5. Possible risk patterns',
+                possibleRiskPatterns,
+              ),
+              _infoBlock(
+                context,
+                '6. How to maintain proper health',
+                howToMaintain,
+              ),
+              _infoBlock(
+                context,
+                '7. When to consult a healthcare professional',
+                whenToConsult,
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F7FA),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppStyles.border),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.shield_outlined, color: AppStyles.muted),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Safety disclaimer\nThe information here is for awareness and educational purposes only. It does not replace professional medical advice, diagnosis, or treatment.',
+                        style: TextStyle(fontSize: 12, color: AppStyles.muted),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -469,20 +520,28 @@ class OrganEducationScreen extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        title: Text(title,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: AppStyles.text)),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: AppStyles.text,
+          ),
+        ),
         iconColor: AppStyles.primary,
         collapsedIconColor: AppStyles.muted,
         tilePadding: EdgeInsets.zero,
         childrenPadding: const EdgeInsets.only(bottom: 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(content,
-              style: const TextStyle(
-                  fontSize: 14, color: AppStyles.muted, height: 1.4)),
+          Text(
+            content,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppStyles.muted,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/responsive.dart';
 import '../core/ui_result_adapter.dart';
 import '../styles.dart';
 import '../widgets/brand_logo.dart';
@@ -19,59 +20,78 @@ class MoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: const BrandAppBarTitle(title: 'More'),
-        ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            _aboutCard(),
-            const SizedBox(height: 10),
-            _menuItem(
-              icon: Icons.person_outline,
-              title: 'Profile',
-              subtitle: 'Review your saved basic details',
-              onTap: onStartAnalysis,
-            ),
-            _menuItem(
-              icon: Icons.health_and_safety_outlined,
-              title: 'App Safety Note',
-              subtitle: 'How to interpret screening insights safely',
-              onTap: () => _showSafetySheet(context),
-            ),
-            _menuItem(
-              icon: Icons.privacy_tip_outlined,
-              title: 'Privacy note',
-              subtitle: 'Data stays on your device unless analysis is sent',
-              onTap: () => _showPrivacySheet(context),
-            ),
-            _menuItem(
-              icon: Icons.info_outline,
-              title: 'About VitalMap',
-              subtitle: 'Organ Health Risk Indicator',
-              onTap: () => _showAboutSheet(context),
-            ),
-            _menuItem(
-              icon: Icons.ios_share_outlined,
-              title: 'Export Screening Summary',
-              subtitle: 'Create a shareable screening summary',
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Export screening summary is coming soon.'),
-                ),
-              ),
-            ),
-            _menuItem(
-              icon: Icons.help_outline,
-              title: 'Help',
-              subtitle: 'Understand inputs, results, insight cards, and safety notes',
-              onTap: () => _showHelpSheet(context),
-            ),
-            const SizedBox(height: 10),
-            const DisclaimerWidget(),
-          ],
+        appBar: AppBar(title: const BrandAppBarTitle(title: 'More')),
+        body: ResponsiveContainer(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
+            children: [
+              _aboutCard(),
+              const SizedBox(height: 14),
+              _menuGrid(context),
+              const SizedBox(height: 14),
+              const DisclaimerWidget(),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _menuGrid(BuildContext context) {
+    final items = [
+      _menuItem(
+        icon: Icons.person_outline,
+        title: 'Profile',
+        subtitle: 'Review your saved basic details',
+        onTap: onStartAnalysis,
+      ),
+      _menuItem(
+        icon: Icons.health_and_safety_outlined,
+        title: 'App Safety Note',
+        subtitle: 'How to interpret screening insights safely',
+        onTap: () => _showSafetySheet(context),
+      ),
+      _menuItem(
+        icon: Icons.privacy_tip_outlined,
+        title: 'Privacy note',
+        subtitle: 'Data stays on your device unless analysis is sent',
+        onTap: () => _showPrivacySheet(context),
+      ),
+      _menuItem(
+        icon: Icons.info_outline,
+        title: 'About VitalMap',
+        subtitle: 'Organ Health Risk Indicator',
+        onTap: () => _showAboutSheet(context),
+      ),
+      _menuItem(
+        icon: Icons.ios_share_outlined,
+        title: 'Export Screening Summary',
+        subtitle: 'Create a shareable screening summary',
+        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Export screening summary is coming soon.'),
+          ),
+        ),
+      ),
+      _menuItem(
+        icon: Icons.help_outline,
+        title: 'Help',
+        subtitle: 'Understand inputs, results, insight cards, and safety notes',
+        onTap: () => _showHelpSheet(context),
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = Responsive.isDesktop(context) ? 2 : 1;
+        final width = (constraints.maxWidth - (12 * (columns - 1))) / columns;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final item in items) SizedBox(width: width, child: item),
+          ],
+        );
+      },
     );
   }
 
@@ -131,8 +151,9 @@ class MoreScreen extends StatelessWidget {
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppStyles.border)),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: AppStyles.border),
+      ),
       child: ListTile(
         onTap: onTap,
         leading: Container(
@@ -144,10 +165,7 @@ class MoreScreen extends StatelessWidget {
           ),
           child: Icon(icon, color: AppStyles.primary),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
       ),
@@ -155,11 +173,7 @@ class MoreScreen extends StatelessWidget {
   }
 
   void _showSafetySheet(BuildContext context) {
-    _showInfoSheet(
-      context,
-      'App Safety Note',
-      HealthUiAdapter.disclaimer,
-    );
+    _showInfoSheet(context, 'App Safety Note', HealthUiAdapter.disclaimer);
   }
 
   void _showPrivacySheet(BuildContext context) {

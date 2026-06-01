@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/responsive.dart';
 import '../styles.dart';
 import '../widgets/organ_visual.dart';
 import '../widgets/health_dashboard_widgets.dart';
@@ -12,37 +13,58 @@ class AddMissingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       _MissingRowConfig(
-          'Kidney', 'Creatinine', 'Adds eGFR estimate', Icons.opacity_outlined),
-      _MissingRowConfig('Inflammation', 'Neutrophils & Lymphocytes', 'Adds NLR',
-          Icons.bloodtype_outlined),
-      _MissingRowConfig('Liver', 'GGT', 'Improves liver indices',
-          Icons.monitor_heart_outlined),
-      _MissingRowConfig('Cancer Awareness', 'AFP, CA 15-3, CA 27.29',
-          'Only if available', Icons.health_and_safety_outlined),
-      _MissingRowConfig('Pancreas', 'Lipase & Amylase', 'Adds enzyme ratio',
-          Icons.science_outlined),
+        'Kidney',
+        'Creatinine',
+        'Adds eGFR estimate',
+        Icons.opacity_outlined,
+      ),
+      _MissingRowConfig(
+        'Inflammation',
+        'Neutrophils & Lymphocytes',
+        'Adds NLR',
+        Icons.bloodtype_outlined,
+      ),
+      _MissingRowConfig(
+        'Liver',
+        'GGT',
+        'Improves liver indices',
+        Icons.monitor_heart_outlined,
+      ),
+      _MissingRowConfig(
+        'Cancer Awareness',
+        'AFP, CA 15-3, CA 27.29',
+        'Only if available',
+        Icons.health_and_safety_outlined,
+      ),
+      _MissingRowConfig(
+        'Pancreas',
+        'Lipase & Amylase',
+        'Adds enzyme ratio',
+        Icons.science_outlined,
+      ),
     ];
 
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Add Missing Data'),
-        ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          children: [
-            const VitalMapHeroCard(
-              title: 'Add Missing Data',
-              subtitle:
-                  'Adding these values will help generate deeper organ-wise insights.',
-              description: '',
-              compact: true,
-            ),
-            const SizedBox(height: 12),
-            for (final item in items) _missingRow(item, context),
-            const SizedBox(height: 18),
-            const DisclaimerWidget(),
-          ],
+        appBar: AppBar(title: const Text('Add Missing Data')),
+        body: ResponsiveContainer(
+          maxWidth: Responsive.detailMaxWidth,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
+            children: [
+              const VitalMapHeroCard(
+                title: 'Add Missing Data',
+                subtitle:
+                    'Adding these values will help generate deeper organ-wise insights.',
+                description: '',
+                compact: true,
+              ),
+              const SizedBox(height: 12),
+              for (final item in items) _missingRow(item, context),
+              const SizedBox(height: 18),
+              const DisclaimerWidget(),
+            ],
+          ),
         ),
       ),
     );
@@ -65,8 +87,10 @@ class AddMissingScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(cfg.name,
-                    style: const TextStyle(fontWeight: FontWeight.w900)),
+                Text(
+                  cfg.name,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
                 const SizedBox(height: 6),
                 Text(cfg.help, style: const TextStyle(color: AppStyles.muted)),
               ],
@@ -77,13 +101,13 @@ class AddMissingScreen extends StatelessWidget {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text(
-                        'Open the Input page and add the requested values.')),
+                  content: Text(
+                    'Open the Input page and add the requested values.',
+                  ),
+                ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppStyles.primary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppStyles.primary),
             child: const Text('Add'),
           ),
         ],
