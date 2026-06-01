@@ -6,8 +6,13 @@ import '../core/local_analysis_engine.dart';
 
 class ApiService {
   static final LocalAnalysisEngine _localEngine = LocalAnalysisEngine();
+  static const String _configuredBase =
+      String.fromEnvironment('API_BASE_URL');
 
   static String get _base {
+    if (_configuredBase.isNotEmpty) {
+      return _configuredBase;
+    }
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:8000';
     }

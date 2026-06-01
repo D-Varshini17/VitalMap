@@ -85,7 +85,8 @@ Deploying the web frontend to Vercel
 
 The repository includes a checked-in Flutter web release export in
 `frontend/vercel-dist/`. The root `vercel.json` file tells Vercel to publish
-that directory without trying to install Flutter during deployment.
+that directory without trying to install Flutter during deployment. The export
+script configures the web frontend to use the deployed Render backend.
 
 To refresh the export after changing Flutter code, run:
 
