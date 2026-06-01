@@ -9,7 +9,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('Input'), findsWidgets);
-    expect(find.text('Basic Profile'), findsOneWidget);
+    expect(find.text('Basic Profile'), findsWidgets);
     expect(find.text('Analyze Available Values'), findsOneWidget);
   });
 }

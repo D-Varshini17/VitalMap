@@ -7,14 +7,14 @@ void main(List<String> args) {
   final fgPath = 'assets/images/logo/app_icon_foreground.png';
 
   if (!File(srcPath).existsSync()) {
-    print('Source logo not found at $srcPath');
+    stderr.writeln('Source logo not found at $srcPath');
     exit(2);
   }
 
   final data = File(srcPath).readAsBytesSync();
   final src = decodeImage(data);
   if (src == null) {
-    print('Could not decode source image');
+    stderr.writeln('Could not decode source image');
     exit(3);
   }
 
@@ -34,20 +34,20 @@ void main(List<String> args) {
   final int py = ((canvas - resized.height) / 2).round();
 
   // Padded icon: solid background #F8FBFF and centered logo
-  final padded = Image(canvas, canvas);
+  final padded = Image(width: canvas, height: canvas);
   // Background color: #F8FBFF
-  fill(padded, getColor(0xF8, 0xFB, 0xFF));
-  drawImage(padded, resized, dstX: px, dstY: py);
+  fill(padded, color: ColorRgb8(0xF8, 0xFB, 0xFF));
+  compositeImage(padded, resized, dstX: px, dstY: py);
   File(paddedPath).createSync(recursive: true);
   File(paddedPath).writeAsBytesSync(encodePng(padded));
-  print('Wrote $paddedPath');
+  stdout.writeln('Wrote $paddedPath');
 
   // Foreground icon: transparent background with centered logo only
-  final fg = Image(canvas, canvas);
+  final fg = Image(width: canvas, height: canvas, numChannels: 4);
   // Make fully transparent
-  fill(fg, getColor(0, 0, 0, 0));
-  drawImage(fg, resized, dstX: px, dstY: py);
+  fill(fg, color: ColorRgba8(0, 0, 0, 0));
+  compositeImage(fg, resized, dstX: px, dstY: py);
   File(fgPath).createSync(recursive: true);
   File(fgPath).writeAsBytesSync(encodePng(fg));
-  print('Wrote $fgPath');
+  stdout.writeln('Wrote $fgPath');
 }

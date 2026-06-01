@@ -98,5 +98,18 @@ When importing the repository in Vercel, leave the Root Directory empty. A
 second `frontend/vercel.json` file is included for projects that use `frontend`
 as the Root Directory.
 
+Building the Android release APK
+--------------------------------
+
+The Android packaging script injects the deployed Render API URL and stores an
+installable ARM64 APK in `releases/VitalMap-release-arm64.apk`:
+
+```powershell
+.\frontend\build_android_release.ps1
+```
+
+The mobile app silently falls back to local screening calculations if the
+hosted API is temporarily unavailable.
+
 
 
