@@ -1,0 +1,432 @@
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+
+import '../styles.dart';
+
+class SplashScreen extends StatefulWidget {
+  final VoidCallback onComplete;
+
+  const SplashScreen({super.key, required this.onComplete});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
+  late final AnimationController _particleController;
+  late final AnimationController _heartbeatController;
+  bool _logoVisible = false;
+  bool _titleVisible = false;
+  bool _taglineVisible = false;
+  bool _fadeOut = false;
+  bool _completed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _particleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 6200),
+    )..repeat();
+    _heartbeatController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2300),
+    )..forward();
+
+    _after(220, () => _logoVisible = true);
+    _after(980, () => _titleVisible = true);
+    _after(1320, () => _taglineVisible = true);
+    _after(2920, () => _fadeOut = true);
+    _after(3650, _completeNow);
+  }
+
+  void _after(int milliseconds, VoidCallback action) {
+    Future.delayed(Duration(milliseconds: milliseconds), () {
+      if (!mounted) return;
+      setState(action);
+    });
+  }
+
+  @override
+  void dispose() {
+    _particleController.dispose();
+    _heartbeatController.dispose();
+    super.dispose();
+  }
+
+  void _finish() {
+    if (_completed || !_fadeOut) return;
+    _completeNow();
+  }
+
+  void _completeNow() {
+    if (_completed || !mounted) return;
+    _completed = true;
+    widget.onComplete();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: AnimatedOpacity(
+        opacity: _fadeOut ? 0 : 1,
+        duration: const Duration(milliseconds: 480),
+        curve: Curves.easeInOut,
+        onEnd: _finish,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFFFFF),
+                    Color(0xFFF4FBFF),
+                    Color(0xFFE6F8FC),
+                  ],
+                ),
+              ),
+            ),
+            const _DepthGlowLayer(),
+            AnimatedBuilder(
+              animation: _particleController,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: _ParticleFieldPainter(_particleController.value),
+                );
+              },
+            ),
+            _FloatingMedicalTile(
+              alignment: const Alignment(-0.78, -0.58),
+              icon: Icons.monitor_heart_outlined,
+              delay: 120,
+              angle: -0.18,
+            ),
+            _FloatingMedicalTile(
+              alignment: const Alignment(0.74, -0.36),
+              icon: Icons.biotech_outlined,
+              delay: 340,
+              angle: 0.16,
+            ),
+            _FloatingMedicalTile(
+              alignment: const Alignment(-0.62, 0.54),
+              icon: Icons.health_and_safety_outlined,
+              delay: 560,
+              angle: 0.12,
+            ),
+            _FloatingMedicalTile(
+              alignment: const Alignment(0.68, 0.48),
+              icon: Icons.water_drop_outlined,
+              delay: 720,
+              angle: -0.14,
+            ),
+            Align(
+              alignment: const Alignment(0, 0.34),
+              child: AnimatedBuilder(
+                animation: _heartbeatController,
+                builder: (context, child) {
+                  return CustomPaint(
+                    size: const Size(280, 58),
+                    painter: _HeartbeatPainter(_heartbeatController.value),
+                  );
+                },
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedOpacity(
+                      opacity: _logoVisible ? 1 : 0,
+                      duration: const Duration(milliseconds: 680),
+                      curve: Curves.easeOut,
+                      child: AnimatedScale(
+                        scale: _logoVisible ? 1 : 0.58,
+                        duration: const Duration(milliseconds: 820),
+                        curve: Curves.easeOutBack,
+                        child: const _SplashLogo(),
+                      ),
+                    ),
+                    const SizedBox(height: 26),
+                    AnimatedOpacity(
+                      opacity: _titleVisible ? 1 : 0,
+                      duration: const Duration(milliseconds: 520),
+                      curve: Curves.easeOut,
+                      child: AnimatedScale(
+                        scale: _titleVisible ? 1 : 0.92,
+                        duration: const Duration(milliseconds: 520),
+                        curve: Curves.easeOutCubic,
+                        child: const Text(
+                          'VitalMap',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppStyles.navy,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    AnimatedOpacity(
+                      opacity: _taglineVisible ? 1 : 0,
+                      duration: const Duration(milliseconds: 520),
+                      curve: Curves.easeOut,
+                      child: const Text(
+                        'Organ Health Risk Indicator',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppStyles.primary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SplashLogo extends StatelessWidget {
+  const _SplashLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 138,
+      height: 138,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const RadialGradient(
+          colors: [
+            Color(0x445DE8FF),
+            Color(0x2229B8E6),
+            Color(0x00FFFFFF),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF5DE8FF).withValues(alpha: 0.36),
+            blurRadius: 46,
+            spreadRadius: 8,
+          ),
+          BoxShadow(
+            color: AppStyles.primary.withValues(alpha: 0.16),
+            blurRadius: 68,
+            spreadRadius: 12,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Container(
+          width: 104,
+          height: 104,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: const Color(0x99B9F2FF), width: 1.4),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Image.asset(AppStyles.logoAsset, fit: BoxFit.contain),
+        ),
+      ),
+    );
+  }
+}
+
+class _DepthGlowLayer extends StatelessWidget {
+  const _DepthGlowLayer();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _SoftHealthGridPainter());
+  }
+}
+
+class _FloatingMedicalTile extends StatelessWidget {
+  final Alignment alignment;
+  final IconData icon;
+  final int delay;
+  final double angle;
+
+  const _FloatingMedicalTile({
+    required this.alignment,
+    required this.icon,
+    required this.delay,
+    required this.angle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 1100 + delay),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        final floatOffset = math.sin(value * math.pi) * 10;
+        return Align(
+          alignment: alignment,
+          child: Opacity(
+            opacity: value * 0.9,
+            child: Transform.translate(
+              offset: Offset(0, 18 - (value * 18) - floatOffset),
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..rotateZ(angle)
+                  ..rotateY(angle * 0.8),
+                child: child,
+              ),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 72,
+        height: 72,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.84),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppStyles.softBlueBorder),
+          boxShadow: [
+            BoxShadow(
+              color: AppStyles.primary.withValues(alpha: 0.10),
+              blurRadius: 28,
+              offset: const Offset(0, 16),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: AppStyles.primary, size: 32),
+      ),
+    );
+  }
+}
+
+class _SoftHealthGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = AppStyles.primary.withValues(alpha: 0.05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (var y = size.height * 0.14; y < size.height; y += 42) {
+      canvas.drawLine(
+          Offset(size.width * 0.08, y), Offset(size.width, y), line);
+    }
+    for (var x = size.width * 0.1; x < size.width; x += 56) {
+      canvas.drawLine(
+          Offset(x, size.height * 0.1), Offset(x, size.height), line);
+    }
+    final pulse = Paint()
+      ..color = AppStyles.accent.withValues(alpha: 0.10)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    final path = Path()
+      ..moveTo(size.width * 0.08, size.height * 0.28)
+      ..lineTo(size.width * 0.30, size.height * 0.28)
+      ..lineTo(size.width * 0.38, size.height * 0.22)
+      ..lineTo(size.width * 0.46, size.height * 0.33)
+      ..lineTo(size.width * 0.58, size.height * 0.25)
+      ..lineTo(size.width * 0.92, size.height * 0.25);
+    canvas.drawPath(path, pulse);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ParticleFieldPainter extends CustomPainter {
+  final double progress;
+
+  const _ParticleFieldPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    for (var i = 0; i < 42; i++) {
+      final baseX = ((i * 73) % 100) / 100 * size.width;
+      final baseY = ((i * 41) % 100) / 100 * size.height;
+      final phase = progress * math.pi * 2 + i;
+      final x = baseX + math.sin(phase) * 10;
+      final y =
+          (baseY + progress * 28 + math.cos(phase * 0.8) * 8) % size.height;
+      final radius = 1.1 + ((i % 5) * 0.34);
+      final alpha = 0.2 + ((i % 4) * 0.08);
+      paint.color = AppStyles.primary.withValues(alpha: alpha);
+      canvas.drawCircle(Offset(x, y), radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ParticleFieldPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}
+
+class _HeartbeatPainter extends CustomPainter {
+  final double progress;
+
+  const _HeartbeatPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path();
+    final y = size.height * 0.55;
+    path.moveTo(size.width * 0.05, y);
+    path.lineTo(size.width * 0.22, y);
+    path.lineTo(size.width * 0.28, size.height * 0.34);
+    path.lineTo(size.width * 0.35, size.height * 0.76);
+    path.lineTo(size.width * 0.43, size.height * 0.42);
+    path.lineTo(size.width * 0.49, y);
+    path.lineTo(size.width * 0.66, y);
+    path.quadraticBezierTo(
+        size.width * 0.76, size.height * 0.18, size.width * 0.85, y);
+    path.lineTo(size.width * 0.95, y);
+
+    final visibleProgress =
+        Curves.easeInOutCubic.transform((progress * 1.18).clamp(0.0, 1.0));
+    final activePath = Path();
+    for (final metric in path.computeMetrics()) {
+      activePath.addPath(
+        metric.extractPath(0, metric.length * visibleProgress),
+        Offset.zero,
+      );
+    }
+
+    final glowPaint = Paint()
+      ..color = AppStyles.accent.withValues(alpha: 0.30)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    final linePaint = Paint()
+      ..color = AppStyles.primary.withValues(alpha: 0.88)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(activePath, glowPaint);
+    canvas.drawPath(activePath, linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HeartbeatPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}

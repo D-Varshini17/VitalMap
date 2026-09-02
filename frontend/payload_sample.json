@@ -1,0 +1,47 @@
+{
+  "profile": {
+    "age": 52,
+    "sex": "Female",
+    "height_cm": 165,
+    "weight_kg": 72,
+    "waist_cm": 86
+  },
+  "vitals": {
+    "systolic": 130,
+    "diastolic": 80,
+    "heart_rate": 72,
+    "spo2": 98
+  },
+  "lipid_profile": {
+    "triglycerides": 180,
+    "triglycerides_unit": "mg/dL",
+    "hdl": 45,
+    "hdl_unit": "mg/dL"
+  },
+  "diabetes_profile": {
+    "fasting_glucose": 110,
+    "fasting_glucose_unit": "mg/dL"
+  },
+  "liver_function": {
+    "ast": 28,
+    "alt": 35
+  },
+  "cbc": {
+    "platelets": 220,
+    "neutrophils": 60,
+    "lymphocytes": 30
+  },
+  "kidney_function": {
+    "creatinine": 1.0,
+    "creatinine_unit": "mg/dL"
+  },
+  "general_health": {
+    "smoking": "No",
+    "alcohol": "Occasional",
+    "physical_activity": "Moderate",
+    "sleep_duration": "5-7 hrs",
+    "stress_level": "Moderate",
+    "family_history": "None",
+    "diet_type": "Mixed"
+  }
+}

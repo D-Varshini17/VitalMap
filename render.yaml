@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: vitalmap-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
