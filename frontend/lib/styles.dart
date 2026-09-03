@@ -43,51 +43,51 @@ class ContributorStyle {
 class AppStyles {
   static const String logoAsset = 'assets/logo_medid.jpeg';
 
-  static const Color primary = Color(0xFF0B63CE);
-  static const Color navy = Color(0xFF062B5F);
-  static const Color deepBlue = Color(0xFF064A8C);
-  static const Color accent = Color(0xFF12C7D8);
-  static const Color pageStart = Color(0xFFF8FBFF);
-  static const Color pageEnd = Color(0xFFEEF7FF);
+  static const Color primary = Color(0xFF12B5A6);
+  static const Color navy = Color(0xFF0B2545);
+  static const Color deepBlue = Color(0xFF0B2545);
+  static const Color accent = Color(0xFF12B5A6);
+  static const Color pageStart = Color(0xFFF3F6FA);
+  static const Color pageEnd = Color(0xFFF3F6FA);
   static const Color page = pageStart;
   static const Color surface = Colors.white;
   static const Color glass = Color(0xDFFFFFFF);
-  static const Color text = Color(0xFF1F2937);
-  static const Color muted = Color(0xFF6B7280);
+  static const Color text = Color(0xFF14212E);
+  static const Color muted = Color(0xFF64748B);
   static const Color tertiaryText = Color(0xFF94A3B8);
   static const Color unitText = Color(0xFF64748B);
-  static const Color border = Color(0xFFD9E5EA);
+  static const Color border = Color(0xFFDCE3EA);
   static const Color softBlue = Color(0xFFEAF7FF);
   static const Color softBlueBorder = Color(0xFFCFEFFF);
   static const Color softBlueText = Color(0xFF245D7A);
 
   static const HealthStatusStyle lowConcernStatus = HealthStatusStyle(
     label: 'Good',
-    background: Color(0xFFECF8EF),
-    badgeBackground: Color(0xFFDDF2E4),
-    border: Color(0xFFCBEAD5),
-    accent: Color(0xFF65B985),
-    text: Color(0xFF245E3E),
+    background: Color(0xFFEAF5EE),
+    badgeBackground: Color(0xFFD8EDDF),
+    border: Color(0xFFBBDCC7),
+    accent: Color(0xFF4F9D69),
+    text: Color(0xFF28603D),
     icon: Icons.spa_outlined,
   );
 
   static const HealthStatusStyle monitorStatus = HealthStatusStyle(
     label: 'Monitor',
-    background: Color(0xFFFFF7E7),
-    badgeBackground: Color(0xFFFFE9BE),
-    border: Color(0xFFF3D8A2),
-    accent: Color(0xFFD99D41),
-    text: Color(0xFF75501F),
+    background: Color(0xFFFFF6DF),
+    badgeBackground: Color(0xFFFFE9B4),
+    border: Color(0xFFF0D28F),
+    accent: Color(0xFFE2A93B),
+    text: Color(0xFF705019),
     icon: Icons.visibility_outlined,
   );
 
   static const HealthStatusStyle attentionStatus = HealthStatusStyle(
     label: 'Attention Needed',
-    background: Color(0xFFFFF0F2),
-    badgeBackground: Color(0xFFFFDDE3),
-    border: Color(0xFFF4CCD3),
-    accent: Color(0xFFD97082),
-    text: Color(0xFF813945),
+    background: Color(0xFFFFEFEC),
+    badgeBackground: Color(0xFFFFDCD5),
+    border: Color(0xFFF2C0B7),
+    accent: Color(0xFFE85D4A),
+    text: Color(0xFF913A2D),
     icon: Icons.favorite_border,
   );
 
@@ -229,7 +229,7 @@ class AppStyles {
       surfaceTintColor: Colors.transparent,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(8),
         side: const BorderSide(color: border),
       ),
     ),
@@ -237,15 +237,15 @@ class AppStyles {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: primary, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

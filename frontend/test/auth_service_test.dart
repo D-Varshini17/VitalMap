@@ -1,19 +1,24 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:vitalmap/services/auth_service.dart';
 
 void main() {
-  test('uses the Android emulator host for local backend requests', () {
+  test('maps invalid credentials to a useful message', () {
     expect(
-      AuthService.resolveBaseUrlForPlatform(isAndroid: true),
-      'http://10.0.2.2:5000',
+      AuthService.messageFor(
+        FirebaseAuthException(code: 'invalid-credential'),
+      ),
+      'The email or password is incorrect.',
     );
   });
 
-  test('keeps localhost for non-Android platforms', () {
+  test('maps duplicate accounts to a useful message', () {
     expect(
-      AuthService.resolveBaseUrlForPlatform(isAndroid: false),
-      'http://127.0.0.1:5000',
+      AuthService.messageFor(
+        FirebaseAuthException(code: 'email-already-in-use'),
+      ),
+      'An account already exists for this email.',
     );
   });
 }

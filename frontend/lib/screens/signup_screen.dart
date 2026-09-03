@@ -13,14 +13,17 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   bool _submitting = false;
+  bool _showPassword = false;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _nameController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
     super.dispose();
@@ -36,8 +39,9 @@ class _SignupScreenState extends State<SignupScreen> {
     }
     setState(() => _submitting = true);
     final res = await AuthService.register(
-      _emailController.text.trim(),
-      _passwordController.text,
+      fullName: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
     );
     if (!mounted) return;
     setState(() => _submitting = false);
@@ -68,6 +72,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     children: [
                       TextFormField(
+                        controller: _nameController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(labelText: 'Full name'),
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? 'Enter your full name'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(labelText: 'Email'),
@@ -78,9 +91,19 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
-                        decoration:
-                            const InputDecoration(labelText: 'Password'),
+                        obscureText: !_showPassword,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          suffixIcon: IconButton(
+                            tooltip: _showPassword ? 'Hide password' : 'Show password',
+                            onPressed: () => setState(
+                              () => _showPassword = !_showPassword,
+                            ),
+                            icon: Icon(_showPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined),
+                          ),
+                        ),
                         validator: (v) => v == null || v.length < 6
                             ? 'Min 6 characters'
                             : null,

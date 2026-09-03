@@ -1,19 +1,36 @@
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'core/responsive.dart';
+import 'firebase_options.dart';
 import 'screens/input_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/insight_screen.dart';
 import 'screens/more_screen.dart';
 import 'screens/splash_screen.dart';
+import 'services/auth_service.dart';
+import 'services/firestore_service.dart';
 import 'storage/local_storage.dart';
 import 'styles.dart';
 import 'widgets/brand_logo.dart';
 
-void main() {
+bool firebaseInitialized = false;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseInitialized = true;
+  } catch (_) {
+    // The app can still render its logged-out state when Firebase is not
+    // configured in a local test environment.
+  }
   runApp(const MyApp());
 }
 
@@ -70,61 +87,43 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  bool _loading = true;
-  bool _authenticated = false;
-  String? _email;
+  String? _profileEnsuredForUid;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeSession();
-  }
-
-  Future<void> _initializeSession() async {
-    final email = await LocalStorage.loadUserEmail();
-    if (!mounted) return;
-    setState(() {
-      _email = email;
-      _authenticated = email != null;
-      _loading = false;
-    });
-  }
-
-  Future<void> _handleLogin(String email) async {
-    await LocalStorage.saveUserEmail(email);
-    if (!mounted) return;
-    setState(() {
-      _email = email;
-      _authenticated = true;
-    });
-  }
-
-  Future<void> _handleSignOut() async {
-    await LocalStorage.clearUserEmail();
-    if (!mounted) return;
-    setState(() {
-      _email = null;
-      _authenticated = false;
-    });
+  void _ensureProfile(User user) {
+    if (_profileEnsuredForUid == user.uid) return;
+    _profileEnsuredForUid = user.uid;
+    FirestoreService.ensureUserProfile(user).catchError((_) {});
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+    if (!firebaseInitialized) {
+      return LoginScreen(onLogin: (_) {});
     }
-
-    return _authenticated
-        ? HomeContainer(
-            key: const ValueKey('home'),
-            onSignOut: _handleSignOut,
-            userEmail: _email,
-          )
-        : LoginScreen(onLogin: _handleLogin);
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final user = snapshot.data;
+        if (user == null) {
+          return const LoginScreen(onLogin: _noopLogin);
+        }
+        _ensureProfile(user);
+        return HomeContainer(
+          key: ValueKey(user.uid),
+          onSignOut: AuthService.signOut,
+          userEmail: user.email,
+        );
+      },
+    );
   }
 }
+
+void _noopLogin(String _) {}
 
 class HomeContainer extends StatefulWidget {
   const HomeContainer({
@@ -143,6 +142,7 @@ class HomeContainer extends StatefulWidget {
 class _HomeContainerState extends State<HomeContainer> {
   int _currentIndex = 0;
   Map<String, dynamic>? _lastResponse;
+  Map<String, dynamic>? _lastPayload;
   DateTime? _lastChecked;
 
   @override
@@ -152,11 +152,21 @@ class _HomeContainerState extends State<HomeContainer> {
   }
 
   Future<void> _loadLastResult() async {
-    final stored = await LocalStorage.loadLastResponse();
+    Map<String, dynamic>? stored;
+    final user = firebaseInitialized ? FirebaseAuth.instance.currentUser : null;
+    if (user != null) {
+      try {
+        stored = await FirestoreService.loadLatestScreening(user.uid);
+      } catch (_) {}
+    }
+    stored ??= await LocalStorage.loadLastResponse();
     if (!mounted || stored == null) return;
+    final saved = stored;
     setState(() {
-      _lastResponse = stored['response'] as Map<String, dynamic>?;
-      final timestamp = stored['timestamp'] as String?;
+      _lastResponse = saved['response'] as Map<String, dynamic>?;
+      final payload = saved['payload'];
+      _lastPayload = payload is Map ? Map<String, dynamic>.from(payload) : null;
+      final timestamp = saved['timestamp'] as String?;
       _lastChecked = timestamp == null ? null : DateTime.tryParse(timestamp);
     });
   }
@@ -165,19 +175,24 @@ class _HomeContainerState extends State<HomeContainer> {
     setState(() {
       _lastResponse = response;
       _lastChecked = DateTime.now();
-      _currentIndex = 1;
+      _currentIndex = 2;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final pages = [
-      InputScreen(onAnalysisComplete: _handleAnalysisComplete),
       ResultsScreen(response: _lastResponse, lastChecked: _lastChecked),
+      InputScreen(onAnalysisComplete: _handleAnalysisComplete),
+      ResultsScreen(
+        response: _lastResponse,
+        payload: _lastPayload,
+        lastChecked: _lastChecked,
+      ),
       const InsightScreen(),
       MoreScreen(
-        onStartAnalysis: () => setState(() => _currentIndex = 0),
-        onViewResults: () => setState(() => _currentIndex = 1),
+        onStartAnalysis: () => setState(() => _currentIndex = 1),
+        onViewResults: () => setState(() => _currentIndex = 2),
         onSignOut: widget.onSignOut,
         userEmail: widget.userEmail,
       ),
@@ -209,6 +224,7 @@ class _MobileBottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   static const _items = [
+    _DesktopNavItem('Home', Icons.home_outlined, Icons.home),
     _DesktopNavItem('Input', Icons.edit_note_outlined, Icons.edit_note),
     _DesktopNavItem('Result', Icons.insights_outlined, Icons.insights),
     _DesktopNavItem('Insight', Icons.lightbulb_outline, Icons.lightbulb),
@@ -350,6 +366,7 @@ class _DesktopShell extends StatelessWidget {
   final Widget child;
 
   static const _items = [
+    _DesktopNavItem('Home', Icons.home_outlined, Icons.home),
     _DesktopNavItem('Input', Icons.edit_note_outlined, Icons.edit_note),
     _DesktopNavItem('Result', Icons.insights_outlined, Icons.insights),
     _DesktopNavItem(
@@ -364,7 +381,6 @@ class _DesktopShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final showInsightPanel = constraints.maxWidth >= 1400;
         return DecoratedBox(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -381,8 +397,6 @@ class _DesktopShell extends StatelessWidget {
                 onTap: onTap,
               ),
               Expanded(child: child),
-              if (showInsightPanel)
-                _DesktopInsightPanel(currentIndex: currentIndex),
             ],
           ),
         );
@@ -405,7 +419,7 @@ class _DesktopSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 264,
+      width: 64,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.82),
         border: Border(
@@ -421,40 +435,11 @@ class _DesktopSidebar extends StatelessWidget {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+          padding: const EdgeInsets.fromLTRB(8, 18, 8, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: const [
-                  BrandLogoMark(size: 44, glow: true),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'VitalMap',
-                          style: TextStyle(
-                            color: AppStyles.navy,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'AI health companion',
-                          style: TextStyle(
-                            color: AppStyles.muted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              const Center(child: BrandLogoMark(size: 42, glow: true)),
               const SizedBox(height: 30),
               for (var i = 0; i < items.length; i++) ...[
                 _DesktopNavButton(
@@ -462,30 +447,12 @@ class _DesktopSidebar extends StatelessWidget {
                   selected: i == currentIndex,
                   onTap: () => onTap(i),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
               ],
               const Spacer(),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFEAF7FF), Color(0xFFFFFFFF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppStyles.softBlueBorder),
-                ),
-                child: const Text(
-                  'Screening insights only. Consult a qualified professional for medical decisions.',
-                  style: TextStyle(
-                    color: AppStyles.softBlueText,
-                    fontSize: 12,
-                    height: 1.35,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+              const Tooltip(
+                message: 'Screening insights only',
+                child: Icon(Icons.info_outline, color: AppStyles.muted),
               ),
             ],
           ),
@@ -516,7 +483,7 @@ class _DesktopNavButton extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
           decoration: BoxDecoration(
             gradient: selected
                 ? const LinearGradient(
@@ -539,23 +506,11 @@ class _DesktopNavButton extends StatelessWidget {
                   ]
                 : null,
           ),
-          child: Row(
-            children: [
-              Icon(
-                selected ? item.activeIcon : item.icon,
-                color: selected ? AppStyles.primary : AppStyles.muted,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: TextStyle(
-                    color: selected ? AppStyles.primary : AppStyles.text,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
+          child: Center(
+            child: Icon(
+              selected ? item.activeIcon : item.icon,
+              color: selected ? AppStyles.primary : AppStyles.muted,
+            ),
           ),
         ),
       ),
@@ -569,144 +524,4 @@ class _DesktopNavItem {
   final String label;
   final IconData icon;
   final IconData activeIcon;
-}
-
-class _DesktopInsightPanel extends StatelessWidget {
-  const _DesktopInsightPanel({required this.currentIndex});
-
-  final int currentIndex;
-
-  @override
-  Widget build(BuildContext context) {
-    final title = switch (currentIndex) {
-      0 => 'Assessment Flow',
-      1 => 'Result Reading',
-      2 => 'Insight Guide',
-      _ => 'Account Tools',
-    };
-    final body = switch (currentIndex) {
-      0 =>
-        'Move section by section: profile, lifestyle, environment, then reports. Optional labs can be added only when available.',
-      1 =>
-        'Risk labels explain calculated screening indicators. They do not diagnose or replace clinical care.',
-      2 =>
-        'Education cards connect organs, indexes, reference ranges, and everyday habits in plain language.',
-      _ =>
-        'Export, privacy notes, support, and saved data controls live here for release-readiness.',
-    };
-
-    return Container(
-      width: 308,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.66),
-        border: Border(
-          left: BorderSide(color: Colors.white.withValues(alpha: 0.82)),
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Today',
-                style: TextStyle(
-                  color: AppStyles.tertiaryText,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppStyles.navy,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _PanelCard(
-                icon: Icons.auto_awesome_outlined,
-                title: 'AI-aware guidance',
-                body: body,
-              ),
-              const SizedBox(height: 12),
-              const _PanelCard(
-                icon: Icons.verified_user_outlined,
-                title: 'Privacy-first notes',
-                body:
-                    'Saved drafts stay local. Backend analysis is used only when an API endpoint is configured and reachable.',
-              ),
-              const SizedBox(height: 12),
-              const _PanelCard(
-                icon: Icons.picture_as_pdf_outlined,
-                title: 'Release export',
-                body:
-                    'Screening summaries include profile data, organ statuses, recommendations, and the medical safety disclaimer.',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PanelCard extends StatelessWidget {
-  const _PanelCard({
-    required this.icon,
-    required this.title,
-    required this.body,
-  });
-
-  final IconData icon;
-  final String title;
-  final String body;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.86),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppStyles.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppStyles.navy.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: AppStyles.primary, size: 22),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppStyles.text,
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            body,
-            style: const TextStyle(
-              color: AppStyles.muted,
-              fontSize: 12,
-              height: 1.4,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

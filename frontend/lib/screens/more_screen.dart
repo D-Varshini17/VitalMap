@@ -317,14 +317,12 @@ class _MoreScreenState extends State<MoreScreen> {
           const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
-              final columns = Responsive.isDesktop(context) ? 2 : 1;
-              final width =
-                  (constraints.maxWidth - (12 * (columns - 1))) / columns;
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
+              return Column(
                 children: [
-                  for (final item in items) SizedBox(width: width, child: item),
+                  for (final item in items) ...[
+                    item,
+                    const SizedBox(height: 6),
+                  ],
                 ],
               );
             },

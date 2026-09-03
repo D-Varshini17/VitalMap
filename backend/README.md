@@ -1,4 +1,4 @@
-Mock auth server
+VitalMap analysis service
 
 Run locally for frontend testing:
 
@@ -6,7 +6,7 @@ Run locally for frontend testing:
 python -m venv .venv
 .venv\Scripts\activate  # Windows
 pip install -r requirements.txt
-python auth_server.py
+uvicorn app.main:app --reload --port 8000
 ```
 
-This exposes `/register` and `/login` endpoints on port 5000.
+This exposes the optional `/analyze` and `/predict` endpoints. Authentication and user data are handled by Firebase in the Flutter application.

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "200190188175",
+    "project_id": "vitalmap-77d53",
+    "storage_bucket": "vitalmap-77d53.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200190188175:android:62d452cbd4aa3a29c2aefa",
+        "android_client_info": {
+          "package_name": "com.vitalmap.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmhIOL9YWIqDBoaJfZNNyHsbmW2h_o6Qo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

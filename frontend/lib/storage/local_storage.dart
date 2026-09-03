@@ -36,18 +36,4 @@ class LocalStorage {
     await sp.remove('last_response');
   }
 
-  static Future<void> saveUserEmail(String email) async {
-    final sp = await SharedPreferences.getInstance();
-    sp.setString('user_email', email);
-  }
-
-  static Future<String?> loadUserEmail() async {
-    final sp = await SharedPreferences.getInstance();
-    return sp.getString('user_email');
-  }
-
-  static Future<void> clearUserEmail() async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.remove('user_email');
-  }
 }

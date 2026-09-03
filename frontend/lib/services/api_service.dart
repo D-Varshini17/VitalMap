@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,16 +22,21 @@ class ApiService {
   static Future<Map<String, dynamic>?> analyze(
       Map<String, dynamic> payload) async {
     try {
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
       final url = Uri.parse('$_base/analyze');
       final res = await http
           .post(url,
-              headers: {'Content-Type': 'application/json'},
+              headers: {
+                'Content-Type': 'application/json',
+                if (token != null) 'Authorization': 'Bearer $token',
+              },
               body: jsonEncode(payload))
           .timeout(const Duration(seconds: 5));
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body) as Map<String, dynamic>;
         decoded['offline_mode'] = false;
         decoded['recommendation_mode'] = 'online';
+        decoded['calculation_source'] = 'backend';
         return decoded;
       }
       return _localAnalyze(payload);

@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _submitting = false;
+  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -111,11 +112,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
+                        obscureText: !_showPassword,
+                        decoration: InputDecoration(
                           labelText: 'Password',
                           hintText: 'Enter your password',
-                          prefixIcon: Icon(Icons.lock_outline),
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            tooltip: _showPassword ? 'Hide password' : 'Show password',
+                            onPressed: () => setState(
+                              () => _showPassword = !_showPassword,
+                            ),
+                            icon: Icon(_showPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -164,8 +174,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         runSpacing: 8,
                         children: [
                           TextButton(
-                            onPressed: _submitting ? null : () {},
-                            child: const Text('Need help signing in?'),
+                            onPressed: _submitting ? null : _resetPassword,
+                            child: const Text('Forgot password?'),
                           ),
                           TextButton(
                             onPressed: _submitting
@@ -205,6 +215,21 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+    if (!RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+").hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter your email address first.')),
+      );
+      return;
+    }
+    final result = await AuthService.sendPasswordResetEmail(email);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'] as String)),
     );
   }
 }

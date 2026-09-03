@@ -14,9 +14,11 @@ import 'add_missing_screen.dart';
 import 'index_detail_screen.dart';
 
 class ResultsScreen extends StatefulWidget {
-  const ResultsScreen({super.key, this.response, this.lastChecked});
+  const ResultsScreen(
+      {super.key, this.response, this.payload, this.lastChecked});
 
   final Map<String, dynamic>? response;
+  final Map<String, dynamic>? payload;
   final DateTime? lastChecked;
 
   @override
@@ -32,6 +34,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void initState() {
     super.initState();
     response = widget.response;
+    payload = widget.payload;
     lastChecked = widget.lastChecked;
     _loadLast();
   }
@@ -40,8 +43,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void didUpdateWidget(covariant ResultsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.response != oldWidget.response ||
+        widget.payload != oldWidget.payload ||
         widget.lastChecked != oldWidget.lastChecked) {
       response = widget.response;
+      payload = widget.payload;
       lastChecked = widget.lastChecked;
     }
   }
@@ -51,7 +56,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final storedPayload = await LocalStorage.loadLastPayload();
     if (!mounted) return;
     setState(() {
-      payload = storedPayload;
+      payload ??= storedPayload;
       if (response == null && storedResponse != null) {
         response = storedResponse['response'] as Map<String, dynamic>?;
         final timestamp = storedResponse['timestamp'] as String?;
@@ -348,7 +353,21 @@ class _ResultsScreenState extends State<ResultsScreen> {
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
-            final columns = Responsive.isDesktop(context) ? 2 : 1;
+            if (Responsive.isMobile(context)) {
+              return SizedBox(
+                height: 116,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: attentionItems.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (_, index) => SizedBox(
+                    width: 260,
+                    child: _attentionCard(attentionItems[index]),
+                  ),
+                ),
+              );
+            }
+            final columns = Responsive.isDesktop(context) ? 3 : 2;
             final width =
                 (constraints.maxWidth - (12 * (columns - 1))) / columns;
             return Wrap(
@@ -475,7 +494,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           builder: (context, constraints) {
             final columns = Responsive.columns(
               context,
-              mobile: 1,
+              mobile: 2,
               tablet: 2,
               desktop: 4,
             );

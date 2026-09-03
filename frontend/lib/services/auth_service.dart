@@ -1,76 +1,100 @@
-import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 
-import 'package:http/http.dart' as http;
-
-import '../storage/local_storage.dart';
+import 'firestore_service.dart';
 
 class AuthService {
-  static const _localhostBaseUrl = 'http://127.0.0.1:5000';
-  static const _androidEmulatorBaseUrl = 'http://10.0.2.2:5000';
-
-  static String resolveBaseUrlForPlatform({required bool isAndroid}) {
-    return isAndroid ? _androidEmulatorBaseUrl : _localhostBaseUrl;
-  }
-
-  /// Attempt to login against backend; falls back to local stored user.
-  /// Returns a map { 'success': bool, 'message': String }
   static Future<Map<String, dynamic>> login(
     String email,
     String password,
   ) async {
-    final baseUrl = resolveBaseUrlForPlatform(isAndroid: true);
     try {
-      final resp = await http
-          .post(
-            Uri.parse('$baseUrl/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
-          )
-          .timeout(const Duration(seconds: 6));
-
-      if (resp.statusCode == 200) {
-        final j = jsonDecode(resp.body) as Map<String, dynamic>;
-        return {'success': j['success'] == true, 'message': j['message'] ?? ''};
-      }
-      return {'success': false, 'message': 'Server error ${resp.statusCode}'};
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return {'success': true, 'message': 'Signed in successfully.'};
+    } on FirebaseAuthException catch (error) {
+      return {'success': false, 'message': messageFor(error)};
     } catch (_) {
-      // Fallback: accept if email matches locally stored user
-      final stored = await LocalStorage.loadUserEmail();
-      if (stored != null && stored == email) {
-        return {'success': true, 'message': 'Signed in locally (offline mode)'};
-      }
-      return {'success': false, 'message': 'Unable to reach auth server'};
+      return {'success': false, 'message': 'Firebase is unavailable right now.'};
     }
   }
 
-  /// Register a new user on backend; falls back to local save.
-  static Future<Map<String, dynamic>> register(
-    String email,
-    String password,
-  ) async {
-    final baseUrl = resolveBaseUrlForPlatform(isAndroid: true);
+  static Future<Map<String, dynamic>> register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
     try {
-      final resp = await http
-          .post(
-            Uri.parse('$baseUrl/register'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
-          )
-          .timeout(const Duration(seconds: 6));
-
-      if (resp.statusCode == 200) {
-        final j = jsonDecode(resp.body) as Map<String, dynamic>;
-        if (j['success'] == true) {
-          // persist locally as well
-          await LocalStorage.saveUserEmail(email);
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      final createdUser = credential.user;
+      await createdUser?.updateDisplayName(fullName.trim());
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        try {
+          await FirestoreService.ensureUserProfile(user, fullName: fullName);
+        } on FirebaseException catch (error) {
+          return {
+            'success': false,
+            'message': 'Account created, but your profile could not be saved: ${firestoreMessageFor(error)}',
+          };
         }
-        return {'success': j['success'] == true, 'message': j['message'] ?? ''};
       }
-      return {'success': false, 'message': 'Server error ${resp.statusCode}'};
+      return {'success': true, 'message': 'Account created successfully.'};
+    } on FirebaseAuthException catch (error) {
+      return {'success': false, 'message': messageFor(error)};
+    } on FirebaseException catch (error) {
+      return {'success': false, 'message': firestoreMessageFor(error)};
     } catch (_) {
-      // Fallback: save locally
-      await LocalStorage.saveUserEmail(email);
-      return {'success': true, 'message': 'Registered locally (offline)'};
+      return {'success': false, 'message': 'Unable to create your account right now.'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendPasswordResetEmail(
+    String email,
+  ) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      return {'success': true, 'message': 'Password reset email sent.'};
+    } on FirebaseAuthException catch (error) {
+      return {'success': false, 'message': messageFor(error)};
+    } catch (_) {
+      return {'success': false, 'message': 'Firebase is unavailable right now.'};
+    }
+  }
+
+  static Future<void> signOut() => FirebaseAuth.instance.signOut();
+
+  static String messageFor(FirebaseAuthException error) {
+    switch (error.code) {
+      case 'invalid-credential':
+      case 'user-not-found':
+      case 'wrong-password':
+        return 'The email or password is incorrect.';
+      case 'email-already-in-use':
+        return 'An account already exists for this email.';
+      case 'weak-password':
+        return 'Choose a stronger password.';
+      case 'invalid-email':
+        return 'Enter a valid email address.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      default:
+        return error.message ?? 'Authentication failed. Please try again.';
+    }
+  }
+
+  static String firestoreMessageFor(FirebaseException error) {
+    switch (error.code) {
+      case 'permission-denied':
+        return 'Firestore rejected the profile write. Deploy firestore.rules and check that you are signed in.';
+      case 'failed-precondition':
+        return 'Firestore is not enabled for this Firebase project.';
+      case 'unavailable':
+        return 'Firestore is temporarily unavailable. Check your internet connection.';
+      default:
+        return error.message ?? 'Firestore could not save your profile.';
     }
   }
 }

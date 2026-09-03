@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../core/responsive.dart';
 import '../services/api_service.dart';
+import '../services/firestore_service.dart';
 import '../storage/local_storage.dart';
 import '../styles.dart';
 import '../utils/unit_conversion.dart';
@@ -23,6 +25,7 @@ class _InputScreenState extends State<InputScreen> {
   final Set<String> _selectedSections = {};
 
   final ageCtl = TextEditingController();
+  final ageFocusNode = FocusNode();
   final heightCtl = TextEditingController();
   final heightFeetCtl = TextEditingController();
   final heightInchesCtl = TextEditingController();
@@ -284,6 +287,7 @@ class _InputScreenState extends State<InputScreen> {
     ]) {
       ctl.dispose();
     }
+    ageFocusNode.dispose();
     super.dispose();
   }
 
@@ -300,6 +304,12 @@ class _InputScreenState extends State<InputScreen> {
     setState(() => loading = true);
     final payload = _payload();
     await LocalStorage.saveLastPayload(payload);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirestoreService.saveDraft(user.uid, payload);
+      } catch (_) {}
+    }
     final response = await ApiService.analyze(payload);
     if (!mounted) return;
     setState(() => loading = false);
@@ -316,11 +326,27 @@ class _InputScreenState extends State<InputScreen> {
     }
 
     await LocalStorage.saveLastResponse(response);
+    if (user != null) {
+      try {
+        await FirestoreService.saveScreening(
+          uid: user.uid,
+          payload: payload,
+          response: response,
+        );
+      } catch (_) {}
+    }
     widget.onAnalysisComplete(response);
   }
 
   Future<void> _loadSavedPayload() async {
-    final payload = await LocalStorage.loadLastPayload();
+    Map<String, dynamic>? payload;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        payload = await FirestoreService.loadDraft(user.uid);
+      } catch (_) {}
+    }
+    payload ??= await LocalStorage.loadLastPayload();
     if (!mounted || payload == null) return;
     final profile = Map<String, dynamic>.from(payload['profile'] as Map? ?? {});
     final general = Map<String, dynamic>.from(
@@ -665,7 +691,7 @@ class _InputScreenState extends State<InputScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _IntroCard(onStart: () => _setActiveTop('basic')),
+              _IntroCard(onStart: _startAssessment),
               const SizedBox(height: 8),
               _buildTopTabs(),
               const SizedBox(height: 14),
@@ -679,6 +705,13 @@ class _InputScreenState extends State<InputScreen> {
 
   void _setActiveTop(String id) {
     setState(() => _activeTop = id);
+  }
+
+  void _startAssessment() {
+    setState(() => _activeTop = 'basic');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ageFocusNode.requestFocus();
+    });
   }
 
   Widget _activeFlowBody(bool isDesktop) {
@@ -983,101 +1016,69 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _buildTopTabs() {
     final tabs = [
-      (
-        'basic',
-        Icons.person_outline,
-        'Basic Profile',
-        const Color(0xFF55B9DF),
-        const Color(0xFFEAF8FF),
-      ),
-      (
-        'lifestyle',
-        Icons.self_improvement,
-        'Lifestyle',
-        const Color(0xFF3EAE75),
-        const Color(0xFFECF8EF),
-      ),
-      (
-        'environment',
-        Icons.eco,
-        'Environment',
-        const Color(0xFFE49A52),
-        const Color(0xFFFFF2E8),
-      ),
-      (
-        'reports',
-        Icons.article_outlined,
-        'Reports',
-        const Color(0xFF8B6ED1),
-        const Color(0xFFF5F3FA),
-      ),
+      ('basic', 'Basic profile'),
+      ('lifestyle', 'Lifestyle'),
+      ('environment', 'Environment'),
+      ('reports', 'Reports'),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final spacing = constraints.maxWidth < 520 ? 8.0 : 10.0;
-        return Wrap(
-          spacing: spacing,
-          runSpacing: 8,
-          children: tabs.map((t) {
-            final id = t.$1;
-            final icon = t.$2;
-            final label = t.$3;
-            final accent = t.$4;
-            final background = t.$5;
-            final active = _activeTop == id;
-            return InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () => _setActiveTop(id),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                constraints: const BoxConstraints(minWidth: 128),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: active
-                      ? background
-                      : Colors.white.withValues(alpha: 0.64),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: active
-                        ? accent.withValues(alpha: 0.50)
-                        : AppStyles.border,
-                  ),
-                  boxShadow: active
-                      ? [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.12),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
-                          ),
-                        ]
-                      : null,
-                ),
+    final activeIndex = tabs.indexWhere((tab) => tab.$1 == _activeTop);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppStyles.border),
+      ),
+      child: Row(
+        children: [
+          for (var index = 0; index < tabs.length; index++) ...[
+            Expanded(
+              child: InkWell(
+                onTap: () => _setActiveTop(tabs[index].$1),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      icon,
-                      color: active ? accent : AppStyles.muted,
-                      size: 18,
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: index <= activeIndex
+                          ? AppStyles.primary
+                          : AppStyles.softBlue,
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          color: index <= activeIndex
+                              ? Colors.white
+                              : AppStyles.muted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 7),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: active ? AppStyles.text : AppStyles.muted,
+                    Flexible(
+                      child: Text(
+                        tabs[index].$2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: index == activeIndex
+                              ? AppStyles.navy
+                              : AppStyles.muted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            );
-          }).toList(),
-        );
-      },
+            ),
+            if (index < tabs.length - 1)
+              Expanded(
+                child: Container(height: 1, color: AppStyles.border),
+              ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -1124,6 +1125,7 @@ class _InputScreenState extends State<InputScreen> {
                 helper: 'Self-reported',
                 required: true,
                 allowSkip: false,
+                focusNode: ageFocusNode,
               ),
             ),
             _TintedInputPanel(
@@ -1935,9 +1937,11 @@ class _InputScreenState extends State<InputScreen> {
     String label, {
     bool required = false,
     String? unitSuffix,
+    FocusNode? focusNode,
   }) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       style: const TextStyle(
         fontSize: 18,
@@ -1984,6 +1988,7 @@ class _InputScreenState extends State<InputScreen> {
     String? helper,
     bool required = false,
     bool allowSkip = true,
+    FocusNode? focusNode,
   }) {
     final hasAlternativeUnits = units.length > 1;
     return Padding(
@@ -1995,7 +2000,12 @@ class _InputScreenState extends State<InputScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _numberField(controller, label, required: required),
+                child: _numberField(
+                  controller,
+                  label,
+                  required: required,
+                  focusNode: focusNode,
+                ),
               ),
               const SizedBox(width: 10),
               SizedBox(

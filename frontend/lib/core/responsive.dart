@@ -6,7 +6,7 @@ enum ResponsiveSize { mobile, tablet, desktop }
 
 abstract final class Responsive {
   static const double mobileBreakpoint = 600;
-  static const double desktopBreakpoint = 1200;
+  static const double desktopBreakpoint = 1024;
   static const double tabletMaxWidth = 720;
   static const double desktopMaxWidth = 1440;
   static const double detailMaxWidth = 980;
