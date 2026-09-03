@@ -137,59 +137,66 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
             Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedOpacity(
-                      opacity: _logoVisible ? 1 : 0,
-                      duration: const Duration(milliseconds: 680),
-                      curve: Curves.easeOut,
-                      child: AnimatedScale(
-                        scale: _logoVisible ? 1 : 0.58,
-                        duration: const Duration(milliseconds: 820),
-                        curve: Curves.easeOutBack,
-                        child: const _SplashLogo(),
-                      ),
-                    ),
-                    const SizedBox(height: 26),
-                    AnimatedOpacity(
-                      opacity: _titleVisible ? 1 : 0,
-                      duration: const Duration(milliseconds: 520),
-                      curve: Curves.easeOut,
-                      child: AnimatedScale(
-                        scale: _titleVisible ? 1 : 0.92,
-                        duration: const Duration(milliseconds: 520),
-                        curve: Curves.easeOutCubic,
-                        child: const Text(
-                          'VitalMap',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppStyles.navy,
-                            fontSize: 34,
-                            fontWeight: FontWeight.w800,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final logoSize = (constraints.maxHeight * 0.60)
+                      .clamp(108.0, 138.0)
+                      .toDouble();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedOpacity(
+                          opacity: _logoVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 680),
+                          curve: Curves.easeOut,
+                          child: AnimatedScale(
+                            scale: _logoVisible ? 1 : 0.58,
+                            duration: const Duration(milliseconds: 820),
+                            curve: Curves.easeOutBack,
+                            child: _SplashLogo(size: logoSize),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    AnimatedOpacity(
-                      opacity: _taglineVisible ? 1 : 0,
-                      duration: const Duration(milliseconds: 520),
-                      curve: Curves.easeOut,
-                      child: const Text(
-                        'Organ Health Risk Indicator',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppStyles.primary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 26),
+                        AnimatedOpacity(
+                          opacity: _titleVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 520),
+                          curve: Curves.easeOut,
+                          child: AnimatedScale(
+                            scale: _titleVisible ? 1 : 0.92,
+                            duration: const Duration(milliseconds: 520),
+                            curve: Curves.easeOutCubic,
+                            child: const Text(
+                              'VitalMap',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppStyles.navy,
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        AnimatedOpacity(
+                          opacity: _taglineVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 520),
+                          curve: Curves.easeOut,
+                          child: const Text(
+                            'Organ Health Risk Indicator',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppStyles.primary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
@@ -200,13 +207,15 @@ class _SplashScreenState extends State<SplashScreen>
 }
 
 class _SplashLogo extends StatelessWidget {
-  const _SplashLogo();
+  const _SplashLogo({this.size = 138});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 138,
-      height: 138,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: const RadialGradient(
