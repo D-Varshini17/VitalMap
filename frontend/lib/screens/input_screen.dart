@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../core/local_analysis_engine.dart';
 import '../core/responsive.dart';
-import '../services/api_service.dart';
 import '../services/firestore_service.dart';
 import '../storage/local_storage.dart';
 import '../styles.dart';
@@ -21,6 +21,7 @@ class InputScreen extends StatefulWidget {
 }
 
 class _InputScreenState extends State<InputScreen> {
+  final _analysisEngine = LocalAnalysisEngine();
   final _formKey = GlobalKey<FormState>();
   final Set<String> _selectedSections = {};
 
@@ -51,6 +52,7 @@ class _InputScreenState extends State<InputScreen> {
   final randomSugarCtl = TextEditingController();
 
   final astCtl = TextEditingController();
+  final astUlnCtl = TextEditingController(text: '40');
   final altCtl = TextEditingController();
   final ggtCtl = TextEditingController();
   final alpCtl = TextEditingController();
@@ -102,6 +104,7 @@ class _InputScreenState extends State<InputScreen> {
   String? cookingSmoke;
   String? cookingFuelSmoke;
   String? locationType;
+  String? ifgDiabetes;
 
   String ageUnit = 'years';
   String heightUnit = 'cm';
@@ -152,6 +155,7 @@ class _InputScreenState extends State<InputScreen> {
   String ca2729Unit = 'U/mL';
 
   bool loading = false;
+  String analysisStep = '';
 
   final _profileKey = GlobalKey();
   final _lifestyleKey = GlobalKey();
@@ -165,64 +169,64 @@ class _InputScreenState extends State<InputScreen> {
       title: 'Heart / Lipid Profile',
       subtitle: 'AIP',
       emoji: '❤️',
-      background: Color(0xFFFFF0F5),
-      accent: Color(0xFFD970A0),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
     _ReportSection(
       id: 'diabetes',
       title: 'Diabetes / Metabolic',
       subtitle: 'TyG, metabolic insight',
       emoji: '🍬',
-      background: Color(0xFFFFF7E7),
-      accent: Color(0xFFD99D41),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
     _ReportSection(
       id: 'liver',
       title: 'Liver Function Test',
       subtitle: 'APRI, FIB-4, FLI, NAFLD',
       emoji: '🧪',
-      background: Color(0xFFECF8EF),
-      accent: Color(0xFF65B985),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
     _ReportSection(
       id: 'cbc',
       title: 'CBC / Differential',
       subtitle: 'NLR and liver support',
       emoji: '🩸',
-      background: Color(0xFFF5F3FA),
-      accent: Color(0xFF9C89CD),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
     _ReportSection(
       id: 'kidney',
       title: 'Kidney Function',
       subtitle: 'eGFR',
       emoji: '💧',
-      background: Color(0xFFEAFBFD),
-      accent: Color(0xFF49B6C8),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
     _ReportSection(
       id: 'vitals',
       title: 'Lungs / Vitals',
       subtitle: 'SpO₂',
       emoji: '🫁',
-      background: Color(0xFFEAF7FF),
-      accent: Color(0xFF4BAFE3),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
     _ReportSection(
       id: 'pancreas',
       title: 'Pancreatic Enzymes',
       subtitle: 'LAR',
       emoji: '🔬',
-      background: Color(0xFFFFF0ED),
-      accent: Color(0xFFE18170),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
     _ReportSection(
       id: 'cancer',
       title: 'Cancer Awareness',
       subtitle: 'AFP, CA 15-3, CA 27.29',
       emoji: '🎗️',
-      background: Color(0xFFF3F2F8),
-      accent: Color(0xFF8B8FC7),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
     ),
   ];
 
@@ -257,6 +261,7 @@ class _InputScreenState extends State<InputScreen> {
       ppbsCtl,
       randomSugarCtl,
       astCtl,
+      astUlnCtl,
       altCtl,
       ggtCtl,
       alpCtl,
@@ -301,8 +306,16 @@ class _InputScreenState extends State<InputScreen> {
       return;
     }
 
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      analysisStep = 'Validating report values';
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
     final payload = _payload();
+    setState(() => analysisStep = 'Converting units');
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
     await LocalStorage.saveLastPayload(payload);
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -310,20 +323,14 @@ class _InputScreenState extends State<InputScreen> {
         await FirestoreService.saveDraft(user.uid, payload);
       } catch (_) {}
     }
-    final response = await ApiService.analyze(payload);
+    setState(() => analysisStep = 'Calculating screening indices');
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
+    final response = _analysisEngine.analyze(payload);
+    setState(() => analysisStep = 'Preparing your health map');
+    await Future<void>.delayed(const Duration(milliseconds: 180));
     if (!mounted) return;
     setState(() => loading = false);
-
-    if (response == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to analyze right now. Please check your input values and try again.',
-          ),
-        ),
-      );
-      return;
-    }
 
     await LocalStorage.saveLastResponse(response);
     if (user != null) {
@@ -391,6 +398,7 @@ class _InputScreenState extends State<InputScreen> {
       sex = profile['sex'] as String?;
 
       smoking = general['smoking'] as String?;
+      ifgDiabetes = diabetes['ifg_diabetes'] as String?;
       alcohol = general['alcohol'] as String?;
       physicalActivity = general['physical_activity'] as String?;
       sleepDuration = general['sleep_duration'] as String?;
@@ -449,6 +457,7 @@ class _InputScreenState extends State<InputScreen> {
           diabetes['random_blood_sugar_unit'] as String? ?? randomSugarUnit;
 
       _setText(astCtl, liver['ast']);
+      _setText(astUlnCtl, liver['ast_uln'] ?? 40);
       _setText(altCtl, liver['alt']);
       _setText(ggtCtl, liver['ggt']);
       _setText(alpCtl, liver['alp']);
@@ -577,6 +586,7 @@ class _InputScreenState extends State<InputScreen> {
         "hdl_input_unit": hdlUnit,
       },
       "diabetes_profile": {
+        "ifg_diabetes": ifgDiabetes,
         "fasting_glucose": _ifSection(
           'diabetes',
           glucoseToMgdl(_num(fastingCtl), glucoseUnit),
@@ -587,6 +597,7 @@ class _InputScreenState extends State<InputScreen> {
       },
       "liver_function": {
         "ast": _sectionNum('liver', astCtl),
+        "ast_uln": _sectionNum('liver', astUlnCtl),
         "ast_unit": astUnit,
         "alt": _sectionNum('liver', altCtl),
         "alt_unit": altUnit,
@@ -749,8 +760,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'Start with the core measurements used across screening formulas.',
           icon: Icons.person_outline,
-          accent: const Color(0xFF55B9DF),
-          background: const Color(0xFFEAF8FF),
+          accent: AppStyles.primary,
+          background: AppStyles.surface,
         ),
         Container(key: _profileKey, child: _profileCard()),
         _whyAskCard(),
@@ -768,8 +779,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'These habits help explain what may be contributing to calculated risk patterns.',
           icon: Icons.self_improvement,
-          accent: const Color(0xFF3EAE75),
-          background: const Color(0xFFECF8EF),
+          accent: AppStyles.primary,
+          background: AppStyles.surface,
         ),
         Container(key: _lifestyleKey, child: _lifestyleCard()),
         _foodCard(),
@@ -791,8 +802,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'Exposure context helps VitalMap interpret lung, inflammation, and general health patterns.',
           icon: Icons.eco_outlined,
-          accent: const Color(0xFFE49A52),
-          background: const Color(0xFFFFF2E8),
+          accent: AppStyles.primary,
+          background: AppStyles.surface,
         ),
         Container(key: _environmentKey, child: _environmentCard()),
         _flowFooter(
@@ -814,8 +825,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'Choose only the reports you have. VitalMap calculates every possible screening indicator from available values.',
           icon: Icons.article_outlined,
-          accent: const Color(0xFF8B6ED1),
-          background: const Color(0xFFF5F3FA),
+          accent: AppStyles.primary,
+          background: AppStyles.surface,
         ),
         Container(key: _reportsKey, child: _reportPicker()),
       ],
@@ -898,7 +909,7 @@ class _InputScreenState extends State<InputScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.82),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppStyles.border),
       ),
@@ -933,11 +944,7 @@ class _InputScreenState extends State<InputScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [background, Colors.white.withValues(alpha: 0.92)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: accent.withValues(alpha: 0.22)),
       ),
@@ -948,7 +955,7 @@ class _InputScreenState extends State<InputScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.82),
+              color: AppStyles.softBlue,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: accent.withValues(alpha: 0.20)),
             ),
@@ -1061,7 +1068,7 @@ class _InputScreenState extends State<InputScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: index == activeIndex
-                              ? AppStyles.navy
+                              ? AppStyles.text
                               : AppStyles.muted,
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -1108,14 +1115,14 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Basic Profile',
       icon: Icons.person_outline,
-      background: const Color(0xFFEAF8FF),
-      accent: const Color(0xFF55B9DF),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       child: Column(
         children: [
           _twoColumn(
             _TintedInputPanel(
-              color: const Color(0xFFEAF8FF),
-              border: const Color(0xFFCFEFFF),
+              color: AppStyles.surface,
+              border: AppStyles.border,
               child: _unitField(
                 ageCtl,
                 'Age',
@@ -1129,8 +1136,8 @@ class _InputScreenState extends State<InputScreen> {
               ),
             ),
             _TintedInputPanel(
-              color: const Color(0xFFF5F0FF),
-              border: const Color(0xFFE4DAFF),
+              color: AppStyles.surface,
+              border: AppStyles.border,
               child: _choice(
                 'Sex',
                 sex,
@@ -1145,13 +1152,13 @@ class _InputScreenState extends State<InputScreen> {
           ),
           _twoColumn(
             _TintedInputPanel(
-              color: const Color(0xFFEAF8F1),
-              border: const Color(0xFFCFECDD),
+              color: AppStyles.surface,
+              border: AppStyles.border,
               child: _heightField(),
             ),
             _TintedInputPanel(
-              color: const Color(0xFFFFF0E6),
-              border: const Color(0xFFFFD6BC),
+              color: AppStyles.surface,
+              border: AppStyles.border,
               child: _unitField(
                 weightCtl,
                 'Weight',
@@ -1166,8 +1173,8 @@ class _InputScreenState extends State<InputScreen> {
           ),
           _twoColumn(
             _TintedInputPanel(
-              color: const Color(0xFFFFEEF5),
-              border: const Color(0xFFFFD3E2),
+              color: AppStyles.surface,
+              border: AppStyles.border,
               child: _unitField(
                 waistCtl,
                 'Waist circumference',
@@ -1180,8 +1187,8 @@ class _InputScreenState extends State<InputScreen> {
               ),
             ),
             _TintedInputPanel(
-              color: const Color(0xFFF1F8FF),
-              border: const Color(0xFFD6EAFF),
+              color: AppStyles.surface,
+              border: AppStyles.border,
               child: _readOnlyUnitField(
                 'BMI',
                 _currentBmi()?.toStringAsFixed(1) ?? '',
@@ -1200,11 +1207,7 @@ class _InputScreenState extends State<InputScreen> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.white, Color(0xFFEAF8F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppStyles.border),
       ),
@@ -1214,12 +1217,12 @@ class _InputScreenState extends State<InputScreen> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F7EE),
+              color: AppStyles.softBlue,
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
               Icons.verified_user_outlined,
-              color: Color(0xFF218A52),
+              color: AppStyles.primary,
             ),
           ),
           const SizedBox(width: 12),
@@ -1330,8 +1333,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Lifestyle',
       icon: Icons.directions_walk,
-      background: const Color(0xFFF6EEFF),
-      accent: const Color(0xFFA675D6),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       child: Column(
         children: [
           _twoColumn(
@@ -1398,8 +1401,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Food Habits',
       icon: Icons.restaurant_outlined,
-      background: const Color(0xFFFFF2E8),
-      accent: const Color(0xFFE49A52),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       child: Column(
         children: [
           _twoColumn(
@@ -1456,8 +1459,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Environment',
       icon: Icons.eco_outlined,
-      background: const Color(0xFFEAF8F6),
-      accent: const Color(0xFF48B7AB),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       child: Column(
         children: [
           _twoColumn(
@@ -1551,7 +1554,7 @@ class _InputScreenState extends State<InputScreen> {
           onPressed: loading ? null : analyze,
           icon: Icons.arrow_forward,
           loading: loading,
-          label: loading ? 'Analyzing...' : 'Analyze Available Values',
+          label: loading ? analysisStep : 'Analyze Available Values',
         );
         final saveButton = OutlinedButton.icon(
           onPressed: loading
@@ -1594,8 +1597,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '❤️ Heart / Lipid Profile',
       icon: Icons.favorite_border,
-      background: const Color(0xFFFFF0F5),
-      accent: const Color(0xFFD970A0),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'heart',
       enabled: _selectedSections.contains('heart'),
       onToggle: _toggleSection,
@@ -1628,8 +1631,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🍬 Diabetes / Glucose Profile',
       icon: Icons.water_drop_outlined,
-      background: const Color(0xFFFFF7E7),
-      accent: const Color(0xFFD99D41),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'diabetes',
       enabled: _selectedSections.contains('diabetes'),
       onToggle: _toggleSection,
@@ -1645,6 +1648,12 @@ class _InputScreenState extends State<InputScreen> {
             const ['mg/dL', 'mmol/L'],
             helper: 'Found in: Diabetes / Glucose Report',
           ),
+          _choice(
+            'Impaired fasting glucose / diabetes',
+            ifgDiabetes,
+            const ['Yes', 'No', 'Unknown'],
+            (value) => setState(() => ifgDiabetes = value),
+          ),
         ],
       ),
     );
@@ -1654,13 +1663,14 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🧪 Liver Function Test',
       icon: Icons.monitor_heart_outlined,
-      background: const Color(0xFFECF8EF),
-      accent: const Color(0xFF65B985),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'liver',
       enabled: _selectedSections.contains('liver'),
       onToggle: _toggleSection,
       chip: 'Used for: APRI, FIB-4, FLI, NAFLD',
-      onClear: () => _clearControllers([astCtl, altCtl, ggtCtl, albuminCtl]),
+      onClear: () =>
+          _clearControllers([astCtl, astUlnCtl, altCtl, ggtCtl, albuminCtl]),
       child: Column(
         children: [
           _twoColumn(
@@ -1680,6 +1690,15 @@ class _InputScreenState extends State<InputScreen> {
               const ['U/L'],
               helper: 'Found in: Liver Function Test',
             ),
+          ),
+          _unitField(
+            astUlnCtl,
+            'AST upper limit of normal',
+            'U/L',
+            (_) {},
+            const ['U/L'],
+            helper:
+                'Defaults to 40 U/L; use your laboratory reference value when available',
           ),
           _twoColumn(
             _unitField(
@@ -1708,8 +1727,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🩸 Blood / CBC Differential',
       icon: Icons.bloodtype_outlined,
-      background: const Color(0xFFF5F3FA),
-      accent: const Color(0xFF9C89CD),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'cbc',
       enabled: _selectedSections.contains('cbc'),
       onToggle: _toggleSection,
@@ -1752,8 +1771,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '💧 Kidney Function Test',
       icon: Icons.opacity_outlined,
-      background: const Color(0xFFEAFBFD),
-      accent: const Color(0xFF49B6C8),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'kidney',
       enabled: _selectedSections.contains('kidney'),
       onToggle: _toggleSection,
@@ -1778,8 +1797,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🫁 Lungs / Vitals',
       icon: Icons.speed_outlined,
-      background: const Color(0xFFEAF7FF),
-      accent: const Color(0xFF4BAFE3),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'vitals',
       enabled: _selectedSections.contains('vitals'),
       onToggle: _toggleSection,
@@ -1804,8 +1823,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🔬 Pancreatic Enzymes',
       icon: Icons.science_outlined,
-      background: const Color(0xFFFFF0ED),
-      accent: const Color(0xFFE18170),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'pancreas',
       enabled: _selectedSections.contains('pancreas'),
       onToggle: _toggleSection,
@@ -1836,8 +1855,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🎗️ Cancer Awareness Markers',
       icon: Icons.health_and_safety_outlined,
-      background: const Color(0xFFF3F2F8),
-      accent: const Color(0xFF8B8FC7),
+      background: AppStyles.surface,
+      accent: AppStyles.primary,
       reportId: 'cancer',
       enabled: _selectedSections.contains('cancer'),
       onToggle: _toggleSection,
@@ -1936,6 +1955,7 @@ class _InputScreenState extends State<InputScreen> {
     TextEditingController controller,
     String label, {
     bool required = false,
+    bool borderless = false,
     String? unitSuffix,
     FocusNode? focusNode,
   }) {
@@ -1952,6 +1972,15 @@ class _InputScreenState extends State<InputScreen> {
       decoration: InputDecoration(
         labelText: label,
         suffixText: unitSuffix,
+        filled: !borderless,
+        fillColor: borderless ? Colors.transparent : null,
+        border: borderless ? InputBorder.none : null,
+        enabledBorder: borderless ? InputBorder.none : null,
+        focusedBorder: borderless
+            ? const UnderlineInputBorder(
+                borderSide: BorderSide(color: AppStyles.primary),
+              )
+            : null,
         suffixIcon: IconButton(
           tooltip: 'Unit help',
           icon: const Icon(Icons.info_outline, size: 18),
@@ -1968,15 +1997,59 @@ class _InputScreenState extends State<InputScreen> {
         if (parsed == null) {
           return 'Please enter a valid number.';
         }
-        if (parsed < 0) {
-          return 'This value seems unusually low. Please check the unit.';
-        }
-        if (parsed > 1000000) {
-          return 'This value seems unusually high. Please check the unit.';
-        }
-        return null;
+        return _validateNumericValue(label, parsed);
       },
     );
+  }
+
+  String? _validateNumericValue(String label, double value) {
+    final normalized = label.toLowerCase();
+    if (normalized.contains('age') && (value < 1 || value > 120)) {
+      return 'Age must be between 1 and 120 years.';
+    }
+    if (normalized.contains('spo') && (value < 0 || value > 100)) {
+      return 'SpO2 must be between 0 and 100%.';
+    }
+    if (normalized == 'feet' && (value < 1 || value > 8)) {
+      return 'Enter a height between 1 and 8 feet.';
+    }
+    if (normalized == 'inches' && (value < 0 || value >= 12)) {
+      return 'Inches must be between 0 and 11.';
+    }
+    if (normalized.contains('height') && (value < 50 || value > 250)) {
+      return 'Height must be between 50 and 250 cm.';
+    }
+    if (normalized.contains('weight') && (value <= 0 || value > 500)) {
+      return 'Weight must be greater than 0 and below 500 kg.';
+    }
+    if (normalized.contains('waist') && (value <= 0 || value > 300)) {
+      return 'Waist circumference must be greater than 0 and below 300 cm.';
+    }
+    if (normalized.contains('platelet') && value <= 0) {
+      return 'Platelet count must be greater than 0.';
+    }
+    if (normalized.contains('creatinine') && value <= 0) {
+      return 'Creatinine must be greater than 0.';
+    }
+    if (normalized.contains('albumin') && value <= 0) {
+      return 'Albumin must be greater than 0.';
+    }
+    if (normalized.contains('amylase') && value <= 0) {
+      return 'Amylase must be greater than 0 for LAR.';
+    }
+    if (normalized.contains('triglyceride') ||
+        normalized.contains('hdl') ||
+        normalized.contains('glucose') ||
+        normalized.contains('ast') ||
+        normalized.contains('alt') ||
+        normalized.contains('ggt') ||
+        normalized.contains('lipase')) {
+      if (value <= 0) return '$label must be greater than 0.';
+    }
+    if (value < 0 || value > 1000000) {
+      return 'This value seems unusual. Please check the unit.';
+    }
+    return null;
   }
 
   Widget _unitField(
@@ -1996,25 +2069,33 @@ class _InputScreenState extends State<InputScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _numberField(
-                  controller,
-                  label,
-                  required: required,
-                  focusNode: focusNode,
+          Container(
+            decoration: BoxDecoration(
+              color: AppStyles.surface,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppStyles.border),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _numberField(
+                    controller,
+                    label,
+                    required: required,
+                    borderless: true,
+                    focusNode: focusNode,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 120,
-                child: hasAlternativeUnits
-                    ? _unitDropdown(unit, units, onUnitChanged)
-                    : _fixedUnitLabel(units.first),
-              ),
-            ],
+                SizedBox(
+                  width: 120,
+                  child: hasAlternativeUnits
+                      ? _unitDropdown(unit, units, onUnitChanged,
+                          borderless: true)
+                      : _fixedUnitLabel(units.first),
+                ),
+              ],
+            ),
           ),
           _fieldHelper(helper, allowSkip: allowSkip, controller: controller),
         ],
@@ -2063,7 +2144,7 @@ class _InputScreenState extends State<InputScreen> {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FBFF),
+        color: AppStyles.softBlue,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppStyles.border),
       ),
@@ -2083,8 +2164,9 @@ class _InputScreenState extends State<InputScreen> {
   Widget _unitDropdown(
     String unit,
     List<String> units,
-    ValueChanged<String> onUnitChanged,
-  ) {
+    ValueChanged<String> onUnitChanged, {
+    bool borderless = false,
+  }) {
     return DropdownButtonFormField<String>(
       initialValue: unit,
       isExpanded: true,
@@ -2093,7 +2175,14 @@ class _InputScreenState extends State<InputScreen> {
         fontSize: 15,
         fontWeight: FontWeight.w600,
       ),
-      decoration: const InputDecoration(labelText: 'Unit'),
+      decoration: InputDecoration(
+        labelText: 'Unit',
+        filled: !borderless,
+        fillColor: borderless ? Colors.transparent : null,
+        border: borderless ? InputBorder.none : null,
+        enabledBorder: borderless ? InputBorder.none : null,
+        focusedBorder: borderless ? InputBorder.none : null,
+      ),
       items: units
           .map((item) => DropdownMenuItem(value: item, child: Text(item)))
           .toList(),
@@ -2250,9 +2339,9 @@ class _HeroHealthGraphic extends StatelessWidget {
       width: 190,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
+        color: AppStyles.softBlue,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
+        border: Border.all(color: AppStyles.border),
       ),
       child: const Column(
         mainAxisSize: MainAxisSize.min,
@@ -2292,7 +2381,7 @@ class _HeroMetricIcon extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.86),
+          color: AppStyles.surface,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
@@ -2370,11 +2459,7 @@ class _SectionCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [background, Colors.white.withValues(alpha: 0.96)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: accent.withValues(alpha: 0.18)),
         boxShadow: [
@@ -2407,7 +2492,7 @@ class _SectionCard extends StatelessWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.78),
+                        color: AppStyles.softBlue,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: accent.withValues(alpha: 0.16),
@@ -2467,7 +2552,7 @@ class _SectionChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.68),
+        color: AppStyles.softBlue,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
@@ -2504,14 +2589,7 @@ class _ReportToggleCard extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 116),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: selected
-              ? LinearGradient(
-                  colors: [section.background, Colors.white],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: selected ? null : Colors.white.withValues(alpha: 0.82),
+          color: AppStyles.surface,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: selected ? section.accent : AppStyles.border,

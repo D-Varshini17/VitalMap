@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import '../utils/unit_conversion.dart';
+import '../services/recommendation_engine.dart';
+import 'formula_metadata.dart';
 import 'risk_rules.dart';
 
 class LocalAnalysisEngine {
@@ -22,8 +24,12 @@ class LocalAnalysisEngine {
     final pancreas = _map(payload['pancreatic_enzymes']);
     final tumor = _map(payload['tumor_markers']);
 
-    final age = _int(profile['age']);
-    final sex = _string(profile['sex']);
+    final rawAge = _int(profile['age']);
+    final age = rawAge != null && rawAge >= 1 && rawAge <= 120 ? rawAge : null;
+    final rawSex = _string(profile['sex']);
+    final sex = rawSex == null
+        ? null
+        : (['female', 'male'].contains(rawSex.toLowerCase()) ? rawSex : null);
     final heightCm = _profileHeightCm(profile);
     final weightKg = _profileWeightKg(profile);
     final waist = _profileWaistCm(profile);
@@ -54,37 +60,32 @@ class LocalAnalysisEngine {
       _num(diabetes['fasting_glucose']),
       _string(diabetes['fasting_glucose_unit']) ?? 'mg/dL',
     );
-    final ppbs = glucoseToMgdl(
-      _num(diabetes['ppbs']),
-      _string(diabetes['ppbs_unit']) ?? 'mg/dL',
-    );
-    final randomGlucose = glucoseToMgdl(
-      _num(diabetes['random_blood_sugar']),
-      _string(diabetes['random_blood_sugar_unit']) ?? 'mg/dL',
-    );
-    final hba1c = _num(diabetes['hba1c']);
 
-    final ast = _num(liver['ast']);
-    final alt = _num(liver['alt']);
-    final ggt = _num(liver['ggt']);
-    final albumin = albuminToGdl(
+    final ast = _positive(_num(liver['ast']));
+    final alt = _positive(_num(liver['alt']));
+    final ggt = _positive(_num(liver['ggt']));
+    final albumin = _positive(albuminToGdl(
       _num(liver['albumin']),
       _string(liver['albumin_unit']) ?? 'g/dL',
-    );
-    final platelets = plateletsTo10e9L(
+    ));
+    final astUln = _positive(_num(liver['ast_uln'])) ?? 40;
+    final ifgDiabetes = diabetes.containsKey('ifg_diabetes')
+        ? _diabetesFlag(diabetes['ifg_diabetes'])
+        : (fasting == null ? null : (fasting >= 100 ? 1 : 0));
+    final platelets = _positive(plateletsTo10e9L(
       _num(cbc['platelets']),
       _string(cbc['platelets_unit']) ?? '10^9/L',
-    );
+    ));
     final nlrInputs = _nlrInputs(cbc);
-    final creatinine = creatinineToMgdl(
+    final creatinine = _positive(creatinineToMgdl(
       _num(kidney['creatinine']),
       _string(kidney['creatinine_unit']) ?? 'mg/dL',
-    );
+    ));
 
     _calculateAip(
         results, moreNeeded, general, tg, hdl, ldl, totalCholesterol, vldl);
     _calculateTyg(results, moreNeeded, general, tg, fasting);
-    _calculateApri(results, moreNeeded, general, ast, platelets);
+    _calculateApri(results, moreNeeded, general, ast, platelets, astUln);
     _calculateFib4(results, moreNeeded, general, age, ast, alt, platelets);
     _calculateFli(results, moreNeeded, general, bmi, waist, ggt, tg);
     _calculateNafld(
@@ -96,10 +97,7 @@ class LocalAnalysisEngine {
       ast,
       alt,
       platelets,
-      fasting,
-      hba1c,
-      ppbs,
-      randomGlucose,
+      ifgDiabetes,
       albumin,
     );
     _calculateNlr(results, moreNeeded, general, nlrInputs.$1, nlrInputs.$2);
@@ -115,8 +113,9 @@ class LocalAnalysisEngine {
     _calculateTumorMarkers(results, moreNeeded, general, tumor);
 
     return {
-      'overall_risk': overallRisk(
-          results.map((result) => result['risk_level']?.toString())),
+      'overall_risk': overallRisk(results
+          .where((result) => result['organ'] != 'Cancer Awareness')
+          .map((result) => result['risk_level']?.toString())),
       'calculated_results': results,
       'more_data_needed': moreNeeded,
       'general_health_pattern': _generalHealthPattern(general),
@@ -137,10 +136,14 @@ class LocalAnalysisEngine {
     double? vldl,
   ) {
     if (tg != null && hdl != null && tg > 0 && hdl > 0) {
-      final score = math.log(tg / hdl) / math.ln10;
+      final tgMmol = tg / 88.57;
+      final hdlMmol = hdl / 38.67;
+      final score = math.log(tgMmol / hdlMmol) / math.ln10;
       final values = <String, dynamic>{
         'triglycerides_mg/dL': _round(tg, 2),
         'hdl_mg/dL': _round(hdl, 2),
+        'triglycerides_mmol/L': _round(tgMmol, 3),
+        'hdl_mmol/L': _round(hdlMmol, 3),
       };
       if (ldl != null) values['ldl_mg/dL'] = _round(ldl, 2);
       if (totalCholesterol != null) {
@@ -153,7 +156,7 @@ class LocalAnalysisEngine {
         score: _round(score, 3),
         risk: aipRisk(score),
         valuesUsed: values,
-        formulaUsed: 'AIP = log10(Triglycerides / HDL)',
+        formulaUsed: 'AIP = log10(TG mmol/L / HDL-C mmol/L)',
         general: general,
       ));
     } else {
@@ -201,16 +204,17 @@ class LocalAnalysisEngine {
     Map<String, dynamic> general,
     double? ast,
     double? platelets,
+    double astUln,
   ) {
     if (ast != null && platelets != null && platelets > 0) {
-      final score = ((ast / 40.0) / platelets) * 100.0;
+      final score = ((ast / astUln) / platelets) * 100.0;
       results.add(_result(
         organ: 'Liver',
         indexName: 'APRI',
         score: _round(score, 3),
         risk: apriRisk(score),
-        valuesUsed: {'ast': ast, 'platelets': platelets},
-        formulaUsed: 'APRI = ((AST / 40) / Platelets) x 100',
+        valuesUsed: {'ast': ast, 'ast_uln': astUln, 'platelets': platelets},
+        formulaUsed: 'APRI = ((AST / AST ULN) / Platelets) x 100',
         general: general,
       ));
     } else {
@@ -313,14 +317,10 @@ class LocalAnalysisEngine {
     double? ast,
     double? alt,
     double? platelets,
-    double? fasting,
-    double? hba1c,
-    double? ppbs,
-    double? randomGlucose,
+    int? ifgDiabetes,
     double? albumin,
   ) {
-    final glucoseAvailable =
-        [fasting, hba1c, ppbs, randomGlucose].any((value) => value != null);
+    final glucoseAvailable = ifgDiabetes != null;
     if (age != null &&
         bmi != null &&
         ast != null &&
@@ -329,18 +329,13 @@ class LocalAnalysisEngine {
         platelets != null &&
         albumin != null &&
         glucoseAvailable) {
-      final glucoseFlag = (fasting != null && fasting >= 100) ||
-              (hba1c != null && hba1c >= 5.7) ||
-              (ppbs != null && ppbs >= 140) ||
-              (randomGlucose != null && randomGlucose >= 140)
-          ? 1
-          : 0;
+      final glucoseFlag = ifgDiabetes;
       final score = -1.675 +
-          (0.037 * age) +
-          (0.094 * bmi) +
+          (0.037 * age) -
+          (0.094 * bmi) -
           (1.13 * glucoseFlag) +
           (0.99 * (ast / alt)) -
-          (0.013 * platelets) -
+          (0.013 * platelets) +
           (0.66 * albumin);
       results.add(_result(
         organ: 'Liver',
@@ -367,7 +362,7 @@ class LocalAnalysisEngine {
         'ast': ast,
         'alt': alt,
         'platelets': platelets,
-        'glucose_or_hba1c': glucoseAvailable ? 1 : null,
+        'ifg_diabetes': ifgDiabetes,
         'albumin': albumin,
       });
     }
@@ -441,7 +436,7 @@ class LocalAnalysisEngine {
     Map<String, dynamic> general,
     double? spo2,
   ) {
-    if (spo2 != null) {
+    if (spo2 != null && spo2 >= 0 && spo2 <= 100) {
       results.add(_result(
         organ: 'Lung',
         indexName: 'SpO2',
@@ -498,7 +493,7 @@ class LocalAnalysisEngine {
             moreNeeded, marker.$1, 'Cancer Awareness', {marker.$2: value});
         continue;
       }
-      results.add(_result(
+      final markerResult = _result(
         organ: 'Cancer Awareness',
         indexName: marker.$1,
         score: value,
@@ -506,7 +501,18 @@ class LocalAnalysisEngine {
         valuesUsed: {marker.$2: value},
         formulaUsed: '${marker.$1} direct awareness interpretation',
         general: general,
-      ));
+      );
+      markerResult['risk_level'] = value <= marker.$3
+          ? 'Within configured awareness threshold'
+          : 'Outside configured awareness/reference threshold';
+      markerResult['summary'] = value <= marker.$3
+          ? '${marker.$1} is within the configured awareness threshold.'
+          : 'Outside configured awareness/reference threshold. Clinical interpretation is recommended.';
+      final crossCheck = markerResult['cross_check'];
+      if (crossCheck is Map) {
+        crossCheck['risk_level'] = markerResult['risk_level'];
+      }
+      results.add(markerResult);
     }
   }
 
@@ -519,28 +525,55 @@ class LocalAnalysisEngine {
     required String formulaUsed,
     required Map<String, dynamic> general,
   }) {
+    final recommendation = RecommendationEngine().recommend(
+      indexName: indexName,
+      organ: organ,
+      score: score ?? 0,
+      riskLevel: risk.level,
+      valuesUsed: valuesUsed,
+      lifestyle: general,
+      formula: formulaUsed,
+    );
+    final validationPassed = RecommendationEngine.validateResultConsistency(
+      indexName: indexName,
+      score: score,
+      riskLevel: risk.level,
+      valuesUsed: valuesUsed,
+      formula: formulaUsed,
+    );
+    final metadata = FormulaMetadata.forIndex(indexName);
     return {
       'organ': organ,
       'index_name': indexName,
       'score': score,
       'risk_level': risk.level,
       'color': risk.color,
-      'summary': _summary(indexName, organ, risk.level),
+      'summary': recommendation.interpretation,
       'possible_contributors': _contributors(organ, general),
-      'suggestions': _suggestions(organ, indexName),
-      'lifestyle_improvement': _lifestyleImprovement(organ),
-      'food_recommendations': _foodRecommendations(organ),
-      'environment_recommendations': _environmentRecommendations(organ),
-      'doctor_followup': _doctorFollowup(risk.level),
-      'ai_recommendation': {
-        'simple_summary': _summary(indexName, organ, risk.level),
-        'possible_contributors': _contributors(organ, general),
-        'lifestyle_recommendations': _lifestyleImprovement(organ),
-        'food_recommendations': _foodRecommendations(organ),
-        'environment_recommendations': _environmentRecommendations(organ),
-        'doctor_followup': _doctorFollowup(risk.level),
-        'disclaimer': disclaimerText,
-        'mode': 'offline',
+      'suggestions': recommendation.actions,
+      'lifestyle_improvement': recommendation.lifestyle,
+      'food_recommendations': recommendation.food,
+      'environment_recommendations': recommendation.lifestyle.where((item) {
+        final text = item.toLowerCase();
+        return text.contains('smoke') ||
+            text.contains('pollution') ||
+            text.contains('ventilation');
+      }).toList(),
+      'doctor_followup': recommendation.clinicianFollowUp.join(' '),
+      'recommendation': recommendation.toMap(),
+      'formula_metadata': metadata?.toMap(),
+      'validation_passed': validationPassed,
+      'cross_check': {
+        'index': indexName,
+        'raw_inputs': valuesUsed,
+        'normalized_inputs': valuesUsed,
+        'formula': formulaUsed,
+        'manual_calculation_string': formulaUsed,
+        'score': score,
+        'threshold_used': risk.level,
+        'risk_level': risk.level,
+        'recommendation_rule_ids': recommendation.ruleIds,
+        'validation_passed': validationPassed,
       },
       'values_used': valuesUsed,
       'disclaimer': disclaimerText,
@@ -563,6 +596,10 @@ class LocalAnalysisEngine {
       'index_name': indexName,
       'organ': organ,
       'missing_inputs': missing,
+      'required_units': FormulaMetadata.forIndex(indexName)?.requiredUnits ??
+          'Use the units shown on the original laboratory report.',
+      'why_required':
+          'These values are required by the displayed formula and cannot be estimated safely.',
       'message': '$indexName needs ${missing.join(', ')}.',
     });
   }
@@ -571,40 +608,42 @@ class LocalAnalysisEngine {
     final unit = _string(profile['height_unit']) ?? 'cm';
     if (profile['height_input'] != null || unit == 'ft-in') {
       if (unit == 'ft-in') {
-        return heightFeetInchesToCm(
+        return _positive(heightFeetInchesToCm(
           _num(profile['height_feet']),
           _num(profile['height_inches']),
-        );
+        ));
       }
-      return heightToCm(_num(profile['height_input']), unit);
+      return _positive(heightToCm(_num(profile['height_input']), unit));
     }
-    return _num(profile['height_cm']);
+    return _positive(_num(profile['height_cm']));
   }
 
   double? _profileWeightKg(Map<String, dynamic> profile) {
     if (profile['weight_input'] != null) {
-      return weightToKg(
+      return _positive(weightToKg(
         _num(profile['weight_input']),
         _string(profile['weight_unit']) ?? 'kg',
-      );
+      ));
     }
-    return _num(profile['weight_kg']);
+    return _positive(_num(profile['weight_kg']));
   }
 
   double? _profileWaistCm(Map<String, dynamic> profile) {
     if (profile['waist_input'] != null) {
-      return waistToCm(
+      return _positive(waistToCm(
         _num(profile['waist_input']),
         _string(profile['waist_unit']) ?? 'cm',
-      );
+      ));
     }
-    return _num(profile['waist_cm']);
+    return _positive(_num(profile['waist_cm']));
   }
 
   double? _bmi(double? heightCm, double? weightKg) {
     if (heightCm == null || weightKg == null || heightCm <= 0) return null;
     return weightKg / math.pow(heightCm / 100.0, 2);
   }
+
+  double? _positive(double? value) => value != null && value > 0 ? value : null;
 
   (double?, double?) _nlrInputs(Map<String, dynamic> cbc) {
     final neutUnit = _string(cbc['neutrophils_unit']) ?? '%';
@@ -620,6 +659,17 @@ class LocalAnalysisEngine {
       );
     }
     return (_num(cbc['neutrophils']), _num(cbc['lymphocytes']));
+  }
+
+  int? _diabetesFlag(dynamic value) {
+    switch (value?.toString().toLowerCase()) {
+      case 'yes':
+        return 1;
+      case 'no':
+        return 0;
+      default:
+        return null;
+    }
   }
 
   List<String> _generalHealthPattern(Map<String, dynamic> general) {
@@ -716,6 +766,7 @@ class LocalAnalysisEngine {
     return out.take(6).toList();
   }
 
+  // ignore: unused_element
   String _summary(String indexName, String organ, String riskLevel) {
     final labels = {
       'AIP':
@@ -749,6 +800,7 @@ class LocalAnalysisEngine {
     return '$base The current risk indicator is ${riskLevel.toLowerCase()}.';
   }
 
+  // ignore: unused_element
   List<String> _suggestions(String organ, String indexName) {
     final common = [
       'Review these values with a qualified healthcare professional if they are outside the expected range.',
@@ -791,6 +843,7 @@ class LocalAnalysisEngine {
     return [...(organSpecific[organ] ?? const <String>[]), ...common];
   }
 
+  // ignore: unused_element
   List<String> _lifestyleImprovement(String organ) {
     final base = [
       'Aim for regular walking or moderate physical activity as tolerated.',
@@ -808,6 +861,7 @@ class LocalAnalysisEngine {
     return base;
   }
 
+  // ignore: unused_element
   List<String> _foodRecommendations(String organ) {
     final advice = [
       'Prefer vegetables, fruits, whole grains, and fiber-rich foods.',
@@ -824,6 +878,7 @@ class LocalAnalysisEngine {
     return advice;
   }
 
+  // ignore: unused_element
   List<String> _environmentRecommendations(String organ) {
     final advice = [
       'Avoid smoking and passive smoking exposure where possible.',
@@ -837,6 +892,7 @@ class LocalAnalysisEngine {
     return advice;
   }
 
+  // ignore: unused_element
   String _doctorFollowup(String riskLevel) {
     final rank = severityRank(riskLevel);
     if (rank >= 3) {

@@ -15,12 +15,16 @@ class MoreScreen extends StatefulWidget {
     required this.onViewResults,
     required this.onSignOut,
     required this.userEmail,
+    required this.themeMode,
+    required this.onThemeModeChanged,
   });
 
   final VoidCallback onStartAnalysis;
   final VoidCallback onViewResults;
   final VoidCallback onSignOut;
   final String? userEmail;
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();
@@ -28,7 +32,6 @@ class MoreScreen extends StatefulWidget {
 
 class _MoreScreenState extends State<MoreScreen> {
   bool _exporting = false;
-  bool _darkMode = false;
   Map<String, dynamic>? _payload;
   Map<String, dynamic>? _response;
   DateTime? _lastChecked;
@@ -161,11 +164,11 @@ class _MoreScreenState extends State<MoreScreen> {
                 _menuItem(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Privacy Settings',
-                  subtitle: 'Understand local storage and backend analysis',
+                  subtitle: 'Understand on-device calculations and sync',
                   onTap: () => _showInfoSheet(
                     context,
                     'Privacy & Data Safety',
-                    'Your last input and result are stored locally on this device for continuity. Analysis may be sent to the configured backend to calculate indicators and generate personalized informational recommendations. API keys are not stored in the app.',
+                    "VitalMap's health-index calculations are performed directly on your device. Firebase may be used for account authentication and optional screening-history synchronization. When offline, local calculations and saved results remain available.",
                   ),
                 ),
                 _menuItem(
@@ -206,15 +209,10 @@ class _MoreScreenState extends State<MoreScreen> {
                 ),
                 _menuItem(
                   icon: Icons.dark_mode_outlined,
-                  title: 'Dark Mode',
-                  subtitle: _darkMode
-                      ? 'Dark mode preference enabled'
-                      : 'Light mode active',
-                  onTap: () => setState(() => _darkMode = !_darkMode),
-                  trailing: Switch(
-                    value: _darkMode,
-                    onChanged: (value) => setState(() => _darkMode = value),
-                  ),
+                  title: 'Appearance',
+                  subtitle: _themeModeLabel(widget.themeMode),
+                  onTap: () => _showThemeModeSheet(context),
+                  trailing: const Icon(Icons.chevron_right),
                 ),
                 _menuItem(
                   icon: Icons.delete_outline,
@@ -336,11 +334,7 @@ class _MoreScreenState extends State<MoreScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.white, Color(0xFFEAF7FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppStyles.softBlueBorder),
         boxShadow: [
@@ -400,12 +394,12 @@ class _MoreScreenState extends State<MoreScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.84),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppStyles.border),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.navy.withValues(alpha: 0.04),
+            color: AppStyles.border,
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -509,11 +503,7 @@ class _MoreScreenState extends State<MoreScreen> {
       constraints: const BoxConstraints(minHeight: 92),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFF8FBFF), Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppStyles.border),
       ),
@@ -554,7 +544,7 @@ class _MoreScreenState extends State<MoreScreen> {
     Widget? trailing,
   }) {
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: const BorderSide(color: AppStyles.border),
@@ -576,6 +566,36 @@ class _MoreScreenState extends State<MoreScreen> {
         trailing: trailing ?? const Icon(Icons.chevron_right),
       ),
     );
+  }
+
+  String _themeModeLabel(ThemeMode mode) {
+    return 'Light theme selected';
+  }
+
+  Future<void> _showThemeModeSheet(BuildContext context) async {
+    final selected = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final option in [
+              (ThemeMode.light, 'Light', Icons.light_mode_outlined),
+            ])
+              ListTile(
+                leading: Icon(option.$3),
+                title: Text(option.$2),
+                trailing: option.$1 == widget.themeMode
+                    ? const Icon(Icons.check, color: AppStyles.primary)
+                    : null,
+                onTap: () => Navigator.of(context).pop(option.$1),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (selected != null) widget.onThemeModeChanged(selected);
   }
 
   Future<void> _exportSummary() async {

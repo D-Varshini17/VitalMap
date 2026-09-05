@@ -24,7 +24,7 @@ class InsightScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: AppStyles.navy,
+                color: AppStyles.text,
               ),
             ),
             const SizedBox(height: 4),
@@ -136,16 +136,12 @@ class _OrganInsightCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Colors.white, Color(0xFFF8FBFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppStyles.surface,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: AppStyles.border),
           boxShadow: [
             BoxShadow(
-              color: AppStyles.navy.withValues(alpha: 0.05),
+              color: AppStyles.border,
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -167,7 +163,7 @@ class _OrganInsightCard extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
-                color: AppStyles.navy,
+                color: AppStyles.text,
               ),
             ),
             const SizedBox(height: 8),
@@ -394,7 +390,7 @@ class OrganEducationScreen extends StatelessWidget {
           organ,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppStyles.navy,
+            color: AppStyles.text,
           ),
         ),
         iconTheme: const IconThemeData(color: AppStyles.primary),
@@ -421,7 +417,7 @@ class OrganEducationScreen extends StatelessWidget {
                 border: Border.all(color: AppStyles.border),
                 boxShadow: [
                   BoxShadow(
-                    color: AppStyles.navy.withValues(alpha: 0.05),
+                    color: AppStyles.border,
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -441,7 +437,7 @@ class OrganEducationScreen extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppStyles.navy,
+                            color: AppStyles.text,
                           ),
                         ),
                         const SizedBox(height: 6),

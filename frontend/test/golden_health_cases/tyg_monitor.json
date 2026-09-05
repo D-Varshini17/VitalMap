@@ -1,0 +1,21 @@
+{
+  "index": "TyG",
+  "raw_inputs": {
+    "triglycerides": 120,
+    "triglycerides_unit": "mg/dL",
+    "fasting_glucose": 90,
+    "fasting_glucose_unit": "mg/dL"
+  },
+  "normalized_inputs": {
+    "triglycerides_mg/dL": 120,
+    "fasting_glucose_mg/dL": 90
+  },
+  "formula": "ln((120 x 90) / 2)",
+  "expected_score": 8.594154349,
+  "expected_range": "8.5 to <8.8",
+  "expected_risk_category": "Monitor",
+  "expected_recommendation_rule_ids": [
+    "tyg_population_dependent_cutoffs"
+  ],
+  "expected_caution": "TyG is a surrogate metabolic/insulin-resistance-related indicator and is not a diabetes diagnosis."
+}

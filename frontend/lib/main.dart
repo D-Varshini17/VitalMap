@@ -16,6 +16,7 @@ import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'storage/local_storage.dart';
 import 'styles.dart';
+import 'theme/app_theme_controller.dart';
 import 'widgets/brand_logo.dart';
 
 bool firebaseInitialized = false;
@@ -34,22 +35,47 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final _themeController = AppThemeController();
+
+  @override
+  void initState() {
+    super.initState();
+    _themeController.load();
+  }
+
+  @override
+  void dispose() {
+    _themeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'VitalMap',
-      theme: AppStyles.theme,
-      home: const SplashGate(),
-      debugShowCheckedModeBanner: false,
+    return AnimatedBuilder(
+      animation: _themeController,
+      builder: (context, child) => MaterialApp(
+        title: 'VitalMap',
+        theme: AppStyles.theme,
+        themeMode: ThemeMode.light,
+        home: SplashGate(themeController: _themeController),
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }
 
 class SplashGate extends StatefulWidget {
-  const SplashGate({super.key});
+  const SplashGate({super.key, required this.themeController});
+
+  final AppThemeController themeController;
 
   @override
   State<SplashGate> createState() => _SplashGateState();
@@ -74,13 +100,18 @@ class _SplashGateState extends State<SplashGate> {
               key: const ValueKey('splash'),
               onComplete: _handleSplashComplete,
             )
-          : const AuthGate(key: ValueKey('auth')),
+          : AuthGate(
+              key: const ValueKey('auth'),
+              themeController: widget.themeController,
+            ),
     );
   }
 }
 
 class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
+  const AuthGate({super.key, required this.themeController});
+
+  final AppThemeController themeController;
 
   @override
   State<AuthGate> createState() => _AuthGateState();
@@ -115,6 +146,7 @@ class _AuthGateState extends State<AuthGate> {
         _ensureProfile(user);
         return HomeContainer(
           key: ValueKey(user.uid),
+          themeController: widget.themeController,
           onSignOut: AuthService.signOut,
           userEmail: user.email,
         );
@@ -128,12 +160,14 @@ void _noopLogin(String _) {}
 class HomeContainer extends StatefulWidget {
   const HomeContainer({
     super.key,
+    required this.themeController,
     required this.onSignOut,
     required this.userEmail,
   });
 
   final VoidCallback onSignOut;
   final String? userEmail;
+  final AppThemeController themeController;
 
   @override
   State<HomeContainer> createState() => _HomeContainerState();
@@ -191,6 +225,8 @@ class _HomeContainerState extends State<HomeContainer> {
       ),
       const InsightScreen(),
       MoreScreen(
+        themeMode: widget.themeController.themeMode,
+        onThemeModeChanged: widget.themeController.setThemeMode,
         onStartAnalysis: () => setState(() => _currentIndex = 1),
         onViewResults: () => setState(() => _currentIndex = 2),
         onSignOut: widget.onSignOut,
@@ -249,14 +285,14 @@ class _MobileBottomNav extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.72),
+                  color: AppStyles.surface,
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.86),
+                    color: AppStyles.border,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppStyles.navy.withValues(alpha: 0.14),
+                      color: AppStyles.border,
                       blurRadius: 28,
                       offset: const Offset(0, 14),
                     ),
@@ -307,13 +343,7 @@ class _MobileNavItemButton extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 2),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
           decoration: BoxDecoration(
-            gradient: selected
-                ? const LinearGradient(
-                    colors: [Color(0xFF0B63CE), Color(0xFF22C6D5)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
+            color: selected ? AppStyles.softBlue : AppStyles.surface,
             borderRadius: BorderRadius.circular(22),
             boxShadow: selected
                 ? [
@@ -330,7 +360,7 @@ class _MobileNavItemButton extends StatelessWidget {
             children: [
               Icon(
                 selected ? item.activeIcon : item.icon,
-                color: selected ? Colors.white : AppStyles.unitText,
+                color: selected ? AppStyles.primary : AppStyles.unitText,
                 size: 22,
               ),
               const SizedBox(height: 3),
@@ -340,7 +370,7 @@ class _MobileNavItemButton extends StatelessWidget {
                   item.label,
                   maxLines: 1,
                   style: TextStyle(
-                    color: selected ? Colors.white : AppStyles.muted,
+                    color: selected ? AppStyles.text : AppStyles.muted,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
@@ -382,13 +412,7 @@ class _DesktopShell extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppStyles.pageStart, AppStyles.pageEnd],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
+          decoration: const BoxDecoration(color: AppStyles.page),
           child: Row(
             children: [
               _DesktopSidebar(
@@ -421,13 +445,13 @@ class _DesktopSidebar extends StatelessWidget {
     return Container(
       width: 64,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.82),
+        color: AppStyles.surface,
         border: Border(
-          right: BorderSide(color: Colors.white.withValues(alpha: 0.78)),
+          right: BorderSide(color: AppStyles.border),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.navy.withValues(alpha: 0.06),
+            color: AppStyles.border,
             blurRadius: 24,
             offset: const Offset(8, 0),
           ),
@@ -476,7 +500,7 @@ class _DesktopNavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? Colors.white : Colors.transparent,
+      color: selected ? AppStyles.softBlue : Colors.transparent,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -485,13 +509,7 @@ class _DesktopNavButton extends StatelessWidget {
           duration: const Duration(milliseconds: 220),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
           decoration: BoxDecoration(
-            gradient: selected
-                ? const LinearGradient(
-                    colors: [Color(0xFFEAF7FF), Color(0xFFFFFFFF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
+            color: selected ? AppStyles.softBlue : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: selected ? AppStyles.softBlueBorder : Colors.transparent,

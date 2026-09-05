@@ -15,7 +15,7 @@ The client calls `http://127.0.0.1:8000` by default. Android emulators use
 `http://10.0.2.2:8000`. Override the backend with:
 
 ```powershell
-flutter run -d chrome --dart-define="API_BASE_URL=https://example.com"
+flutter run -d chrome
 ```
 
 If the backend is unavailable, the app falls back to its local analysis engine.

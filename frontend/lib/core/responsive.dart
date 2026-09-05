@@ -138,13 +138,7 @@ class ResponsivePage extends StatelessWidget {
 
         return SizedBox.expand(
           child: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppStyles.pageStart, AppStyles.pageEnd],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
+            decoration: const BoxDecoration(color: AppStyles.page),
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Align(

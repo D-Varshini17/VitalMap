@@ -18,8 +18,8 @@ RiskRuleResult _more() => const RiskRuleResult(moreDataNeeded, 'soft_lavender');
 
 RiskRuleResult aipRisk(double? value) {
   if (value == null) return _more();
-  if (value <= 0.10) return _low();
-  if (value <= 0.24) return _monitor();
+  if (value < 0.11) return _low();
+  if (value <= 0.21) return _monitor();
   return _attention();
 }
 
@@ -39,7 +39,10 @@ RiskRuleResult fib4Risk(double? value) {
 
 RiskRuleResult tygRisk(double? value) {
   if (value == null) return _more();
-  if (value <= 4.5) return _low();
+  // TyG thresholds vary between populations; this is a screening indicator,
+  // not a diagnosis.
+  if (value < 8.5) return _low();
+  if (value < 8.8) return _monitor();
   return _attention();
 }
 
@@ -79,7 +82,7 @@ RiskRuleResult larRisk(double? value) {
 RiskRuleResult fliRisk(double? value) {
   if (value == null) return _more();
   if (value < 30) return _low();
-  if (value <= 60) return _monitor();
+  if (value < 60) return _monitor();
   return _attention();
 }
 

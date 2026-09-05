@@ -3,7 +3,6 @@ $ErrorActionPreference = 'Stop'
 $frontendRoot = $PSScriptRoot
 $projectRoot = Split-Path $frontendRoot -Parent
 $releaseDirectory = Join-Path $projectRoot 'releases'
-$apiBaseUrl = 'https://vitalmap-backend.onrender.com'
 $apkSource = Join-Path $frontendRoot 'build\app\outputs\flutter-apk\app-release.apk'
 $apkDestination = Join-Path $releaseDirectory 'VitalMap-release-arm64.apk'
 
@@ -39,8 +38,7 @@ try {
         throw 'flutter pub get after icon generation failed'
     }
 
-    flutter build apk --release --target-platform android-arm64 `
-        --dart-define="API_BASE_URL=$apiBaseUrl"
+    flutter build apk --release --target-platform android-arm64
     if ($LASTEXITCODE -ne 0) {
         throw 'Android release APK build failed'
     }

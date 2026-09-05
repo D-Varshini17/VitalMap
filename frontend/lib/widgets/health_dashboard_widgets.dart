@@ -29,15 +29,11 @@ class VitalMapHeroCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppStyles.navy, AppStyles.deepBlue, Color(0xFF0A86B8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0E5D7C).withValues(alpha: 0.22),
+            color: AppStyles.border,
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -66,7 +62,7 @@ class VitalMapHeroCard extends StatelessWidget {
                               Text(
                                 title,
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppStyles.text,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -76,7 +72,7 @@ class VitalMapHeroCard extends StatelessWidget {
                                 Text(
                                   subtitle,
                                   style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.84),
+                                    color: AppStyles.muted,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -85,7 +81,7 @@ class VitalMapHeroCard extends StatelessWidget {
                               Text(
                                 description,
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.72),
+                                  color: AppStyles.muted,
                                   height: 1.25,
                                 ),
                               ),
@@ -148,9 +144,7 @@ class PremiumProgressChips extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: i == activeIndex
-                  ? AppStyles.primary
-                  : Colors.white.withValues(alpha: 0.88),
+              color: i == activeIndex ? AppStyles.softBlue : AppStyles.surface,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: i == activeIndex
@@ -173,13 +167,13 @@ class PremiumProgressChips extends StatelessWidget {
                       ? Icons.check_circle
                       : Icons.radio_button_unchecked,
                   size: 14,
-                  color: i == activeIndex ? Colors.white : AppStyles.primary,
+                  color: AppStyles.primary,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   labels[i],
                   style: TextStyle(
-                    color: i == activeIndex ? Colors.white : AppStyles.text,
+                    color: AppStyles.text,
                     fontWeight: FontWeight.w800,
                     fontSize: 12,
                   ),
@@ -211,14 +205,7 @@ class GradientActionButton extends StatelessWidget {
     final enabled = onPressed != null;
     return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: enabled
-            ? const LinearGradient(
-                colors: [Color(0xFF0E86C8), Color(0xFF23D6C8)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              )
-            : null,
-        color: enabled ? null : AppStyles.border,
+        color: enabled ? AppStyles.primary : AppStyles.border,
         borderRadius: BorderRadius.circular(14),
         boxShadow: enabled
             ? [
@@ -305,9 +292,9 @@ class OverallInsightRing extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(compact ? 10 : 14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
+        color: AppStyles.softBlue,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+        border: Border.all(color: AppStyles.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -323,7 +310,7 @@ class OverallInsightRing extends StatelessWidget {
                   painter: _RingPainter(
                     progress: progress,
                     color: status.accent,
-                    trackColor: Colors.white.withValues(alpha: 0.18),
+                    trackColor: AppStyles.border,
                   ),
                 ),
                 Column(
@@ -332,7 +319,7 @@ class OverallInsightRing extends StatelessWidget {
                     Text(
                       calculatedCount.toString(),
                       style: TextStyle(
-                        color: compact ? Colors.white : status.text,
+                        color: status.text,
                         fontSize: compact ? 24 : 28,
                         fontWeight: FontWeight.w900,
                       ),
@@ -340,9 +327,7 @@ class OverallInsightRing extends StatelessWidget {
                     Text(
                       'indexes',
                       style: TextStyle(
-                        color: compact
-                            ? Colors.white.withValues(alpha: 0.72)
-                            : AppStyles.muted,
+                        color: AppStyles.muted,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
@@ -362,7 +347,7 @@ class OverallInsightRing extends StatelessWidget {
                 Text(
                   'Overall Health Insight',
                   style: TextStyle(
-                    color: compact ? Colors.white : AppStyles.text,
+                    color: AppStyles.text,
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                   ),
@@ -376,9 +361,7 @@ class OverallInsightRing extends StatelessWidget {
                 Text(
                   '$moreDataCount needing more data',
                   style: TextStyle(
-                    color: compact
-                        ? Colors.white.withValues(alpha: 0.76)
-                        : AppStyles.muted,
+                    color: AppStyles.muted,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -412,11 +395,7 @@ class OverallInsightCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, status.background],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: status.background,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: status.border),
         boxShadow: [
@@ -732,7 +711,7 @@ class _ContributorMiniItem extends StatelessWidget {
             child: LinearProgressIndicator(
               minHeight: 9,
               value: progress,
-              backgroundColor: Colors.white.withValues(alpha: 0.68),
+              backgroundColor: AppStyles.border,
               color: style.accent,
             ),
           ),
@@ -775,14 +754,14 @@ class _HeroStatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: AppStyles.softBlue,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+        border: Border.all(color: AppStyles.border),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppStyles.text,
           fontSize: 12,
           fontWeight: FontWeight.w900,
         ),

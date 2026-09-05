@@ -71,4 +71,3 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.vitalmap',
   );
 }
- 

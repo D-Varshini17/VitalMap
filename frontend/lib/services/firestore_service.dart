@@ -77,8 +77,9 @@ class FirestoreService {
     batch.set(
       user.collection('health_profile').doc('current'),
       {
-        'inputData':
-            profile is Map ? Map<String, dynamic>.from(profile) : <String, dynamic>{},
+        'inputData': profile is Map
+            ? Map<String, dynamic>.from(profile)
+            : <String, dynamic>{},
         'fullPayload': payload,
         'updatedAt': FieldValue.serverTimestamp(),
       },
@@ -86,7 +87,9 @@ class FirestoreService {
     );
     setCurrent(
       'lifestyle',
-      lifestyle is Map ? Map<String, dynamic>.from(lifestyle) : <String, dynamic>{},
+      lifestyle is Map
+          ? Map<String, dynamic>.from(lifestyle)
+          : <String, dynamic>{},
     );
     setCurrent('environment', environment);
     setCurrent('reports', {
@@ -153,9 +156,8 @@ class FirestoreService {
     return {
       'response': Map<String, dynamic>.from(response),
       'payload': data['inputData'],
-      'timestamp': createdAt is Timestamp
-          ? createdAt.toDate().toIso8601String()
-          : null,
+      'timestamp':
+          createdAt is Timestamp ? createdAt.toDate().toIso8601String() : null,
     };
   }
 }

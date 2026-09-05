@@ -16,7 +16,10 @@ class AuthService {
     } on FirebaseAuthException catch (error) {
       return {'success': false, 'message': messageFor(error)};
     } catch (_) {
-      return {'success': false, 'message': 'Firebase is unavailable right now.'};
+      return {
+        'success': false,
+        'message': 'Firebase is unavailable right now.'
+      };
     }
   }
 
@@ -37,7 +40,8 @@ class AuthService {
         } on FirebaseException catch (error) {
           return {
             'success': false,
-            'message': 'Account created, but your profile could not be saved: ${firestoreMessageFor(error)}',
+            'message':
+                'Account created, but your profile could not be saved: ${firestoreMessageFor(error)}',
           };
         }
       }
@@ -47,7 +51,10 @@ class AuthService {
     } on FirebaseException catch (error) {
       return {'success': false, 'message': firestoreMessageFor(error)};
     } catch (_) {
-      return {'success': false, 'message': 'Unable to create your account right now.'};
+      return {
+        'success': false,
+        'message': 'Unable to create your account right now.'
+      };
     }
   }
 
@@ -60,7 +67,10 @@ class AuthService {
     } on FirebaseAuthException catch (error) {
       return {'success': false, 'message': messageFor(error)};
     } catch (_) {
-      return {'success': false, 'message': 'Firebase is unavailable right now.'};
+      return {
+        'success': false,
+        'message': 'Firebase is unavailable right now.'
+      };
     }
   }
 

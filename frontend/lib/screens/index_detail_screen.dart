@@ -15,13 +15,19 @@ class IndexDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = AppStyles.statusStyle(metric.rawStatus);
     final source = metric.source ?? const <String, dynamic>{};
+    final recommendation = Map<String, dynamic>.from(
+      source['recommendation'] as Map? ?? const {},
+    );
+    final metadata = Map<String, dynamic>.from(
+      source['formula_metadata'] as Map? ?? const {},
+    );
     final values = _valuesUsed(metric.valuesUsed);
     final contributors = _stringList(source['possible_contributors']);
     final suggestions = <String>[
-      ..._stringList(source['suggestions']),
-      ..._stringList(source['lifestyle_improvement']),
-      ..._stringList(source['food_recommendations']),
-      ..._stringList(source['environment_recommendations']),
+      ..._stringList(recommendation['actions']),
+      ..._stringList(recommendation['lifestyle']),
+      ..._stringList(recommendation['food']),
+      ..._stringList(recommendation['monitoring']),
     ];
     final doctorFollowup = source['doctor_followup']?.toString() ??
         'Clinical review is suggested if values remain outside the expected range or symptoms persist.';
@@ -29,8 +35,8 @@ class IndexDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(metric.indexName),
-        backgroundColor: AppStyles.navy,
-        foregroundColor: Colors.white,
+        backgroundColor: AppStyles.surface,
+        foregroundColor: AppStyles.text,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => Navigator.of(context).pop(),
@@ -56,7 +62,7 @@ class IndexDetailScreen extends StatelessWidget {
                 border: Border.all(color: AppStyles.border),
                 boxShadow: [
                   BoxShadow(
-                    color: AppStyles.navy.withValues(alpha: 0.06),
+                    color: AppStyles.border,
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -106,7 +112,7 @@ class IndexDetailScreen extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
-                                color: AppStyles.navy,
+                                color: AppStyles.text,
                               ),
                             ),
                           ],
@@ -120,6 +126,14 @@ class IndexDetailScreen extends StatelessWidget {
             const SizedBox(height: 18),
             _section('What this means', [metric.summary]),
             _section('Values used', values),
+            _section('Formula', [
+              source['formula_used']?.toString() ??
+                  'Formula metadata unavailable.',
+            ]),
+            _section('Why am I seeing this?', [
+              recommendation['why']?.toString() ??
+                  'This recommendation is based on the calculated index and entered values.',
+            ]),
             _section(
               'Possible contributors',
               contributors.isEmpty
@@ -138,6 +152,12 @@ class IndexDetailScreen extends StatelessWidget {
               checkmarks: true,
             ),
             _section('Doctor follow-up', [doctorFollowup]),
+            _section('Limitations and cautions', [
+              ..._stringList(recommendation['cautions']),
+              recommendation['evidence_note']?.toString() ??
+                  metadata['interpretation_note']?.toString() ??
+                  'This is a screening calculation and does not diagnose disease.',
+            ]),
             const SizedBox(height: 18),
             Container(
               padding: const EdgeInsets.all(12),
@@ -228,7 +248,7 @@ class IndexDetailScreen extends StatelessWidget {
               size: checkmarks ? 16 : 7,
               color: checkmarks
                   ? AppStyles.lowConcernStatus.accent
-                  : AppStyles.navy,
+                  : AppStyles.primary,
             ),
           ),
           Expanded(

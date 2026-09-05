@@ -74,7 +74,8 @@ class _SignupScreenState extends State<SignupScreen> {
                       TextFormField(
                         controller: _nameController,
                         textCapitalization: TextCapitalization.words,
-                        decoration: const InputDecoration(labelText: 'Full name'),
+                        decoration:
+                            const InputDecoration(labelText: 'Full name'),
                         validator: (v) => v == null || v.trim().isEmpty
                             ? 'Enter your full name'
                             : null,
@@ -95,7 +96,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         decoration: InputDecoration(
                           labelText: 'Password',
                           suffixIcon: IconButton(
-                            tooltip: _showPassword ? 'Hide password' : 'Show password',
+                            tooltip: _showPassword
+                                ? 'Hide password'
+                                : 'Show password',
                             onPressed: () => setState(
                               () => _showPassword = !_showPassword,
                             ),

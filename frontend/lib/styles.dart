@@ -43,88 +43,85 @@ class ContributorStyle {
 class AppStyles {
   static const String logoAsset = 'assets/logo_medid.jpeg';
 
-  static const Color primary = Color(0xFF12B5A6);
-  static const Color navy = Color(0xFF0B2545);
-  static const Color deepBlue = Color(0xFF0B2545);
-  static const Color accent = Color(0xFF12B5A6);
-  static const Color pageStart = Color(0xFFF3F6FA);
-  static const Color pageEnd = Color(0xFFF3F6FA);
+  static const Color primary = Color(0xFF0F6E56);
+  static const Color accent = Color(0xFF0F6E56);
+  static const Color pageStart = Color(0xFFF7F9FB);
+  static const Color pageEnd = Color(0xFFF7F9FB);
   static const Color page = pageStart;
   static const Color surface = Colors.white;
-  static const Color glass = Color(0xDFFFFFFF);
-  static const Color text = Color(0xFF14212E);
-  static const Color muted = Color(0xFF64748B);
-  static const Color tertiaryText = Color(0xFF94A3B8);
-  static const Color unitText = Color(0xFF64748B);
-  static const Color border = Color(0xFFDCE3EA);
-  static const Color softBlue = Color(0xFFEAF7FF);
-  static const Color softBlueBorder = Color(0xFFCFEFFF);
-  static const Color softBlueText = Color(0xFF245D7A);
+  static const Color text = Color(0xFF10161C);
+  static const Color muted = Color(0xFF5F6B76);
+  static const Color tertiaryText = Color(0xFF5F6B76);
+  static const Color unitText = Color(0xFF5F6B76);
+  static const Color border = Color(0xFFE2E8ED);
+  static const Color softBlue = Color(0xFFF1F4F7);
+  static const Color softBlueBorder = Color(0xFFE2E8ED);
+  static const Color softBlueText = Color(0xFF10161C);
 
   static const HealthStatusStyle lowConcernStatus = HealthStatusStyle(
     label: 'Good',
-    background: Color(0xFFEAF5EE),
-    badgeBackground: Color(0xFFD8EDDF),
-    border: Color(0xFFBBDCC7),
-    accent: Color(0xFF4F9D69),
-    text: Color(0xFF28603D),
+    background: Color(0xFFF1F4F7),
+    badgeBackground: Color(0xFFE2F1EB),
+    border: border,
+    accent: primary,
+    text: text,
     icon: Icons.spa_outlined,
   );
 
   static const HealthStatusStyle monitorStatus = HealthStatusStyle(
     label: 'Monitor',
-    background: Color(0xFFFFF6DF),
-    badgeBackground: Color(0xFFFFE9B4),
-    border: Color(0xFFF0D28F),
-    accent: Color(0xFFE2A93B),
-    text: Color(0xFF705019),
+    background: Color(0xFFF1F4F7),
+    badgeBackground: Color(0xFFE8EEF2),
+    border: border,
+    accent: primary,
+    text: text,
     icon: Icons.visibility_outlined,
   );
 
   static const HealthStatusStyle attentionStatus = HealthStatusStyle(
     label: 'Attention Needed',
-    background: Color(0xFFFFEFEC),
-    badgeBackground: Color(0xFFFFDCD5),
-    border: Color(0xFFF2C0B7),
-    accent: Color(0xFFE85D4A),
-    text: Color(0xFF913A2D),
+    background: Color(0xFFFFF1EF),
+    badgeBackground: Color(0xFFFFDDD8),
+    border: Color(0xFFE8A59C),
+    accent: Color(0xFFB42318),
+    text: Color(0xFF7A271A),
     icon: Icons.favorite_border,
   );
 
   static const HealthStatusStyle moreDataStatus = HealthStatusStyle(
     label: 'More Data Needed',
-    background: Color(0xFFF5F3FA),
-    badgeBackground: Color(0xFFE9E3F5),
-    border: Color(0xFFDDD4EF),
-    accent: Color(0xFF9C89CD),
-    text: Color(0xFF584B70),
+    background: Color(0xFFF1F4F7),
+    badgeBackground: Color(0xFFE8EEF2),
+    border: border,
+    accent: primary,
+    text: text,
     icon: Icons.add_chart_outlined,
   );
 
   static const ContributorStyle lifestyleContributor = ContributorStyle(
-    background: Color(0xFFF5EEFF),
-    badgeBackground: Color(0xFFE9D9FF),
-    border: Color(0xFFE0CCF7),
-    accent: Color(0xFFA675D6),
-    text: Color(0xFF5D3D7C),
+    background: softBlue,
+    badgeBackground: Color(0xFFE2F1EB),
+    border: border,
+    accent: primary,
+    text: text,
     icon: Icons.self_improvement,
   );
 
   static const ContributorStyle foodContributor = ContributorStyle(
-    background: Color(0xFFFFF2E8),
-    badgeBackground: Color(0xFFFFDEC3),
-    border: Color(0xFFF2D3B8),
-    accent: Color(0xFFE49A52),
-    text: Color(0xFF744C22),
+    background: softBlue,
+    badgeBackground: Color(0xFFE2F1EB),
+    border: border,
+    accent: primary,
+    text: text,
     icon: Icons.restaurant_menu,
   );
 
   static const ContributorStyle environmentContributor = ContributorStyle(
-    background: Color(0xFFEAF8F6),
-    badgeBackground: Color(0xFFD3F0EC),
-    border: Color(0xFFC4E8E2),
-    accent: Color(0xFF48B7AB),
-    text: Color(0xFF235D57),
+    background: softBlue,
+    badgeBackground: Color(0xFFE2F1EB),
+    border: border,
+    accent: primary,
+    text: text,
     icon: Icons.eco_outlined,
   );
 
@@ -158,8 +155,12 @@ class AppStyles {
     if (value.startsWith('low') ||
         value.contains('optimal') ||
         value.contains('within awareness threshold') ||
+        value.contains('within configured awareness threshold') ||
         value.contains('good')) {
       return lowConcernStatus;
+    }
+    if (value.contains('outside configured awareness threshold')) {
+      return attentionStatus;
     }
     return moreDataStatus;
   }
@@ -235,7 +236,7 @@ class AppStyles {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: border),

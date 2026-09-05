@@ -266,7 +266,7 @@ class HealthUiAdapter {
       case 'SpO₂':
         return 'Oxygen Saturation';
       case 'LAR':
-        return 'Lipase Amylase Ratio';
+        return 'Lipase-to-Amylase Ratio - Contextual Pancreatic Enzyme Indicator';
       case 'AFP':
         return 'Alpha-fetoprotein';
       case 'CA 15-3':

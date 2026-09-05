@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
               'Welcome to VitalMap',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppStyles.navy,
+                color: AppStyles.text,
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
               ),
@@ -118,7 +118,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           hintText: 'Enter your password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            tooltip: _showPassword ? 'Hide password' : 'Show password',
+                            tooltip: _showPassword
+                                ? 'Hide password'
+                                : 'Show password',
                             onPressed: () => setState(
                               () => _showPassword = !_showPassword,
                             ),

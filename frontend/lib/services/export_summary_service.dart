@@ -1,4 +1,3 @@
-
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -371,26 +370,26 @@ class ExportSummaryService {
     final output = <String>{};
     for (final metric in metrics) {
       final source = metric.source ?? const <String, dynamic>{};
-      final ai = source['ai_recommendation'] is Map
-          ? Map<String, dynamic>.from(source['ai_recommendation'] as Map)
+      final recommendation = source['recommendation'] is Map
+          ? Map<String, dynamic>.from(source['recommendation'] as Map)
           : const <String, dynamic>{};
       for (final key in [
-        'simple_summary',
-        'doctor_followup',
+        'interpretation',
+        'why',
+        'evidence_note',
       ]) {
-        final text = (ai[key] ?? source[key])?.toString().trim();
+        final text = (recommendation[key] ?? source[key])?.toString().trim();
         if (text != null && text.isNotEmpty) output.add(text);
       }
       for (final key in [
-        'lifestyle_recommendations',
-        'food_recommendations',
-        'environment_recommendations',
-        'lifestyle_improvement',
-        'food_recommendations',
-        'environment_recommendations',
-        'suggestions',
+        'actions',
+        'lifestyle',
+        'food',
+        'monitoring',
+        'clinician_follow_up',
+        'cautions',
       ]) {
-        final raw = ai[key] ?? source[key];
+        final raw = recommendation[key];
         if (raw is List) {
           for (final item in raw) {
             final text = item.toString().trim();

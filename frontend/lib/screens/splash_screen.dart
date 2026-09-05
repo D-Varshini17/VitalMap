@@ -79,17 +79,7 @@ class _SplashScreenState extends State<SplashScreen>
           fit: StackFit.expand,
           children: [
             const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFFFFFFFF),
-                    Color(0xFFF4FBFF),
-                    Color(0xFFE6F8FC),
-                  ],
-                ),
-              ),
+              decoration: BoxDecoration(color: AppStyles.page),
             ),
             const _DepthGlowLayer(),
             AnimatedBuilder(
@@ -171,7 +161,7 @@ class _SplashScreenState extends State<SplashScreen>
                               'VitalMap',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: AppStyles.navy,
+                                color: AppStyles.text,
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -308,7 +298,7 @@ class _FloatingMedicalTile extends StatelessWidget {
         width: 72,
         height: 72,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.84),
+          color: AppStyles.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppStyles.softBlueBorder),
           boxShadow: [

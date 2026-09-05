@@ -181,11 +181,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppStyles.navy,
+        color: AppStyles.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.navy.withValues(alpha: 0.12),
+            color: AppStyles.border,
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -208,7 +208,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               Text(
                 'Calculated from available data',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.88),
+                  color: AppStyles.muted,
                   fontSize: 12,
                 ),
               ),
@@ -397,7 +397,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           border: Border.all(color: AppStyles.border),
           boxShadow: [
             BoxShadow(
-              color: AppStyles.navy.withValues(alpha: 0.03),
+              color: AppStyles.border,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -430,7 +430,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
-                          color: AppStyles.navy,
+                          color: AppStyles.text,
                         ),
                       ),
                     ],
@@ -571,11 +571,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [statusStyle.background, Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: statusStyle.background,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppStyles.border),
         boxShadow: [
@@ -596,7 +592,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 15,
-              color: AppStyles.navy,
+              color: AppStyles.text,
             ),
           ),
           const SizedBox(height: 3),
@@ -636,7 +632,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
-                    color: AppStyles.navy,
+                    color: AppStyles.text,
                   ),
                 ),
             ],
@@ -665,7 +661,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               style: TextButton.styleFrom(
                 foregroundColor: AppStyles.primary,
                 disabledForegroundColor: AppStyles.muted,
-                backgroundColor: Colors.white.withValues(alpha: 0.62),
+                backgroundColor: AppStyles.surface,
                 side: BorderSide(
                   color: detailMetric == null
                       ? AppStyles.border
@@ -775,7 +771,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: AppStyles.navy,
+                color: AppStyles.text,
               ),
             ),
             const SizedBox(width: 8),
@@ -837,48 +833,53 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final lifestyle = _firstItems(
       allSources,
       ['lifestyle_improvement', 'suggestions'],
-      fallback:
-          'Keep regular activity, consistent sleep, and stress control based on your profile.',
+      fallback: '',
     );
     final food = _firstItems(
       allSources,
       ['food_recommendations', 'suggestions'],
-      fallback:
-          'Maintain balanced meals, reduce excess sugar/salt, and limit processed food.',
+      fallback: '',
     );
     final environment = _firstItems(
       allSources,
       ['environment_recommendations'],
-      fallback: 'Reduce smoke, dust, and pollution exposure where possible.',
+      fallback: '',
     );
-    final follow = _firstText(allSources, 'doctor_followup') ??
-        'Discuss persistent abnormal values with a qualified healthcare professional.';
-    return [
-      _recommendationCard(
+    final follow = _firstText(allSources, 'doctor_followup') ?? '';
+    final cards = <Widget>[];
+    if (lifestyle.isNotEmpty) {
+      cards.add(_recommendationCard(
         Icons.directions_walk,
         'Lifestyle',
         lifestyle,
         AppStyles.lifestyleContributor,
-      ),
-      _recommendationCard(
+      ));
+    }
+    if (food.isNotEmpty) {
+      cards.add(_recommendationCard(
         Icons.restaurant_menu,
         'Food Habits',
         food,
         AppStyles.foodContributor,
-      ),
-      _recommendationCard(
+      ));
+    }
+    if (environment.isNotEmpty) {
+      cards.add(_recommendationCard(
         Icons.eco_outlined,
         'Environment',
         environment,
         AppStyles.environmentContributor,
-      ),
-      _recommendationCard(
+      ));
+    }
+    if (follow.isNotEmpty) {
+      cards.add(_recommendationCard(
         Icons.medical_services_outlined,
         'Follow-up',
         follow,
         AppStyles.generalInfo,
-      ),
-    ];
+      ));
+    }
+    return cards;
   }
 
   String _firstItems(
@@ -891,12 +892,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
         final raw = source[key];
         if (raw is List && raw.isNotEmpty) return raw.first.toString();
         if (raw is String && raw.trim().isNotEmpty) return raw;
-        final ai = source['ai_recommendation'];
-        if (ai is Map) {
-          final aiRaw = ai[key];
-          if (aiRaw is List && aiRaw.isNotEmpty) return aiRaw.first.toString();
-          if (aiRaw is String && aiRaw.trim().isNotEmpty) return aiRaw;
-        }
       }
     }
     return fallback;
@@ -906,11 +901,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
     for (final source in sources) {
       final raw = source[key];
       if (raw is String && raw.trim().isNotEmpty) return raw;
-      final ai = source['ai_recommendation'];
-      if (ai is Map) {
-        final aiRaw = ai[key];
-        if (aiRaw is String && aiRaw.trim().isNotEmpty) return aiRaw;
-      }
     }
     return null;
   }
@@ -988,13 +978,40 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       ),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final text = Text(
-                            HealthUiAdapter.missingActionText(item),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              height: 1.3,
-                            ),
+                          final text = Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                HealthUiAdapter.missingActionText(item),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  height: 1.3,
+                                ),
+                              ),
+                              if (item['required_units'] != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Required units: ${item['required_units']}',
+                                  style: const TextStyle(
+                                    color: AppStyles.muted,
+                                    fontSize: 11,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                              if (item['why_required'] != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  item['why_required'].toString(),
+                                  style: const TextStyle(
+                                    color: AppStyles.muted,
+                                    fontSize: 11,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                            ],
                           );
                           final button = ElevatedButton(
                             onPressed: _openAddMissing,
@@ -1082,12 +1099,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         }
       }
     }
-    if (tips.isEmpty) {
-      tips.addAll([
-        'Keep regular physical activity, consistent sleep, and balanced meals.',
-        'Track report values over time and review persistent unusual values with a qualified healthcare professional.',
-      ]);
-    }
+    if (tips.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1214,7 +1226,7 @@ class _ScoreRing extends StatelessWidget {
               Text(
                 '/100',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.78),
+                  color: AppStyles.softBlue,
                   fontSize: 12,
                 ),
               ),
@@ -1240,7 +1252,7 @@ class _ScoreRingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white.withValues(alpha: 0.16);
+      ..color = AppStyles.softBlue.withValues(alpha: 0.55);
     final active = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10

@@ -58,6 +58,7 @@ void main() {
     expect(results.map((item) => item['index_name']), contains('AIP'));
     expect(results.map((item) => item['index_name']), contains('TyG'));
     expect(results.map((item) => item['index_name']), contains('eGFR'));
-    expect(results.first['ai_recommendation'], isA<Map<String, dynamic>>());
+    expect(results.first['recommendation'], isA<Map<String, dynamic>>());
+    expect(results.first['validation_passed'], isTrue);
   });
 }

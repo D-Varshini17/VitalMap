@@ -35,5 +35,4 @@ class LocalStorage {
     await sp.remove('last_payload');
     await sp.remove('last_response');
   }
-
 }

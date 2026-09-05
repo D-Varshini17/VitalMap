@@ -3,11 +3,10 @@ $ErrorActionPreference = 'Stop'
 $frontendRoot = $PSScriptRoot
 $buildDirectory = Join-Path $frontendRoot 'build\web'
 $deployDirectory = Join-Path $frontendRoot 'vercel-dist'
-$apiBaseUrl = 'https://vitalmap-backend.onrender.com'
 
 Push-Location $frontendRoot
 try {
-    flutter build web --release --dart-define="API_BASE_URL=$apiBaseUrl"
+    flutter build web --release
 
     New-Item -ItemType Directory -Path $deployDirectory -Force | Out-Null
     & robocopy $buildDirectory $deployDirectory /MIR
