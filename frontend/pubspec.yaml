@@ -18,6 +18,8 @@ dependencies:
   cloud_firestore: ^5.6.12
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.4
