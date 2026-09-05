@@ -4,7 +4,6 @@ import '../core/responsive.dart';
 import '../core/ui_result_adapter.dart';
 import '../services/export_summary_service.dart';
 import '../storage/local_storage.dart';
-import '../styles.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
 
@@ -178,7 +177,7 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () => _showInfoSheet(
                     context,
                     'App Settings',
-                    'VitalMap stores only the latest local draft and result on this device. Release builds can connect these settings to account, notification, and cloud sync preferences.',
+                    'Use Appearance to choose your theme, the input page to change units, and Clear Saved Data to remove the local draft and latest result.',
                   ),
                 ),
                 _menuItem(
@@ -241,11 +240,11 @@ class _MoreScreenState extends State<MoreScreen> {
                 _menuItem(
                   icon: Icons.support_agent_outlined,
                   title: 'Support',
-                  subtitle: 'Support details for release builds',
+                  subtitle: 'Project support and issue reporting',
                   onTap: () => _showInfoSheet(
                     context,
                     'Contact Support',
-                    'For support, use the contact email configured for the Play Store listing or your organization support channel.',
+                    'Report technical issues at https://github.com/D-Varshini17/VitalMap/issues. Include the platform and steps to reproduce. Do not include personal medical information.',
                   ),
                 ),
                 _menuItem(
@@ -255,7 +254,7 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () => _showInfoSheet(
                     context,
                     'Feedback',
-                    'Release builds should connect this action to your support email, issue tracker, or in-app feedback provider.',
+                    'Share product feedback at https://github.com/D-Varshini17/VitalMap/issues. Describe the improvement you would like to see.',
                   ),
                 ),
                 _menuItem(
@@ -306,8 +305,8 @@ class _MoreScreenState extends State<MoreScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: AppStyles.text,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.w900,
             ),
@@ -334,18 +333,19 @@ class _MoreScreenState extends State<MoreScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppStyles.softBlueBorder),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.primary.withValues(alpha: 0.07),
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.07),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         children: [
           BrandLogoMark(size: 58, glow: true),
           SizedBox(width: 14),
@@ -361,7 +361,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 Text(
                   'Organ Health Risk Indicator',
                   style: TextStyle(
-                    color: AppStyles.muted,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -394,12 +394,12 @@ class _MoreScreenState extends State<MoreScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.border,
+            color: Theme.of(context).colorScheme.outlineVariant,
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -414,22 +414,23 @@ class _MoreScreenState extends State<MoreScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppStyles.softBlue,
+                  color: Theme.of(context).colorScheme.surfaceContainer,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppStyles.softBlueBorder),
+                  border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant),
                 ),
-                child:
-                    const Icon(Icons.person_outline, color: AppStyles.primary),
+                child: Icon(Icons.person_outline,
+                    color: Theme.of(context).colorScheme.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'User Profile',
                       style: TextStyle(
-                        color: AppStyles.text,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
                       ),
@@ -437,8 +438,8 @@ class _MoreScreenState extends State<MoreScreen> {
                     const SizedBox(height: 3),
                     Text(
                       userLabel.isEmpty ? 'Complete your profile' : userLabel,
-                      style: const TextStyle(
-                        color: AppStyles.muted,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -503,21 +504,21 @@ class _MoreScreenState extends State<MoreScreen> {
       constraints: const BoxConstraints(minHeight: 92),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppStyles.primary, size: 20),
+          Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
           const SizedBox(height: 8),
           Text(
             value,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppStyles.text,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w900,
             ),
@@ -525,8 +526,8 @@ class _MoreScreenState extends State<MoreScreen> {
           const SizedBox(height: 3),
           Text(
             label,
-            style: const TextStyle(
-              color: AppStyles.muted,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 11,
               fontWeight: FontWeight.w700,
             ),
@@ -547,7 +548,7 @@ class _MoreScreenState extends State<MoreScreen> {
       color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: AppStyles.border),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: ListTile(
         onTap: onTap,
@@ -556,10 +557,10 @@ class _MoreScreenState extends State<MoreScreen> {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: AppStyles.softBlue,
+            color: Theme.of(context).colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: AppStyles.primary),
+          child: Icon(icon, color: Theme.of(context).colorScheme.primary),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
         subtitle: Text(subtitle),
@@ -569,7 +570,11 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   String _themeModeLabel(ThemeMode mode) {
-    return 'Light theme selected';
+    return switch (mode) {
+      ThemeMode.dark => 'Dark theme selected',
+      ThemeMode.light => 'Light theme selected',
+      ThemeMode.system => 'Using device appearance',
+    };
   }
 
   Future<void> _showThemeModeSheet(BuildContext context) async {
@@ -581,13 +586,20 @@ class _MoreScreenState extends State<MoreScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final option in [
+              (
+                ThemeMode.system,
+                'System Default',
+                Icons.brightness_auto_outlined
+              ),
               (ThemeMode.light, 'Light', Icons.light_mode_outlined),
+              (ThemeMode.dark, 'Dark', Icons.dark_mode_outlined),
             ])
               ListTile(
                 leading: Icon(option.$3),
                 title: Text(option.$2),
                 trailing: option.$1 == widget.themeMode
-                    ? const Icon(Icons.check, color: AppStyles.primary)
+                    ? Icon(Icons.check,
+                        color: Theme.of(context).colorScheme.primary)
                     : null,
                 onTap: () => Navigator.of(context).pop(option.$1),
               ),
@@ -644,7 +656,9 @@ class _MoreScreenState extends State<MoreScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
-      builder: (context) => Padding(
+      builder: (context) => SafeArea(
+          child: SingleChildScrollView(
+              child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 6, 18, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -655,10 +669,10 @@ class _MoreScreenState extends State<MoreScreen> {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            Text(text, style: const TextStyle(height: 1.4)),
+            SelectableText(text, style: const TextStyle(height: 1.4)),
           ],
         ),
-      ),
+      ))),
     );
   }
 

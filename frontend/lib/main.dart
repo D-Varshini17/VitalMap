@@ -63,8 +63,9 @@ class _MyAppState extends State<MyApp> {
       animation: _themeController,
       builder: (context, child) => MaterialApp(
         title: 'VitalMap',
-        theme: AppStyles.theme,
-        themeMode: ThemeMode.light,
+        theme: AppStyles.lightTheme,
+        darkTheme: AppStyles.darkTheme,
+        themeMode: _themeController.themeMode,
         home: SplashGate(themeController: _themeController),
         debugShowCheckedModeBanner: false,
       ),
@@ -234,15 +235,16 @@ class _HomeContainerState extends State<HomeContainer> {
       ),
     ];
     final isDesktop = Responsive.isDesktop(context);
+    final content = IndexedStack(index: _currentIndex, children: pages);
 
     return Scaffold(
       body: isDesktop
           ? _DesktopShell(
               currentIndex: _currentIndex,
               onTap: (index) => setState(() => _currentIndex = index),
-              child: pages[_currentIndex],
+              child: content,
             )
-          : pages[_currentIndex],
+          : content,
       bottomNavigationBar: isDesktop
           ? null
           : _MobileBottomNav(
@@ -285,14 +287,14 @@ class _MobileBottomNav extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppStyles.surface,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                    color: AppStyles.border,
+                    color: Theme.of(context).colorScheme.outline,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppStyles.border,
+                      color: Theme.of(context).colorScheme.outlineVariant,
                       blurRadius: 28,
                       offset: const Offset(0, 14),
                     ),
@@ -325,7 +327,6 @@ class _MobileNavItemButton extends StatelessWidget {
     required this.selected,
     required this.onTap,
   });
-
   final _DesktopNavItem item;
   final bool selected;
   final VoidCallback onTap;
@@ -343,12 +344,17 @@ class _MobileNavItemButton extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 2),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
           decoration: BoxDecoration(
-            color: selected ? AppStyles.softBlue : AppStyles.surface,
+            color: selected
+                ? Theme.of(context).colorScheme.surfaceContainer
+                : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(22),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: AppStyles.primary.withValues(alpha: 0.24),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.24),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -360,7 +366,9 @@ class _MobileNavItemButton extends StatelessWidget {
             children: [
               Icon(
                 selected ? item.activeIcon : item.icon,
-                color: selected ? AppStyles.primary : AppStyles.unitText,
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 22,
               ),
               const SizedBox(height: 3),
@@ -370,7 +378,9 @@ class _MobileNavItemButton extends StatelessWidget {
                   item.label,
                   maxLines: 1,
                   style: TextStyle(
-                    color: selected ? AppStyles.text : AppStyles.muted,
+                    color: selected
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
@@ -412,7 +422,8 @@ class _DesktopShell extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return DecoratedBox(
-          decoration: const BoxDecoration(color: AppStyles.page),
+          decoration:
+              BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
           child: Row(
             children: [
               _DesktopSidebar(
@@ -443,15 +454,16 @@ class _DesktopSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 64,
+      width: 184,
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         border: Border(
-          right: BorderSide(color: AppStyles.border),
+          right:
+              BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.border,
+            color: Theme.of(context).colorScheme.outlineVariant,
             blurRadius: 24,
             offset: const Offset(8, 0),
           ),
@@ -474,9 +486,10 @@ class _DesktopSidebar extends StatelessWidget {
                 const SizedBox(height: 8),
               ],
               const Spacer(),
-              const Tooltip(
+              Tooltip(
                 message: 'Screening insights only',
-                child: Icon(Icons.info_outline, color: AppStyles.muted),
+                child: Icon(Icons.info_outline,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -500,7 +513,9 @@ class _DesktopNavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppStyles.softBlue : Colors.transparent,
+      color: selected
+          ? Theme.of(context).colorScheme.surfaceContainer
+          : Colors.transparent,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -509,27 +524,43 @@ class _DesktopNavButton extends StatelessWidget {
           duration: const Duration(milliseconds: 220),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
           decoration: BoxDecoration(
-            color: selected ? AppStyles.softBlue : Colors.transparent,
+            color: selected
+                ? Theme.of(context).colorScheme.surfaceContainer
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: selected ? AppStyles.softBlueBorder : Colors.transparent,
+              color: selected
+                  ? Theme.of(context).colorScheme.outlineVariant
+                  : Colors.transparent,
             ),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: AppStyles.primary.withValues(alpha: 0.10),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.10),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
                   ]
                 : null,
           ),
-          child: Center(
-            child: Icon(
-              selected ? item.activeIcon : item.icon,
-              color: selected ? AppStyles.primary : AppStyles.muted,
-            ),
-          ),
+          child: Row(children: [
+            Icon(selected ? item.activeIcon : item.icon,
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(width: 12),
+            Expanded(
+                child: Text(item.label,
+                    style: TextStyle(
+                        color: selected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight:
+                            selected ? FontWeight.w800 : FontWeight.w500))),
+          ]),
         ),
       ),
     );

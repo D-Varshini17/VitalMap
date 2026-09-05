@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/responsive.dart';
-import '../styles.dart';
 import '../widgets/organ_visual.dart';
 import '../widgets/health_dashboard_widgets.dart';
 import '../widgets/disclaimer.dart';
@@ -75,9 +74,9 @@ class AddMissingScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -92,7 +91,9 @@ class AddMissingScreen extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 6),
-                Text(cfg.help, style: const TextStyle(color: AppStyles.muted)),
+                Text(cfg.help,
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -107,7 +108,8 @@ class AddMissingScreen extends StatelessWidget {
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppStyles.primary),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary),
             child: const Text('Add'),
           ),
         ],

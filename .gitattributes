@@ -1,2 +1,3 @@
 frontend/vercel-dist/** -diff -text linguist-generated=true
 releases/*.apk -diff -text linguist-generated=true
+*.sh text eol=lf

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/responsive.dart';
-import '../styles.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/organ_visual.dart';
 
@@ -19,18 +18,20 @@ class InsightScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Insight',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: AppStyles.text,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Understand your body, organs, and screening indicators.',
-              style: TextStyle(fontSize: 16, color: AppStyles.muted),
+              style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
             LayoutBuilder(
@@ -136,12 +137,13 @@ class _OrganInsightCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppStyles.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppStyles.border),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: AppStyles.border,
+              color: Theme.of(context).colorScheme.outlineVariant,
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -160,19 +162,19 @@ class _OrganInsightCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               organName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
-                color: AppStyles.text,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Related: $relatedIndex',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
-                color: AppStyles.unitText,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 1.25,
               ),
             ),
@@ -181,8 +183,9 @@ class _OrganInsightCard extends StatelessWidget {
               child: TextButton(
                 onPressed: onTap,
                 style: TextButton.styleFrom(
-                  foregroundColor: AppStyles.primary,
-                  side: const BorderSide(color: AppStyles.border),
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  side: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -388,12 +391,12 @@ class OrganEducationScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           organ,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppStyles.text,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppStyles.primary),
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
       ),
       body: ResponsivePage(
         maxWidth: Responsive.detailMaxWidth,
@@ -412,12 +415,13 @@ class OrganEducationScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppStyles.border),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: AppStyles.border,
+                    color: Theme.of(context).colorScheme.outlineVariant,
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -434,18 +438,18 @@ class OrganEducationScreen extends StatelessWidget {
                       children: [
                         Text(
                           organ,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppStyles.text,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           howItWorks,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppStyles.text,
+                            color: Theme.of(context).colorScheme.onSurface,
                             height: 1.35,
                           ),
                         ),
@@ -456,15 +460,16 @@ class OrganEducationScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppStyles.softBlue,
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             'Related: $relatedIndexes',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: AppStyles.primary,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
@@ -516,18 +521,23 @@ class OrganEducationScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F7FA),
+                color: Theme.of(context).colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppStyles.border),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.shield_outlined, color: AppStyles.muted),
+                  Icon(Icons.shield_outlined,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Safety disclaimer\nFor informational purposes only. This app is not a substitute for clinical diagnosis, treatment, or medical advice. Please consult a qualified healthcare professional for medical decisions.',
-                      style: TextStyle(fontSize: 12, color: AppStyles.muted),
+                      style: TextStyle(
+                          fontSize: 12,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ],
@@ -683,23 +693,23 @@ class OrganEducationScreen extends StatelessWidget {
       child: ExpansionTile(
         title: Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 14,
-            color: AppStyles.text,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        iconColor: AppStyles.primary,
-        collapsedIconColor: AppStyles.muted,
+        iconColor: Theme.of(context).colorScheme.primary,
+        collapsedIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
         tilePadding: EdgeInsets.zero,
         childrenPadding: const EdgeInsets.only(bottom: 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppStyles.muted,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.4,
             ),
           ),

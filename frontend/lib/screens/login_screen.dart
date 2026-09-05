@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/responsive.dart';
-import '../styles.dart';
 import '../widgets/brand_logo.dart';
 import '../services/auth_service.dart';
 import 'signup_screen.dart';
@@ -50,6 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ResponsivePage(
+        maxWidth: 560,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -57,21 +57,21 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 24),
             const BrandLogoMark(size: 84, glow: true),
             const SizedBox(height: 18),
-            const Text(
+            Text(
               'Welcome to VitalMap',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppStyles.text,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Sign in to continue your personalized health screening journey.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppStyles.muted,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
@@ -151,13 +151,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           child: _submitting
-                              ? const SizedBox(
+                              ? SizedBox(
                                   height: 18,
                                   width: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Theme.of(context).colorScheme.onPrimary,
+                                    ),
                                   ),
                                 )
                               : const Text(
@@ -203,13 +204,13 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 18),
-            const Text(
-              'Your account data stays on this device and is used to remember your progress.',
+            Text(
+              'Sign-in uses Firebase. Your latest draft and screening result are also saved on this device.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: AppStyles.tertiaryText,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 1.45,
               ),
             ),

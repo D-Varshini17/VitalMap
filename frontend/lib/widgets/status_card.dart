@@ -20,7 +20,7 @@ class StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusStyle = AppStyles.statusStyle(status);
+    final statusStyle = AppStyles.themedStatusStyle(context, status);
     return Semantics(
       container: true,
       label: '$title. ${statusStyle.label}. $subtitle',
@@ -53,7 +53,9 @@ class StatusCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(subtitle,
-                  style: const TextStyle(fontSize: 12, color: AppStyles.muted),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   textAlign: TextAlign.center),
               if (trailing != null) ...[const SizedBox(height: 8), trailing!]
             ],

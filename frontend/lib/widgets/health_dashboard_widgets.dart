@@ -29,11 +29,11 @@ class VitalMapHeroCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.border,
+            color: Theme.of(context).colorScheme.outlineVariant,
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -61,8 +61,9 @@ class VitalMapHeroCard extends StatelessWidget {
                             children: [
                               Text(
                                 title,
-                                style: const TextStyle(
-                                  color: AppStyles.text,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -72,7 +73,9 @@ class VitalMapHeroCard extends StatelessWidget {
                                 Text(
                                   subtitle,
                                   style: TextStyle(
-                                    color: AppStyles.muted,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -81,7 +84,9 @@ class VitalMapHeroCard extends StatelessWidget {
                               Text(
                                 description,
                                 style: TextStyle(
-                                  color: AppStyles.muted,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                   height: 1.25,
                                 ),
                               ),
@@ -144,16 +149,24 @@ class PremiumProgressChips extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: i == activeIndex ? AppStyles.softBlue : AppStyles.surface,
+              color: i == activeIndex
+                  ? Theme.of(context).colorScheme.surfaceContainer
+                  : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: i == activeIndex
-                    ? AppStyles.primary
-                    : AppStyles.primary.withValues(alpha: 0.22),
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.22),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppStyles.primary.withValues(alpha: 0.08),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -167,13 +180,13 @@ class PremiumProgressChips extends StatelessWidget {
                       ? Icons.check_circle
                       : Icons.radio_button_unchecked,
                   size: 14,
-                  color: AppStyles.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   labels[i],
                   style: TextStyle(
-                    color: AppStyles.text,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w800,
                     fontSize: 12,
                   ),
@@ -205,12 +218,17 @@ class GradientActionButton extends StatelessWidget {
     final enabled = onPressed != null;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: enabled ? AppStyles.primary : AppStyles.border,
+        color: enabled
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.outlineVariant,
         borderRadius: BorderRadius.circular(14),
         boxShadow: enabled
             ? [
                 BoxShadow(
-                  color: AppStyles.primary.withValues(alpha: 0.25),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.25),
                   blurRadius: 18,
                   offset: const Offset(0, 8),
                 ),
@@ -222,19 +240,19 @@ class GradientActionButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           disabledBackgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
           shadowColor: Colors.transparent,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
         ),
         icon: loading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               )
             : Icon(icon),
@@ -292,9 +310,9 @@ class OverallInsightRing extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(compact ? 10 : 14),
       decoration: BoxDecoration(
-        color: AppStyles.softBlue,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -310,7 +328,7 @@ class OverallInsightRing extends StatelessWidget {
                   painter: _RingPainter(
                     progress: progress,
                     color: status.accent,
-                    trackColor: AppStyles.border,
+                    trackColor: Theme.of(context).colorScheme.outlineVariant,
                   ),
                 ),
                 Column(
@@ -327,7 +345,7 @@ class OverallInsightRing extends StatelessWidget {
                     Text(
                       'indexes',
                       style: TextStyle(
-                        color: AppStyles.muted,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
@@ -347,7 +365,7 @@ class OverallInsightRing extends StatelessWidget {
                 Text(
                   'Overall Health Insight',
                   style: TextStyle(
-                    color: AppStyles.text,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                   ),
@@ -361,7 +379,7 @@ class OverallInsightRing extends StatelessWidget {
                 Text(
                   '$moreDataCount needing more data',
                   style: TextStyle(
-                    color: AppStyles.muted,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -390,7 +408,7 @@ class OverallInsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = AppStyles.statusStyle(overallRisk);
+    final status = AppStyles.themedStatusStyle(context, overallRisk);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -435,7 +453,8 @@ class OverallInsightCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Last checked: ${lastChecked == null ? 'Not checked yet' : _formatDate(lastChecked!)}',
-                style: const TextStyle(color: AppStyles.muted),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 10),
               Text(
@@ -475,28 +494,34 @@ class OrganInsightSummaryBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      _SummarySegment(AppStyles.lowConcernStatus, counts['Low Concern'] ?? 0),
-      _SummarySegment(AppStyles.monitorStatus, counts['Monitor'] ?? 0),
-      _SummarySegment(
-          AppStyles.attentionStatus, counts['Attention Needed'] ?? 0),
-      _SummarySegment(
-          AppStyles.moreDataStatus, counts['More Data Needed'] ?? 0),
+      _SummarySegment(AppStyles.themedStatusStyle(context, 'Good'),
+          counts['Low Concern'] ?? 0),
+      _SummarySegment(AppStyles.themedStatusStyle(context, 'Monitor'),
+          counts['Monitor'] ?? 0),
+      _SummarySegment(AppStyles.themedStatusStyle(context, 'Attention Needed'),
+          counts['Attention Needed'] ?? 0),
+      _SummarySegment(AppStyles.themedStatusStyle(context, 'More Data Needed'),
+          counts['More Data Needed'] ?? 0),
     ];
     final total =
         items.fold<int>(0, (sum, item) => sum + math.max(item.count, 0));
     final segments = total == 0
-        ? [_SummarySegment(AppStyles.moreDataStatus, 1)]
+        ? [
+            _SummarySegment(
+                AppStyles.themedStatusStyle(context, 'More Data Needed'), 1)
+          ]
         : items.where((item) => item.count > 0).toList();
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.primary.withValues(alpha: 0.06),
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -549,26 +574,28 @@ class ContributorMiniGraph extends StatelessWidget {
       _ContributorMiniItem(
         title: 'Lifestyle',
         count: counts['Lifestyle'] ?? 0,
-        style: AppStyles.lifestyleContributor,
+        style:
+            AppStyles.themedContributorStyle(context, 'lifestyleContributor'),
       ),
       _ContributorMiniItem(
         title: 'Food Habits',
         count: counts['Food Habits'] ?? 0,
-        style: AppStyles.foodContributor,
+        style: AppStyles.themedContributorStyle(context, 'foodContributor'),
       ),
       _ContributorMiniItem(
         title: 'Environment',
         count: counts['Environment'] ?? 0,
-        style: AppStyles.environmentContributor,
+        style:
+            AppStyles.themedContributorStyle(context, 'environmentContributor'),
       ),
     ];
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -576,9 +603,10 @@ class ContributorMiniGraph extends StatelessWidget {
           const Text('General Health Pattern',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'These factors may contribute to risk indicators.',
-            style: TextStyle(color: AppStyles.muted),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           LayoutBuilder(
@@ -711,7 +739,7 @@ class _ContributorMiniItem extends StatelessWidget {
             child: LinearProgressIndicator(
               minHeight: 9,
               value: progress,
-              backgroundColor: AppStyles.border,
+              backgroundColor: Theme.of(context).colorScheme.outlineVariant,
               color: style.accent,
             ),
           ),
@@ -754,14 +782,14 @@ class _HeroStatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppStyles.softBlue,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppStyles.text,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: 12,
           fontWeight: FontWeight.w900,
         ),
@@ -792,8 +820,8 @@ class _LegendChip extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           '${AppStyles.displayStatusLabel(status.label)}: $count',
-          style: const TextStyle(
-            color: AppStyles.muted,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w700,
             fontSize: 12,
           ),

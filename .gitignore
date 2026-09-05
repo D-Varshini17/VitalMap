@@ -23,3 +23,10 @@ google-credentials*.json
 
 .DS_Store
 Thumbs.db
+
+.flutter-sdk/
+.vercel/
+frontend/*-test.log
+.firecrawl/
+
+artifacts/

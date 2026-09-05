@@ -4,12 +4,35 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:vitalmap/core/responsive.dart';
 import 'package:vitalmap/main.dart';
+import 'package:vitalmap/theme/app_theme_controller.dart';
 
 void main() {
   test('responsive breakpoints classify phone, tablet, and desktop widths', () {
     expect(Responsive.sizeForWidth(390), ResponsiveSize.mobile);
     expect(Responsive.sizeForWidth(800), ResponsiveSize.tablet);
     expect(Responsive.sizeForWidth(1440), ResponsiveSize.desktop);
+  });
+
+  test('appearance mode persists and restores all supported modes', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    final controller = AppThemeController();
+
+    await controller.setThemeMode(ThemeMode.dark);
+    expect(controller.themeMode, ThemeMode.dark);
+
+    final restored = AppThemeController();
+    await restored.load();
+    expect(restored.themeMode, ThemeMode.dark);
+
+    await restored.setThemeMode(ThemeMode.system);
+    final systemRestored = AppThemeController();
+    await systemRestored.load();
+    expect(systemRestored.themeMode, ThemeMode.system);
+
+    controller.dispose();
+    restored.dispose();
+    systemRestored.dispose();
   });
 
   testWidgets('login screen is shown before authentication',

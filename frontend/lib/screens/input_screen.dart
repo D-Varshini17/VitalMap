@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../core/local_analysis_engine.dart';
 import '../core/responsive.dart';
 import '../services/firestore_service.dart';
 import '../storage/local_storage.dart';
-import '../styles.dart';
 import '../utils/unit_conversion.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
@@ -163,72 +163,72 @@ class _InputScreenState extends State<InputScreen> {
   final _reportsKey = GlobalKey();
   String _activeTop = 'basic';
 
-  static const _reportSections = [
-    _ReportSection(
-      id: 'heart',
-      title: 'Heart / Lipid Profile',
-      subtitle: 'AIP',
-      emoji: '❤️',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-    _ReportSection(
-      id: 'diabetes',
-      title: 'Diabetes / Metabolic',
-      subtitle: 'TyG, metabolic insight',
-      emoji: '🍬',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-    _ReportSection(
-      id: 'liver',
-      title: 'Liver Function Test',
-      subtitle: 'APRI, FIB-4, FLI, NAFLD',
-      emoji: '🧪',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-    _ReportSection(
-      id: 'cbc',
-      title: 'CBC / Differential',
-      subtitle: 'NLR and liver support',
-      emoji: '🩸',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-    _ReportSection(
-      id: 'kidney',
-      title: 'Kidney Function',
-      subtitle: 'eGFR',
-      emoji: '💧',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-    _ReportSection(
-      id: 'vitals',
-      title: 'Lungs / Vitals',
-      subtitle: 'SpO₂',
-      emoji: '🫁',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-    _ReportSection(
-      id: 'pancreas',
-      title: 'Pancreatic Enzymes',
-      subtitle: 'LAR',
-      emoji: '🔬',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-    _ReportSection(
-      id: 'cancer',
-      title: 'Cancer Awareness',
-      subtitle: 'AFP, CA 15-3, CA 27.29',
-      emoji: '🎗️',
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
-    ),
-  ];
+  List<_ReportSection> get _reportSections => [
+        _ReportSection(
+          id: 'heart',
+          title: 'Heart / Lipid Profile',
+          subtitle: 'AIP',
+          emoji: '❤️',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+        _ReportSection(
+          id: 'diabetes',
+          title: 'Diabetes / Metabolic',
+          subtitle: 'TyG, metabolic insight',
+          emoji: '🍬',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+        _ReportSection(
+          id: 'liver',
+          title: 'Liver Function Test',
+          subtitle: 'APRI, FIB-4, FLI, NAFLD',
+          emoji: '🧪',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+        _ReportSection(
+          id: 'cbc',
+          title: 'CBC / Differential',
+          subtitle: 'NLR and liver support',
+          emoji: '🩸',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+        _ReportSection(
+          id: 'kidney',
+          title: 'Kidney Function',
+          subtitle: 'eGFR',
+          emoji: '💧',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+        _ReportSection(
+          id: 'vitals',
+          title: 'Lungs / Vitals',
+          subtitle: 'SpO₂',
+          emoji: '🫁',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+        _ReportSection(
+          id: 'pancreas',
+          title: 'Pancreatic Enzymes',
+          subtitle: 'LAR',
+          emoji: '🔬',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+        _ReportSection(
+          id: 'cancer',
+          title: 'Cancer Awareness',
+          subtitle: 'AFP, CA 15-3, CA 27.29',
+          emoji: '🎗️',
+          background: Theme.of(context).colorScheme.surface,
+          accent: Theme.of(context).colorScheme.primary,
+        ),
+      ];
 
   @override
   void initState() {
@@ -317,7 +317,8 @@ class _InputScreenState extends State<InputScreen> {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     if (!mounted) return;
     await LocalStorage.saveLastPayload(payload);
-    final user = FirebaseAuth.instance.currentUser;
+    final user =
+        Firebase.apps.isEmpty ? null : FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
         await FirestoreService.saveDraft(user.uid, payload);
@@ -347,7 +348,8 @@ class _InputScreenState extends State<InputScreen> {
 
   Future<void> _loadSavedPayload() async {
     Map<String, dynamic>? payload;
-    final user = FirebaseAuth.instance.currentUser;
+    final user =
+        Firebase.apps.isEmpty ? null : FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
         payload = await FirestoreService.loadDraft(user.uid);
@@ -684,17 +686,19 @@ class _InputScreenState extends State<InputScreen> {
           : AppBar(
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   BrandAppBarTitle(title: 'VitalMap'),
                   SizedBox(height: 2),
                   Text(
                     'Organ Health Risk Indicator',
-                    style: TextStyle(fontSize: 12, color: AppStyles.muted),
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
               elevation: 0,
-              backgroundColor: AppStyles.page,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             ),
       body: Form(
         key: _formKey,
@@ -760,8 +764,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'Start with the core measurements used across screening formulas.',
           icon: Icons.person_outline,
-          accent: AppStyles.primary,
-          background: AppStyles.surface,
+          accent: Theme.of(context).colorScheme.primary,
+          background: Theme.of(context).colorScheme.surface,
         ),
         Container(key: _profileKey, child: _profileCard()),
         _whyAskCard(),
@@ -779,8 +783,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'These habits help explain what may be contributing to calculated risk patterns.',
           icon: Icons.self_improvement,
-          accent: AppStyles.primary,
-          background: AppStyles.surface,
+          accent: Theme.of(context).colorScheme.primary,
+          background: Theme.of(context).colorScheme.surface,
         ),
         Container(key: _lifestyleKey, child: _lifestyleCard()),
         _foodCard(),
@@ -802,8 +806,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'Exposure context helps VitalMap interpret lung, inflammation, and general health patterns.',
           icon: Icons.eco_outlined,
-          accent: AppStyles.primary,
-          background: AppStyles.surface,
+          accent: Theme.of(context).colorScheme.primary,
+          background: Theme.of(context).colorScheme.surface,
         ),
         Container(key: _environmentKey, child: _environmentCard()),
         _flowFooter(
@@ -825,8 +829,8 @@ class _InputScreenState extends State<InputScreen> {
           subtitle:
               'Choose only the reports you have. VitalMap calculates every possible screening indicator from available values.',
           icon: Icons.article_outlined,
-          accent: AppStyles.primary,
-          background: AppStyles.surface,
+          accent: Theme.of(context).colorScheme.primary,
+          background: Theme.of(context).colorScheme.surface,
         ),
         Container(key: _reportsKey, child: _reportPicker()),
       ],
@@ -876,12 +880,12 @@ class _InputScreenState extends State<InputScreen> {
         const SizedBox(height: 14),
         _actionButtons(),
         _flowFooter(previousId: 'environment'),
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(top: 4),
           child: Text(
             'Review screening insights on the Result tab after analysis.',
             style: TextStyle(
-              color: AppStyles.muted,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -909,19 +913,20 @@ class _InputScreenState extends State<InputScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.add_chart_outlined, color: AppStyles.unitText),
+          Icon(Icons.add_chart_outlined,
+              color: Theme.of(context).colorScheme.onSurfaceVariant),
           SizedBox(width: 12),
           Expanded(
             child: Text(
               'Select a report card to enter lab values. You can analyze with only the reports you have.',
               style: TextStyle(
-                color: AppStyles.muted,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 1.35,
                 fontWeight: FontWeight.w700,
               ),
@@ -944,7 +949,7 @@ class _InputScreenState extends State<InputScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: accent.withValues(alpha: 0.22)),
       ),
@@ -955,7 +960,7 @@ class _InputScreenState extends State<InputScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppStyles.softBlue,
+              color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: accent.withValues(alpha: 0.20)),
             ),
@@ -970,8 +975,8 @@ class _InputScreenState extends State<InputScreen> {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: AppStyles.muted,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.35,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1033,9 +1038,9 @@ class _InputScreenState extends State<InputScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -1048,14 +1053,14 @@ class _InputScreenState extends State<InputScreen> {
                     CircleAvatar(
                       radius: 14,
                       backgroundColor: index <= activeIndex
-                          ? AppStyles.primary
-                          : AppStyles.softBlue,
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.surfaceContainer,
                       child: Text(
                         '${index + 1}',
                         style: TextStyle(
                           color: index <= activeIndex
-                              ? Colors.white
-                              : AppStyles.muted,
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                         ),
@@ -1068,8 +1073,8 @@ class _InputScreenState extends State<InputScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: index == activeIndex
-                              ? AppStyles.text
-                              : AppStyles.muted,
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                         ),
@@ -1081,7 +1086,9 @@ class _InputScreenState extends State<InputScreen> {
             ),
             if (index < tabs.length - 1)
               Expanded(
-                child: Container(height: 1, color: AppStyles.border),
+                child: Container(
+                    height: 1,
+                    color: Theme.of(context).colorScheme.outlineVariant),
               ),
           ],
         ],
@@ -1097,8 +1104,8 @@ class _InputScreenState extends State<InputScreen> {
           Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(
-              color: AppStyles.accent,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
               shape: BoxShape.circle,
             ),
           ),
@@ -1115,14 +1122,14 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Basic Profile',
       icon: Icons.person_outline,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       child: Column(
         children: [
           _twoColumn(
             _TintedInputPanel(
-              color: AppStyles.surface,
-              border: AppStyles.border,
+              color: Theme.of(context).colorScheme.surface,
+              border: Theme.of(context).colorScheme.outlineVariant,
               child: _unitField(
                 ageCtl,
                 'Age',
@@ -1136,8 +1143,8 @@ class _InputScreenState extends State<InputScreen> {
               ),
             ),
             _TintedInputPanel(
-              color: AppStyles.surface,
-              border: AppStyles.border,
+              color: Theme.of(context).colorScheme.surface,
+              border: Theme.of(context).colorScheme.outlineVariant,
               child: _choice(
                 'Sex',
                 sex,
@@ -1152,13 +1159,13 @@ class _InputScreenState extends State<InputScreen> {
           ),
           _twoColumn(
             _TintedInputPanel(
-              color: AppStyles.surface,
-              border: AppStyles.border,
+              color: Theme.of(context).colorScheme.surface,
+              border: Theme.of(context).colorScheme.outlineVariant,
               child: _heightField(),
             ),
             _TintedInputPanel(
-              color: AppStyles.surface,
-              border: AppStyles.border,
+              color: Theme.of(context).colorScheme.surface,
+              border: Theme.of(context).colorScheme.outlineVariant,
               child: _unitField(
                 weightCtl,
                 'Weight',
@@ -1173,8 +1180,8 @@ class _InputScreenState extends State<InputScreen> {
           ),
           _twoColumn(
             _TintedInputPanel(
-              color: AppStyles.surface,
-              border: AppStyles.border,
+              color: Theme.of(context).colorScheme.surface,
+              border: Theme.of(context).colorScheme.outlineVariant,
               child: _unitField(
                 waistCtl,
                 'Waist circumference',
@@ -1187,8 +1194,8 @@ class _InputScreenState extends State<InputScreen> {
               ),
             ),
             _TintedInputPanel(
-              color: AppStyles.surface,
-              border: AppStyles.border,
+              color: Theme.of(context).colorScheme.surface,
+              border: Theme.of(context).colorScheme.outlineVariant,
               child: _readOnlyUnitField(
                 'BMI',
                 _currentBmi()?.toStringAsFixed(1) ?? '',
@@ -1207,9 +1214,9 @@ class _InputScreenState extends State<InputScreen> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -1217,16 +1224,16 @@ class _InputScreenState extends State<InputScreen> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppStyles.softBlue,
+              color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.verified_user_outlined,
-              color: AppStyles.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1237,7 +1244,9 @@ class _InputScreenState extends State<InputScreen> {
                 SizedBox(height: 4),
                 Text(
                   'These details help calculate important health indicators.',
-                  style: TextStyle(color: AppStyles.muted, height: 1.3),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.3),
                 ),
               ],
             ),
@@ -1333,8 +1342,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Lifestyle',
       icon: Icons.directions_walk,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       child: Column(
         children: [
           _twoColumn(
@@ -1401,8 +1410,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Food Habits',
       icon: Icons.restaurant_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       child: Column(
         children: [
           _twoColumn(
@@ -1459,8 +1468,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: 'Environment',
       icon: Icons.eco_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       child: Column(
         children: [
           _twoColumn(
@@ -1597,8 +1606,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '❤️ Heart / Lipid Profile',
       icon: Icons.favorite_border,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'heart',
       enabled: _selectedSections.contains('heart'),
       onToggle: _toggleSection,
@@ -1631,8 +1640,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🍬 Diabetes / Glucose Profile',
       icon: Icons.water_drop_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'diabetes',
       enabled: _selectedSections.contains('diabetes'),
       onToggle: _toggleSection,
@@ -1663,8 +1672,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🧪 Liver Function Test',
       icon: Icons.monitor_heart_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'liver',
       enabled: _selectedSections.contains('liver'),
       onToggle: _toggleSection,
@@ -1727,8 +1736,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🩸 Blood / CBC Differential',
       icon: Icons.bloodtype_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'cbc',
       enabled: _selectedSections.contains('cbc'),
       onToggle: _toggleSection,
@@ -1771,8 +1780,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '💧 Kidney Function Test',
       icon: Icons.opacity_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'kidney',
       enabled: _selectedSections.contains('kidney'),
       onToggle: _toggleSection,
@@ -1797,8 +1806,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🫁 Lungs / Vitals',
       icon: Icons.speed_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'vitals',
       enabled: _selectedSections.contains('vitals'),
       onToggle: _toggleSection,
@@ -1823,8 +1832,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🔬 Pancreatic Enzymes',
       icon: Icons.science_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'pancreas',
       enabled: _selectedSections.contains('pancreas'),
       onToggle: _toggleSection,
@@ -1855,8 +1864,8 @@ class _InputScreenState extends State<InputScreen> {
     return _SectionCard(
       title: '🎗️ Cancer Awareness Markers',
       icon: Icons.health_and_safety_outlined,
-      background: AppStyles.surface,
-      accent: AppStyles.primary,
+      background: Theme.of(context).colorScheme.surface,
+      accent: Theme.of(context).colorScheme.primary,
       reportId: 'cancer',
       enabled: _selectedSections.contains('cancer'),
       onToggle: _toggleSection,
@@ -1963,10 +1972,10 @@ class _InputScreenState extends State<InputScreen> {
       controller: controller,
       focusNode: focusNode,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: AppStyles.text,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
       onChanged: (_) => setState(() {}),
       decoration: InputDecoration(
@@ -1977,8 +1986,9 @@ class _InputScreenState extends State<InputScreen> {
         border: borderless ? InputBorder.none : null,
         enabledBorder: borderless ? InputBorder.none : null,
         focusedBorder: borderless
-            ? const UnderlineInputBorder(
-                borderSide: BorderSide(color: AppStyles.primary),
+            ? UnderlineInputBorder(
+                borderSide:
+                    BorderSide(color: Theme.of(context).colorScheme.primary),
               )
             : null,
         suffixIcon: IconButton(
@@ -2071,9 +2081,10 @@ class _InputScreenState extends State<InputScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: AppStyles.surface,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppStyles.border),
+              border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2144,15 +2155,15 @@ class _InputScreenState extends State<InputScreen> {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: AppStyles.softBlue,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Text(
         unit,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: AppStyles.unitText,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontWeight: FontWeight.w600,
           fontSize: 15,
           letterSpacing: 0,
@@ -2170,8 +2181,8 @@ class _InputScreenState extends State<InputScreen> {
     return DropdownButtonFormField<String>(
       initialValue: unit,
       isExpanded: true,
-      style: const TextStyle(
-        color: AppStyles.unitText,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
         fontSize: 15,
         fontWeight: FontWeight.w600,
       ),
@@ -2206,8 +2217,8 @@ class _InputScreenState extends State<InputScreen> {
         children: [
           Text(
             helper ?? 'Select the unit exactly as shown in your report.',
-            style: const TextStyle(
-              color: AppStyles.tertiaryText,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -2216,8 +2227,9 @@ class _InputScreenState extends State<InputScreen> {
             OutlinedButton(
               onPressed: () => setState(() => controller.clear()),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppStyles.muted,
-                side: const BorderSide(color: AppStyles.border),
+                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
                   vertical: 2,
@@ -2268,8 +2280,8 @@ class _InputScreenState extends State<InputScreen> {
       child: DropdownButtonFormField<String>(
         initialValue: value,
         isExpanded: true,
-        style: const TextStyle(
-          color: AppStyles.text,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -2339,9 +2351,9 @@ class _HeroHealthGraphic extends StatelessWidget {
       width: 190,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppStyles.softBlue,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: const Column(
         mainAxisSize: MainAxisSize.min,
@@ -2381,19 +2393,19 @@ class _HeroMetricIcon extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: AppStyles.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: AppStyles.primary, size: 24),
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
             const SizedBox(height: 5),
             Text(
               label,
               maxLines: 1,
-              style: const TextStyle(
-                color: AppStyles.text,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
               ),
@@ -2437,8 +2449,8 @@ class _SectionCard extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.child,
-    this.background = Colors.white,
-    this.accent = AppStyles.primary,
+    this.background,
+    this.accent,
     String? reportId,
     bool enabled = true,
     void Function(String id, bool enabled)? onToggle,
@@ -2449,17 +2461,18 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget child;
-  final Color background;
-  final Color accent;
+  final Color? background;
+  final Color? accent;
   final String? chip;
   final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
+    final accent = this.accent ?? Theme.of(context).colorScheme.primary;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: accent.withValues(alpha: 0.18)),
         boxShadow: [
@@ -2492,7 +2505,7 @@ class _SectionCard extends StatelessWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: AppStyles.softBlue,
+                        color: Theme.of(context).colorScheme.surfaceContainer,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: accent.withValues(alpha: 0.16),
@@ -2510,7 +2523,10 @@ class _SectionCard extends StatelessWidget {
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
-                                ?.copyWith(color: AppStyles.text),
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface),
                           ),
                           if (chip != null) ...[
                             const SizedBox(height: 6),
@@ -2552,7 +2568,7 @@ class _SectionChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: AppStyles.softBlue,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
@@ -2560,7 +2576,7 @@ class _SectionChip extends StatelessWidget {
         label,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: AppStyles.muted,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontWeight: FontWeight.w700,
           fontSize: 11,
         ),
@@ -2589,10 +2605,12 @@ class _ReportToggleCard extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 116),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppStyles.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: selected ? section.accent : AppStyles.border,
+            color: selected
+                ? section.accent
+                : Theme.of(context).colorScheme.outlineVariant,
           ),
           boxShadow: [
             BoxShadow(
@@ -2611,23 +2629,27 @@ class _ReportToggleCard extends StatelessWidget {
                 const Spacer(),
                 Icon(
                   selected ? Icons.check_circle : Icons.add_circle_outline,
-                  color: selected ? AppStyles.primary : AppStyles.unitText,
+                  color: selected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ],
             ),
             const SizedBox(height: 10),
             Text(
               section.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
-                color: AppStyles.text,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               section.subtitle,
-              style: const TextStyle(fontSize: 13, color: AppStyles.muted),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ],
         ),

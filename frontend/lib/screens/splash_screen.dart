@@ -78,15 +78,17 @@ class _SplashScreenState extends State<SplashScreen>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const DecoratedBox(
-              decoration: BoxDecoration(color: AppStyles.page),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor),
             ),
             const _DepthGlowLayer(),
             AnimatedBuilder(
               animation: _particleController,
               builder: (context, child) {
                 return CustomPaint(
-                  painter: _ParticleFieldPainter(_particleController.value),
+                  painter: _ParticleFieldPainter(_particleController.value,
+                      Theme.of(context).colorScheme.primary),
                 );
               },
             ),
@@ -121,7 +123,8 @@ class _SplashScreenState extends State<SplashScreen>
                 builder: (context, child) {
                   return CustomPaint(
                     size: const Size(280, 58),
-                    painter: _HeartbeatPainter(_heartbeatController.value),
+                    painter: _HeartbeatPainter(_heartbeatController.value,
+                        Theme.of(context).colorScheme.primary),
                   );
                 },
               ),
@@ -157,11 +160,11 @@ class _SplashScreenState extends State<SplashScreen>
                             scale: _titleVisible ? 1 : 0.92,
                             duration: const Duration(milliseconds: 520),
                             curve: Curves.easeOutCubic,
-                            child: const Text(
+                            child: Text(
                               'VitalMap',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: AppStyles.text,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -173,11 +176,11 @@ class _SplashScreenState extends State<SplashScreen>
                           opacity: _taglineVisible ? 1 : 0,
                           duration: const Duration(milliseconds: 520),
                           curve: Curves.easeOut,
-                          child: const Text(
+                          child: Text(
                             'Organ Health Risk Indicator',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: AppStyles.primary,
+                              color: Theme.of(context).colorScheme.primary,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -222,7 +225,8 @@ class _SplashLogo extends StatelessWidget {
             spreadRadius: 8,
           ),
           BoxShadow(
-            color: AppStyles.primary.withValues(alpha: 0.16),
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.16),
             blurRadius: 68,
             spreadRadius: 12,
           ),
@@ -251,7 +255,8 @@ class _DepthGlowLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _SoftHealthGridPainter());
+    return CustomPaint(
+        painter: _SoftHealthGridPainter(Theme.of(context).colorScheme.primary));
   }
 }
 
@@ -298,28 +303,33 @@ class _FloatingMedicalTile extends StatelessWidget {
         width: 72,
         height: 72,
         decoration: BoxDecoration(
-          color: AppStyles.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppStyles.softBlueBorder),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: AppStyles.primary.withValues(alpha: 0.10),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
               blurRadius: 28,
               offset: const Offset(0, 16),
             ),
           ],
         ),
-        child: Icon(icon, color: AppStyles.primary, size: 32),
+        child:
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 32),
       ),
     );
   }
 }
 
 class _SoftHealthGridPainter extends CustomPainter {
+  const _SoftHealthGridPainter(this.color);
+  final Color color;
   @override
   void paint(Canvas canvas, Size size) {
     final line = Paint()
-      ..color = AppStyles.primary.withValues(alpha: 0.05)
+      ..color = color.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     for (var y = size.height * 0.14; y < size.height; y += 42) {
@@ -331,7 +341,7 @@ class _SoftHealthGridPainter extends CustomPainter {
           Offset(x, size.height * 0.1), Offset(x, size.height), line);
     }
     final pulse = Paint()
-      ..color = AppStyles.accent.withValues(alpha: 0.10)
+      ..color = color.withValues(alpha: 0.10)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final path = Path()
@@ -345,13 +355,15 @@ class _SoftHealthGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _SoftHealthGridPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _ParticleFieldPainter extends CustomPainter {
   final double progress;
 
-  const _ParticleFieldPainter(this.progress);
+  const _ParticleFieldPainter(this.progress, this.color);
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -365,21 +377,22 @@ class _ParticleFieldPainter extends CustomPainter {
           (baseY + progress * 28 + math.cos(phase * 0.8) * 8) % size.height;
       final radius = 1.1 + ((i % 5) * 0.34);
       final alpha = 0.2 + ((i % 4) * 0.08);
-      paint.color = AppStyles.primary.withValues(alpha: alpha);
+      paint.color = color.withValues(alpha: alpha);
       canvas.drawCircle(Offset(x, y), radius, paint);
     }
   }
 
   @override
   bool shouldRepaint(covariant _ParticleFieldPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }
 
 class _HeartbeatPainter extends CustomPainter {
   final double progress;
 
-  const _HeartbeatPainter(this.progress);
+  const _HeartbeatPainter(this.progress, this.color);
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -407,14 +420,14 @@ class _HeartbeatPainter extends CustomPainter {
     }
 
     final glowPaint = Paint()
-      ..color = AppStyles.accent.withValues(alpha: 0.30)
+      ..color = color.withValues(alpha: 0.30)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     final linePaint = Paint()
-      ..color = AppStyles.primary.withValues(alpha: 0.88)
+      ..color = color.withValues(alpha: 0.88)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.8
       ..strokeCap = StrokeCap.round
@@ -426,6 +439,6 @@ class _HeartbeatPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _HeartbeatPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }

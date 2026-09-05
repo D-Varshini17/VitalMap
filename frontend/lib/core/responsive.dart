@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../styles.dart';
-
 enum ResponsiveSize { mobile, tablet, desktop }
 
 abstract final class Responsive {
@@ -138,7 +136,8 @@ class ResponsivePage extends StatelessWidget {
 
         return SizedBox.expand(
           child: DecoratedBox(
-            decoration: const BoxDecoration(color: AppStyles.page),
+            decoration:
+                BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Align(

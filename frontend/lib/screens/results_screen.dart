@@ -29,6 +29,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
   Map<String, dynamic>? response;
   Map<String, dynamic>? payload;
   DateTime? lastChecked;
+  bool _exporting = false;
 
   @override
   void initState() {
@@ -75,7 +76,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final moreData = HealthUiAdapter.moreDataNeeded(response);
     final counts = HealthUiAdapter.statusCounts(metrics, moreData);
     final overallRaw = HealthUiAdapter.overallStatus(metrics);
-    final overallStyle = AppStyles.statusStyle(overallRaw);
+    final overallStyle = AppStyles.themedStatusStyle(context, overallRaw);
     final healthScore = HealthUiAdapter.healthScore(metrics, moreData);
 
     return Scaffold(
@@ -85,8 +86,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
               title: const BrandAppBarTitle(title: 'VitalMap'),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.share_outlined),
-                  onPressed: _exportSummary,
+                  tooltip: _exporting ? 'Preparing PDF...' : 'Export PDF',
+                  icon: _exporting
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.share_outlined),
+                  onPressed: _exporting ? null : _exportSummary,
                 ),
               ],
             ),
@@ -129,7 +135,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _summaryHero(
-          status: AppStyles.moreDataStatus,
+          status: AppStyles.themedStatusStyle(context, 'More Data Needed'),
           score: 0,
           calculatedCount: 0,
           monitorCount: 0,
@@ -140,16 +146,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppStyles.border),
+            border:
+                Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           ),
-          child: const Column(
+          child: Column(
             children: [
               Icon(
                 Icons.assignment_outlined,
                 size: 46,
-                color: AppStyles.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               SizedBox(height: 12),
               Text(
@@ -160,7 +167,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
               Text(
                 'Complete the input screen to calculate available indicators.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppStyles.muted),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -181,11 +189,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppStyles.surface,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppStyles.border,
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.24),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -196,10 +205,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
           final intro = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Your Health Summary',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -208,7 +217,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
               Text(
                 'Calculated from available data',
                 style: TextStyle(
-                  color: AppStyles.muted,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary
+                      .withValues(alpha: 0.78),
                   fontSize: 12,
                 ),
               ),
@@ -223,7 +235,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 lastChecked == null
                     ? 'Not checked yet'
                     : _formatDate(lastChecked!),
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary
+                      .withValues(alpha: 0.78),
+                  fontSize: 12,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -272,8 +290,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -281,8 +299,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
+          style: TextStyle(
+            color:
+                Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.78),
             fontSize: 10,
             height: 1.2,
           ),
@@ -320,52 +339,15 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFF0E4),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.warning_amber_rounded,
-                color: Color(0xFFD46B25),
-                size: 16,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Needs Your Attention',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const Spacer(),
-            const Text(
-              'View All',
-              style: TextStyle(
-                color: AppStyles.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        Text('Needs Your Attention',
+            style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
             if (Responsive.isMobile(context)) {
-              return SizedBox(
-                height: 116,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: attentionItems.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (_, index) => SizedBox(
-                    width: 260,
-                    child: _attentionCard(attentionItems[index]),
-                  ),
-                ),
-              );
+              return Column(children: [
+                for (final metric in attentionItems) _attentionCard(metric)
+              ]);
             }
             final columns = Responsive.isDesktop(context) ? 3 : 2;
             final width =
@@ -385,19 +367,20 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _attentionCard(HealthMetric metric) {
-    final status = AppStyles.statusStyle(metric.rawStatus);
+    final status = AppStyles.themedStatusStyle(context, metric.rawStatus);
     return GestureDetector(
       onTap: () => _openDetail(metric),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppStyles.border),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: AppStyles.border,
+              color: Theme.of(context).colorScheme.outlineVariant,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -427,10 +410,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       _smallStatusBadge(status),
                       Text(
                         '${metric.scoreText} >',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
-                          color: AppStyles.text,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -438,9 +421,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   const SizedBox(height: 6),
                   Text(
                     metric.summary,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppStyles.muted,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -472,29 +455,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Organ-wise Result Cards',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'View All',
-              style: TextStyle(
-                color: AppStyles.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        Text('Organ-wise Result Cards',
+            style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = Responsive.columns(
               context,
-              mobile: 2,
+              mobile: 1,
               tablet: 2,
               desktop: 4,
             );
@@ -543,7 +511,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final organMetrics = metrics
         .where((m) => m.organName == organName || m.organKey == organKey)
         .toList();
-    HealthStatusStyle statusStyle = AppStyles.moreDataStatus;
+    HealthStatusStyle statusStyle =
+        AppStyles.themedStatusStyle(context, 'More Data Needed');
     String scoreText = '';
     String label = 'More Data';
     String message = 'Add values to calculate.';
@@ -551,7 +520,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     if (organMetrics.isNotEmpty) {
       matchedMetric = organMetrics.first;
-      statusStyle = AppStyles.statusStyle(matchedMetric.rawStatus);
+      statusStyle =
+          AppStyles.themedStatusStyle(context, matchedMetric.rawStatus);
       scoreText = matchedMetric.scoreText;
       defaultIndex = matchedMetric.indexName;
       label = statusStyle.label;
@@ -573,7 +543,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       decoration: BoxDecoration(
         color: statusStyle.background,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: statusStyle.accent.withValues(alpha: 0.08),
@@ -589,18 +559,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
           const SizedBox(height: 12),
           Text(
             organName,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 15,
-              color: AppStyles.text,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 3),
           Text(
             defaultIndex,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppStyles.muted,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -629,10 +599,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
               if (scoreText.isNotEmpty)
                 Text(
                   'Score $scoreText',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
-                    color: AppStyles.text,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
             ],
@@ -640,9 +610,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
           const SizedBox(height: 10),
           Text(
             message,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppStyles.text,
+              color: Theme.of(context).colorScheme.onSurface,
               height: 1.35,
               fontWeight: FontWeight.w600,
             ),
@@ -659,13 +629,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       _openDetail(detailMetric);
                     },
               style: TextButton.styleFrom(
-                foregroundColor: AppStyles.primary,
-                disabledForegroundColor: AppStyles.muted,
-                backgroundColor: AppStyles.surface,
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                disabledForegroundColor:
+                    Theme.of(context).colorScheme.onSurfaceVariant,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 side: BorderSide(
                   color: detailMetric == null
-                      ? AppStyles.border
-                      : AppStyles.primary.withValues(alpha: 0.18),
+                      ? Theme.of(context).colorScheme.outlineVariant
+                      : Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.18),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999),
@@ -690,36 +664,24 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Calculated Indicators',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'Tap to view details',
-              style: TextStyle(
-                color: AppStyles.muted,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+        Text('Calculated Indicators',
+            style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppStyles.border),
+            border:
+                Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           ),
           child: Column(
             children: [
               for (int i = 0; i < metrics.length; i++) ...[
                 _indicatorRow(metrics[i]),
                 if (i != metrics.length - 1)
-                  const Divider(height: 1, color: AppStyles.border),
+                  Divider(
+                      height: 1,
+                      color: Theme.of(context).colorScheme.outlineVariant),
               ],
             ],
           ),
@@ -729,71 +691,55 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _indicatorRow(HealthMetric metric) {
-    final status = AppStyles.statusStyle(metric.rawStatus);
+    final status = AppStyles.themedStatusStyle(context, metric.rawStatus);
+    final colors = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () => _openDetail(metric),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            OrganVisualIcon(organ: metric.organKey, size: 34, iconSize: 18),
-            const SizedBox(width: 10),
-            Expanded(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(children: [
+          OrganVisualIcon(organ: metric.organKey, size: 34, iconSize: 18),
+          const SizedBox(width: 10),
+          Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    metric.indexName,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: AppStyles.text,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    metric.displayName,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppStyles.muted,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(metric.indexName,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: colors.onSurface)),
+                Text(metric.displayName,
+                    style: TextStyle(
+                        fontSize: 12, color: colors.onSurfaceVariant)),
+              ])),
+          const SizedBox(width: 8),
+          Flexible(
+              child:
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(
-              metric.unit.isEmpty
-                  ? metric.scoreText
-                  : '${metric.scoreText} ${metric.unit}',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: AppStyles.text,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: status.badgeBackground,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                AppStyles.displayStatusLabel(status.label),
+                metric.unit.isEmpty
+                    ? metric.scoreText
+                    : '${metric.scoreText} ${metric.unit}',
+                textAlign: TextAlign.end,
                 style: TextStyle(
-                  color: status.text,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            const SizedBox(width: 4),
-            const Icon(Icons.chevron_right, size: 18, color: AppStyles.muted),
-          ],
-        ),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: colors.onSurface)),
+            const SizedBox(height: 6),
+            Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                    color: status.badgeBackground,
+                    borderRadius: BorderRadius.circular(12)),
+                child: Text(AppStyles.displayStatusLabel(status.label),
+                    style: TextStyle(
+                        color: status.text,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700))),
+          ])),
+          Icon(Icons.chevron_right, size: 18, color: colors.onSurfaceVariant),
+        ]),
       ),
     );
   }
@@ -852,7 +798,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         Icons.directions_walk,
         'Lifestyle',
         lifestyle,
-        AppStyles.lifestyleContributor,
+        AppStyles.themedContributorStyle(context, 'lifestyleContributor'),
       ));
     }
     if (food.isNotEmpty) {
@@ -860,7 +806,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         Icons.restaurant_menu,
         'Food Habits',
         food,
-        AppStyles.foodContributor,
+        AppStyles.themedContributorStyle(context, 'foodContributor'),
       ));
     }
     if (environment.isNotEmpty) {
@@ -868,7 +814,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         Icons.eco_outlined,
         'Environment',
         environment,
-        AppStyles.environmentContributor,
+        AppStyles.themedContributorStyle(context, 'environmentContributor'),
       ));
     }
     if (follow.isNotEmpty) {
@@ -876,7 +822,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         Icons.medical_services_outlined,
         'Follow-up',
         follow,
-        AppStyles.generalInfo,
+        AppStyles.themedContributorStyle(context, 'generalInfo'),
       ));
     }
     return cards;
@@ -934,8 +880,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
           const SizedBox(height: 5),
           Text(
             text,
-            style: const TextStyle(
-              color: AppStyles.text,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 12,
               height: 1.35,
               fontWeight: FontWeight.w600,
@@ -970,10 +916,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppStyles.moreDataStatus.background,
+                        color: AppStyles.themedStatusStyle(
+                                context, 'More Data Needed')
+                            .background,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppStyles.moreDataStatus.border,
+                          color: AppStyles.themedStatusStyle(
+                                  context, 'More Data Needed')
+                              .border,
                         ),
                       ),
                       child: LayoutBuilder(
@@ -993,8 +943,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Required units: ${item['required_units']}',
-                                  style: const TextStyle(
-                                    color: AppStyles.muted,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                     fontSize: 11,
                                     height: 1.3,
                                   ),
@@ -1004,8 +956,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   item['why_required'].toString(),
-                                  style: const TextStyle(
-                                    color: AppStyles.muted,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                     fontSize: 11,
                                     height: 1.3,
                                   ),
@@ -1124,24 +1078,26 @@ class _ResultsScreenState extends State<ResultsScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppStyles.border),
+                        border: Border.all(
+                            color:
+                                Theme.of(context).colorScheme.outlineVariant),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.check_circle_outline,
-                            color: AppStyles.primary,
+                            color: Theme.of(context).colorScheme.primary,
                             size: 18,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               tip,
-                              style: const TextStyle(
-                                color: AppStyles.text,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 height: 1.35,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1167,8 +1123,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Future<void> _exportSummary() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
     final result = await ExportSummaryService.exportLastSummary();
     if (!mounted) return;
+    setState(() => _exporting = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(result.message)),
     );
@@ -1209,15 +1168,16 @@ class _ScoreRing extends StatelessWidget {
         children: [
           CustomPaint(
             size: const Size.square(104),
-            painter: _ScoreRingPainter(progress),
+            painter: _ScoreRingPainter(
+                progress, Theme.of(context).colorScheme.onPrimary),
           ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 score.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                   height: 1.0,
@@ -1226,7 +1186,7 @@ class _ScoreRing extends StatelessWidget {
               Text(
                 '/100',
                 style: TextStyle(
-                  color: AppStyles.softBlue,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontSize: 12,
                 ),
               ),
@@ -1239,7 +1199,8 @@ class _ScoreRing extends StatelessWidget {
 }
 
 class _ScoreRingPainter extends CustomPainter {
-  const _ScoreRingPainter(this.progress);
+  const _ScoreRingPainter(this.progress, this.foreground);
+  final Color foreground;
 
   final double progress;
 
@@ -1252,12 +1213,12 @@ class _ScoreRingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round
-      ..color = AppStyles.softBlue.withValues(alpha: 0.55);
+      ..color = foreground.withValues(alpha: 0.25);
     final active = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round
-      ..color = AppStyles.accent;
+      ..color = foreground;
     canvas.drawCircle(center, radius, track);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
@@ -1270,6 +1231,7 @@ class _ScoreRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ScoreRingPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress ||
+        oldDelegate.foreground != foreground;
   }
 }

@@ -25,7 +25,7 @@ class OrganDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = _primaryMetric();
     final rawStatus = primary?.rawStatus ?? 'More Data Needed';
-    final status = AppStyles.statusStyle(rawStatus);
+    final status = AppStyles.themedStatusStyle(context, rawStatus);
     return DefaultTabController(
       length: 4,
       child: SafeArea(
@@ -51,17 +51,17 @@ class OrganDetailScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
                     children: [
-                      _topCard(primary, status),
+                      _topCard(context, primary, status),
                       const SizedBox(height: 12),
-                      _tabs(),
+                      _tabs(context),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.66,
                         child: TabBarView(
                           children: [
-                            _overviewTab(primary, status),
-                            _indicatorsTab(),
-                            _insightsTab(primary),
-                            _tipsTab(primary),
+                            _overviewTab(context, primary, status),
+                            _indicatorsTab(context),
+                            _insightsTab(context, primary),
+                            _tipsTab(context, primary),
                           ],
                         ),
                       ),
@@ -76,13 +76,14 @@ class OrganDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _topCard(HealthMetric? primary, HealthStatusStyle status) {
+  Widget _topCard(
+      BuildContext context, HealthMetric? primary, HealthStatusStyle status) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: status.accent.withValues(alpha: 0.08),
@@ -114,8 +115,8 @@ class OrganDetailScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 primary?.displayName ?? 'More Data Needed',
-                style: const TextStyle(
-                  color: AppStyles.muted,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -136,7 +137,7 @@ class OrganDetailScreen extends StatelessWidget {
                 child: LinearProgressIndicator(
                   minHeight: 7,
                   value: _progressForStatus(status),
-                  backgroundColor: AppStyles.border,
+                  backgroundColor: Theme.of(context).colorScheme.outlineVariant,
                   color: status.accent,
                 ),
               ),
@@ -164,15 +165,17 @@ class OrganDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _tabs() {
+  Widget _tabs(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppStyles.border)),
+      decoration: BoxDecoration(
+        border: Border(
+            bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant)),
       ),
-      child: const TabBar(
-        labelColor: AppStyles.primary,
-        unselectedLabelColor: AppStyles.muted,
-        indicatorColor: AppStyles.primary,
+      child: TabBar(
+        labelColor: Theme.of(context).colorScheme.primary,
+        unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        indicatorColor: Theme.of(context).colorScheme.primary,
         labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
         tabs: [
           Tab(text: 'Summary'),
@@ -184,21 +187,24 @@ class OrganDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _overviewTab(HealthMetric? primary, HealthStatusStyle status) {
+  Widget _overviewTab(
+      BuildContext context, HealthMetric? primary, HealthStatusStyle status) {
     return ListView(
       padding: const EdgeInsets.only(top: 14),
       children: [
-        _riskLevelCard(status, primary),
+        _riskLevelCard(context, status, primary),
         const SizedBox(height: 12),
-        _keyIndicatorsCard(),
+        _keyIndicatorsCard(context),
         const SizedBox(height: 12),
         const DisclaimerWidget(),
       ],
     );
   }
 
-  Widget _riskLevelCard(HealthStatusStyle status, HealthMetric? primary) {
+  Widget _riskLevelCard(
+      BuildContext context, HealthStatusStyle status, HealthMetric? primary) {
     return _detailCard(
+      context,
       title: 'Risk Level',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +227,7 @@ class OrganDetailScreen extends StatelessWidget {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       shape: BoxShape.circle,
                       border: Border.all(color: status.accent, width: 3),
                     ),
@@ -231,52 +237,63 @@ class OrganDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Low', style: TextStyle(color: AppStyles.muted)),
-              Text('Moderate', style: TextStyle(color: AppStyles.muted)),
-              Text('High', style: TextStyle(color: AppStyles.muted)),
+              Text('Low',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text('Moderate',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text('High',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             primary?.summary ??
                 'Add available values to unlock this organ insight.',
-            style: const TextStyle(color: AppStyles.text, height: 1.35),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface, height: 1.35),
           ),
         ],
       ),
     );
   }
 
-  Widget _keyIndicatorsCard() {
+  Widget _keyIndicatorsCard(BuildContext context) {
     return _detailCard(
+      context,
       title: 'Key Indicators',
       child: metrics.isEmpty
           ? Text(
               missingCount == 0
                   ? 'No report values are available for this organ yet.'
                   : '$missingCount values can improve this insight.',
-              style: const TextStyle(color: AppStyles.muted),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             )
           : Column(
-              children: [for (final metric in metrics) _indicatorRow(metric)],
+              children: [
+                for (final metric in metrics) _indicatorRow(context, metric)
+              ],
             ),
     );
   }
 
-  Widget _indicatorRow(HealthMetric metric) {
-    final status = AppStyles.statusStyle(metric.rawStatus);
+  Widget _indicatorRow(BuildContext context, HealthMetric metric) {
+    final status = AppStyles.themedStatusStyle(context, metric.rawStatus);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 8,
         children: [
-          Expanded(
-            child: Text(
-              metric.indexName,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
+          Text(
+            metric.indexName,
+            style: const TextStyle(fontWeight: FontWeight.w800),
           ),
           Text(
             '${metric.scoreText}${metric.unit.isEmpty ? '' : ' ${metric.unit}'}',
@@ -289,16 +306,18 @@ class OrganDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _indicatorsTab() {
+  Widget _indicatorsTab(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.only(top: 14),
       children: [
         _detailCard(
+          context,
           title: 'Indicators',
           child: metrics.isEmpty
-              ? const Text(
+              ? Text(
                   'More report values are needed for this organ.',
-                  style: TextStyle(color: AppStyles.muted),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,9 +334,13 @@ class OrganDetailScreen extends StatelessWidget {
                         children: [
                           for (final entry in metric.valuesUsed.entries)
                             Chip(
-                              backgroundColor: AppStyles.softBlue,
-                              side: const BorderSide(
-                                color: AppStyles.softBlueBorder,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
+                              side: BorderSide(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant,
                               ),
                               label: Text(
                                 '${HealthUiAdapter.cleanKey(entry.key)}: ${entry.value}',
@@ -334,11 +357,12 @@ class OrganDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _insightsTab(HealthMetric? primary) {
+  Widget _insightsTab(BuildContext context, HealthMetric? primary) {
     return ListView(
       padding: const EdgeInsets.only(top: 14),
       children: [
         _detailCard(
+          context,
           title: 'Insights',
           child: Text(
             primary?.summary ??
@@ -350,7 +374,7 @@ class OrganDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _tipsTab(HealthMetric? primary) {
+  Widget _tipsTab(BuildContext context, HealthMetric? primary) {
     final suggestions =
         (primary?.source?['suggestions'] as List<dynamic>? ?? const [])
             .map((item) => item.toString())
@@ -360,6 +384,7 @@ class OrganDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.only(top: 14),
       children: [
         _detailCard(
+          context,
           title: 'Tips',
           child: suggestions.isEmpty
               ? const Text(
@@ -374,9 +399,9 @@ class OrganDetailScreen extends StatelessWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.check_circle_outline,
-                              color: AppStyles.primary,
+                              color: Theme.of(context).colorScheme.primary,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
@@ -391,13 +416,14 @@ class OrganDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _detailCard({required String title, required Widget child}) {
+  Widget _detailCard(BuildContext context,
+      {required String title, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

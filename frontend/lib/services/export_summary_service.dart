@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -18,6 +19,17 @@ class ExportSummaryService {
   static const _disclaimer = HealthUiAdapter.disclaimer;
 
   static Future<ExportSummaryResult> exportLastSummary() async {
+    try {
+      return await _exportLastSummary();
+    } catch (error, stack) {
+      debugPrint('PDF export failed: $error\n$stack');
+      return const ExportSummaryResult(
+          success: false,
+          message: 'Unable to prepare the PDF. Please try again.');
+    }
+  }
+
+  static Future<ExportSummaryResult> _exportLastSummary() async {
     final storedResponse = await LocalStorage.loadLastResponse();
     final payload = await LocalStorage.loadLastPayload();
     final response = Map<String, dynamic>.from(

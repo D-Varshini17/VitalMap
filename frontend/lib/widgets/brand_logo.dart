@@ -16,11 +16,14 @@ class BrandLogoMark extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(size * 0.22),
-        border: Border.all(color: AppStyles.softBlueBorder),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: glow
             ? [
                 BoxShadow(
-                  color: AppStyles.accent.withValues(alpha: 0.32),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.32),
                   blurRadius: size * 0.5,
                   spreadRadius: size * 0.05,
                 ),

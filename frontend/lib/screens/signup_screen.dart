@@ -57,6 +57,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Create account')),
       body: ResponsivePage(
+        maxWidth: 560,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -126,13 +127,15 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: ElevatedButton(
                           onPressed: _submitting ? null : _submit,
                           child: _submitting
-                              ? const SizedBox(
+                              ? SizedBox(
                                   height: 18,
                                   width: 18,
                                   child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation(Colors.white)))
+                                      valueColor: AlwaysStoppedAnimation(
+                                          Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary)))
                               : const Text('Create account'),
                         ),
                       ),

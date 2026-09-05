@@ -13,7 +13,7 @@ class IndexDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = AppStyles.statusStyle(metric.rawStatus);
+    final status = AppStyles.themedStatusStyle(context, metric.rawStatus);
     final source = metric.source ?? const <String, dynamic>{};
     final recommendation = Map<String, dynamic>.from(
       source['recommendation'] as Map? ?? const {},
@@ -35,8 +35,8 @@ class IndexDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(metric.indexName),
-        backgroundColor: AppStyles.surface,
-        foregroundColor: AppStyles.text,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => Navigator.of(context).pop(),
@@ -57,12 +57,13 @@ class IndexDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppStyles.border),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: AppStyles.border,
+                    color: Theme.of(context).colorScheme.outlineVariant,
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -83,17 +84,18 @@ class IndexDetailScreen extends StatelessWidget {
                       children: [
                         Text(
                           metric.indexName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
-                            color: AppStyles.text,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           metric.displayName,
-                          style: const TextStyle(
-                            color: AppStyles.muted,
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -104,15 +106,15 @@ class IndexDetailScreen extends StatelessWidget {
                           runSpacing: 8,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            _statusBadge(status),
+                            _statusBadge(context, status),
                             Text(
                               metric.unit.isEmpty
                                   ? metric.scoreText
                                   : '${metric.scoreText} ${metric.unit}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
-                                color: AppStyles.text,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ],
@@ -124,17 +126,18 @@ class IndexDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            _section('What this means', [metric.summary]),
-            _section('Values used', values),
-            _section('Formula', [
+            _section(context, 'What this means', [metric.summary]),
+            _section(context, 'Values used', values),
+            _section(context, 'Formula', [
               source['formula_used']?.toString() ??
                   'Formula metadata unavailable.',
             ]),
-            _section('Why am I seeing this?', [
+            _section(context, 'Why am I seeing this?', [
               recommendation['why']?.toString() ??
                   'This recommendation is based on the calculated index and entered values.',
             ]),
             _section(
+              context,
               'Possible contributors',
               contributors.isEmpty
                   ? [
@@ -143,6 +146,7 @@ class IndexDetailScreen extends StatelessWidget {
                   : contributors,
             ),
             _section(
+              context,
               'Suggestions',
               suggestions.isEmpty
                   ? [
@@ -151,8 +155,8 @@ class IndexDetailScreen extends StatelessWidget {
                   : suggestions,
               checkmarks: true,
             ),
-            _section('Doctor follow-up', [doctorFollowup]),
-            _section('Limitations and cautions', [
+            _section(context, 'Doctor follow-up', [doctorFollowup]),
+            _section(context, 'Limitations and cautions', [
               ..._stringList(recommendation['cautions']),
               recommendation['evidence_note']?.toString() ??
                   metadata['interpretation_note']?.toString() ??
@@ -162,14 +166,15 @@ class IndexDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7FAFD),
+                color: Theme.of(context).colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppStyles.border),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant),
               ),
-              child: const Text(
+              child: Text(
                 'For informational purposes only. This app is not a substitute for clinical diagnosis, treatment, or medical advice. Please consult a qualified healthcare professional for medical decisions.',
                 style: TextStyle(
-                  color: AppStyles.muted,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                   height: 1.35,
                 ),
@@ -189,7 +194,7 @@ class IndexDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _statusBadge(HealthStatusStyle status) {
+  Widget _statusBadge(BuildContext context, HealthStatusStyle status) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -208,34 +213,36 @@ class IndexDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _section(String title, List<String> items, {bool checkmarks = false}) {
+  Widget _section(BuildContext context, String title, List<String> items,
+      {bool checkmarks = false}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppStyles.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
-              color: AppStyles.text,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 10),
-          ...items.map((item) => _bullet(item, checkmarks: checkmarks)),
+          ...items
+              .map((item) => _bullet(context, item, checkmarks: checkmarks)),
         ],
       ),
     );
   }
 
-  Widget _bullet(String item, {bool checkmarks = false}) {
+  Widget _bullet(BuildContext context, String item, {bool checkmarks = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -247,16 +254,16 @@ class IndexDetailScreen extends StatelessWidget {
               checkmarks ? Icons.check_circle_outline : Icons.circle,
               size: checkmarks ? 16 : 7,
               color: checkmarks
-                  ? AppStyles.lowConcernStatus.accent
-                  : AppStyles.primary,
+                  ? AppStyles.themedStatusStyle(context, 'Good').accent
+                  : Theme.of(context).colorScheme.primary,
             ),
           ),
           Expanded(
             child: Text(
               item,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppStyles.text,
+                color: Theme.of(context).colorScheme.onSurface,
                 height: 1.35,
               ),
             ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../styles.dart';
-
 class OrganVisualIcon extends StatelessWidget {
   const OrganVisualIcon({
     super.key,
@@ -18,7 +16,7 @@ class OrganVisualIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = organVisualStyle(organ);
+    final style = organVisualStyle(context, organ);
 
     return Container(
       width: size,
@@ -67,84 +65,84 @@ class OrganVisualStyle {
   final Color accent;
 }
 
-OrganVisualStyle organVisualStyle(String organ) {
+OrganVisualStyle organVisualStyle(BuildContext context, String organ) {
   switch (organ.trim().toLowerCase()) {
     case 'heart':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/heart.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'liver':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/liver.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'kidney':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/kidney.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'lung':
     case 'lungs':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/lungs.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'diabetes / metabolic':
     case 'diabetes':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/brain_metabolic.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'brain / metabolic':
     case 'brain':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/brain_metabolic.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'inflammation':
     case 'cbc / differential':
     case 'cbc':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/inflammation.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'pancreas':
     case 'pancreatic enzymes':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/pancreas.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     case 'cancer awareness':
     case 'cancer':
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/cancer_awareness.png',
-        background: AppStyles.surface,
-        border: AppStyles.border,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
     default:
-      return const OrganVisualStyle(
+      return OrganVisualStyle(
         assetPath: 'assets/images/organs/heart.png',
-        background: AppStyles.softBlue,
-        border: AppStyles.softBlueBorder,
-        accent: AppStyles.primary,
+        background: Theme.of(context).colorScheme.surfaceContainer,
+        border: Theme.of(context).colorScheme.outlineVariant,
+        accent: Theme.of(context).colorScheme.primary,
       );
   }
 }

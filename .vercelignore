@@ -1,0 +1,5 @@
+frontend/vercel-dist/
+frontend/build/
+.flutter-sdk/
+backend/
+releases/

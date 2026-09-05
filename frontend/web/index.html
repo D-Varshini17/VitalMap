@@ -36,8 +36,8 @@
     body {
       min-height: 100%;
       margin: 0;
-      background: #F4FBFF;
-      color: #17323D;
+      background: #F4F7F6;
+      color: #15201D;
       font-family: Arial, Helvetica, sans-serif;
     }
 
@@ -45,7 +45,7 @@
       min-height: 100vh;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, #F4FBFF 0%, #FFFFFF 55%, #E9FBFF 100%);
+      background: linear-gradient(135deg, #F4FBFF 0%, #FFFFFF 55%, #E4F1EC 100%);
     }
 
     #loading-card {
@@ -70,8 +70,13 @@
 
     #loading-subtitle {
       margin-top: 6px;
-      color: #667E89;
+      color: #52605C;
       font-size: 14px;
+    }
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #0E1513; color: #F2F7F5; }
+      #loading { background: linear-gradient(135deg, #0E1513, #1B2925); }
+      #loading-subtitle { color: #B5C5C0; }
     }
   </style>
 </head>
@@ -91,6 +96,11 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      document.getElementById('loading')?.remove();
+    }, { once: true });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
