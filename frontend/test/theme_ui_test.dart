@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vitalmap/styles.dart';
 import 'package:vitalmap/main.dart';
+import 'package:vitalmap/storage/local_storage.dart';
 import 'package:vitalmap/core/local_analysis_engine.dart';
 import 'package:vitalmap/core/ui_result_adapter.dart';
 import 'package:vitalmap/screens/login_screen.dart';
@@ -154,5 +155,43 @@ void main() {
     expect(restored.themeMode, ThemeMode.dark);
     restored.dispose();
     await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets('clearing saved data refreshes preserved shell pages',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await LocalStorage.saveLastPayload({
+      'profile': {'age': 60}
+    });
+    await LocalStorage.saveLastResponse(response);
+    final controller = AppThemeController();
+    await tester.pumpWidget(MaterialApp(
+      theme: AppStyles.lightTheme,
+      home: HomeContainer(
+          themeController: controller, onSignOut: () {}, userEmail: null),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Your Health Summary'), findsOneWidget);
+    await tester.tap(find.text('More').last);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Clear Saved Data'));
+    await tester.tap(find.text('Clear Saved Data'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Clear'));
+    await tester.pumpAndSettle();
+    expect(await LocalStorage.loadLastResponse(), isNull);
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.text('No screening insight yet'), findsOneWidget);
+    await tester.tap(find.text('Input'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<TextFormField>(find.byType(TextFormField).first)
+            .controller!
+            .text,
+        isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    controller.dispose();
   });
 }

@@ -217,10 +217,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               Text(
                 'Calculated from available data',
                 style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onPrimary
-                      .withValues(alpha: 0.78),
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontSize: 12,
                 ),
               ),
@@ -236,10 +233,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                     ? 'Not checked yet'
                     : _formatDate(lastChecked!),
                 style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onPrimary
-                      .withValues(alpha: 0.78),
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontSize: 12,
                 ),
               ),
@@ -300,8 +294,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         Text(
           label,
           style: TextStyle(
-            color:
-                Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.78),
+            color: Theme.of(context).colorScheme.onPrimary,
             fontSize: 10,
             height: 1.2,
           ),
@@ -380,7 +373,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
               Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.outlineVariant,
+              color:
+                  Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

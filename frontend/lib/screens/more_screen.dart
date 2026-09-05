@@ -16,6 +16,7 @@ class MoreScreen extends StatefulWidget {
     required this.userEmail,
     required this.themeMode,
     required this.onThemeModeChanged,
+    this.onDataCleared,
   });
 
   final VoidCallback onStartAnalysis;
@@ -24,6 +25,7 @@ class MoreScreen extends StatefulWidget {
   final String? userEmail;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
+  final VoidCallback? onDataCleared;
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();
@@ -399,7 +401,7 @@ class _MoreScreenState extends State<MoreScreen> {
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.outlineVariant,
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -643,6 +645,7 @@ class _MoreScreenState extends State<MoreScreen> {
     if (clear != true) return;
     await LocalStorage.clearAll();
     if (!mounted) return;
+    widget.onDataCleared?.call();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Saved data cleared.')),
     );

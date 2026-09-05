@@ -16,6 +16,22 @@ async function get(url) {
   const [status, runs] = await Promise.all([get(`${base}/commits/${revision}/status`), get(`${base}/actions/runs?head_sha=${revision}`)]);
   console.log(JSON.stringify({revision, deployments: status.statuses.map(s => ({name: s.context, state: s.state, url: s.target_url})), runs: runs.workflow_runs.map(r => ({id: r.id, status: r.status, conclusion: r.conclusion, url: r.html_url}))}, null, 2));
   for (const run of runs.workflow_runs) {
+    if (process.argv.includes('--download-apk')) {
+      const list = await get(`${base}/actions/runs/${run.id}/artifacts`);
+      const artifact = list.artifacts.find(a => a.name === 'vitalmap-release-apk' && !a.expired);
+      if (artifact) {
+        const redirect = await fetch(`${base}/actions/artifacts/${artifact.id}/zip`, {headers, redirect: 'manual'});
+        const location = redirect.headers.get('location');
+        if (!location) throw new Error('Artifact download redirect missing');
+        // The signed artifact URL needs no GitHub Authorization header.
+        const download = await fetch(location);
+        if (!download.ok) throw new Error('Artifact download failed');
+        const fs = require('node:fs');
+        fs.mkdirSync('artifacts/android-release', {recursive: true});
+        fs.writeFileSync('artifacts/android-release/apk.zip', Buffer.from(await download.arrayBuffer()));
+        console.log('Downloaded artifacts/android-release/apk.zip');
+      }
+    }
     const jobs = await get(`${base}/actions/runs/${run.id}/jobs`);
     console.log(JSON.stringify(jobs.jobs.map(j => ({id: j.id, status: j.status, conclusion: j.conclusion, steps: j.steps.map(s => ({name: s.name, status: s.status, conclusion: s.conclusion}))})), null, 2));
     if (run.conclusion === 'failure') {

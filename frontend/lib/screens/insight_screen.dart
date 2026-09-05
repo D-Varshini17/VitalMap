@@ -143,7 +143,8 @@ class _OrganInsightCard extends StatelessWidget {
               Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.outlineVariant,
+              color:
+                  Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -421,7 +422,10 @@ class OrganEducationScreen extends StatelessWidget {
                     color: Theme.of(context).colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.outlineVariant,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .shadow
+                        .withValues(alpha: 0.08),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),

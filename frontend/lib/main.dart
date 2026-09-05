@@ -179,6 +179,7 @@ class _HomeContainerState extends State<HomeContainer> {
   Map<String, dynamic>? _lastResponse;
   Map<String, dynamic>? _lastPayload;
   DateTime? _lastChecked;
+  int _dataRevision = 0;
 
   @override
   void initState() {
@@ -218,7 +219,10 @@ class _HomeContainerState extends State<HomeContainer> {
   Widget build(BuildContext context) {
     final pages = [
       ResultsScreen(response: _lastResponse, lastChecked: _lastChecked),
-      InputScreen(onAnalysisComplete: _handleAnalysisComplete),
+      InputScreen(
+        key: ValueKey(_dataRevision),
+        onAnalysisComplete: _handleAnalysisComplete,
+      ),
       ResultsScreen(
         response: _lastResponse,
         payload: _lastPayload,
@@ -226,11 +230,18 @@ class _HomeContainerState extends State<HomeContainer> {
       ),
       const InsightScreen(),
       MoreScreen(
+        key: ValueKey(_lastChecked),
         themeMode: widget.themeController.themeMode,
         onThemeModeChanged: widget.themeController.setThemeMode,
         onStartAnalysis: () => setState(() => _currentIndex = 1),
         onViewResults: () => setState(() => _currentIndex = 2),
         onSignOut: widget.onSignOut,
+        onDataCleared: () => setState(() {
+          _lastResponse = null;
+          _lastPayload = null;
+          _lastChecked = null;
+          _dataRevision++;
+        }),
         userEmail: widget.userEmail,
       ),
     ];

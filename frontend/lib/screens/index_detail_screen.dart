@@ -63,7 +63,10 @@ class IndexDetailScreen extends StatelessWidget {
                     color: Theme.of(context).colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.outlineVariant,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .shadow
+                        .withValues(alpha: 0.08),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),

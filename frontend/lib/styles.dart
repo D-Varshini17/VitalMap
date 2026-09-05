@@ -382,6 +382,18 @@ class AppStyles {
         brightness: brightness,
         primary: primaryColor,
         onPrimary: onPrimaryColor,
+        error: brightness == Brightness.dark
+            ? const Color(0xFFFFB4AB)
+            : const Color(0xFFB42318),
+        onError: brightness == Brightness.dark
+            ? const Color(0xFF690005)
+            : Colors.white,
+        errorContainer: brightness == Brightness.dark
+            ? const Color(0xFF442520)
+            : const Color(0xFFFFF1EF),
+        onErrorContainer: brightness == Brightness.dark
+            ? const Color(0xFFFFDAD6)
+            : const Color(0xFF7A271A),
         secondary: primaryColor,
         surface: surfaceColor,
         surfaceContainer: secondarySurface,
