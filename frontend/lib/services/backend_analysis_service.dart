@@ -3,10 +3,18 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class BackendAnalysisService {
-  static const backendUrl = String.fromEnvironment(
+  static const _defaultBackendUrl = String.fromEnvironment(
     'VITALMAP_BACKEND_URL',
     defaultValue: 'http://127.0.0.1:8000',
   );
+
+  static String get backendUrl {
+    final runtimeUrl = Uri.base.queryParameters['backendUrl']?.trim();
+    if (runtimeUrl != null && runtimeUrl.isNotEmpty) {
+      return runtimeUrl;
+    }
+    return _defaultBackendUrl;
+  }
 
   static bool get isConfigured => backendUrl.trim().isNotEmpty;
 

@@ -31,6 +31,7 @@ DEFAULT_CORS_ORIGINS = (
     "http://localhost:8080,http://127.0.0.1:8080,"
     "http://localhost:8081,http://127.0.0.1:8081"
 )
+DEFAULT_CORS_ORIGIN_REGEX = r"https://.*\.vercel\.app"
 
 cors_origins = [
     origin.strip()
@@ -43,6 +44,10 @@ if not cors_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=os.getenv(
+        "CORS_ALLOW_ORIGIN_REGEX",
+        DEFAULT_CORS_ORIGIN_REGEX,
+    ),
     allow_credentials="*" not in cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],

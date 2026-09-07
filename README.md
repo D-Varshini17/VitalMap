@@ -76,6 +76,12 @@ flutter run -d chrome --dart-define=VITALMAP_BACKEND_URL=http://127.0.0.1:8000
 
 The Flutter client never uses `0.0.0.0` as a destination address. If the backend or Ollama is unavailable, the app falls back safely and deterministic calculations still work.
 
+You can also override the backend URL at runtime from the browser address bar:
+
+```text
+http://localhost:8080/?backendUrl=http://127.0.0.1:8000
+```
+
 ### Android physical phone
 
 `127.0.0.1` on Android means the phone itself. For a phone on the same Wi-Fi network, find your laptop IPv4 address:
@@ -105,7 +111,20 @@ It checks Python, `.venv`, pip, FastAPI, Uvicorn, Ollama, `qwen3:1.7b`, Ollama A
 
 ### Deployed web behavior
 
-Vercel cannot access Ollama running on your laptop at `127.0.0.1:11434`. Deployed builds treat Local AI as unavailable unless the browser can reach a backend you started locally. Deterministic calculations and fallback recommendations continue without a paid/cloud LLM.
+Vercel cannot access Ollama running on your laptop at `127.0.0.1:11434`, and browsers block an `https://*.vercel.app` page from calling a plain `http://127.0.0.1:8000` API. To use your local API from the deployed web app, start the backend locally, expose port `8000` through an HTTPS tunnel, then open the Vercel app with the tunnel URL:
+
+```powershell
+start_vitalmap.bat
+open_web_with_local_api.bat https://YOUR-HTTPS-BACKEND-URL
+```
+
+The helper opens:
+
+```text
+https://vital-map.vercel.app/?backendUrl=https://YOUR-HTTPS-BACKEND-URL
+```
+
+The backend allows Vercel origins by default through `CORS_ALLOW_ORIGIN_REGEX=https://.*\.vercel\.app`. Deterministic calculations and fallback recommendations continue without a paid/cloud LLM if the tunnel or backend is unavailable.
 
 ## Project map
 
