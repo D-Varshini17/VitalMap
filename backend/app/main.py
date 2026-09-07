@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,11 +8,33 @@ from .formulas import FormulaEngine
 from .explanation_engine import ExplanationEngine
 from .ai_recommendation import AIRecommendationService
 
+def _load_backend_env() -> None:
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_backend_env()
+
 app = FastAPI(title="VitalMap Backend")
+
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:3000,http://127.0.0.1:3000,"
+    "http://localhost:5000,http://127.0.0.1:5000,"
+    "http://localhost:8000,http://127.0.0.1:8000,"
+    "http://localhost:8080,http://127.0.0.1:8080,"
+    "http://localhost:8081,http://127.0.0.1:8081"
+)
 
 cors_origins = [
     origin.strip()
-    for origin in os.getenv("CORS_ALLOW_ORIGINS", "*").split(",")
+    for origin in os.getenv("CORS_ALLOW_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
     if origin.strip()
 ]
 if not cors_origins:
@@ -50,6 +73,17 @@ def _analyze_payload(payload: AnalyzeRequest) -> AnalyzeResponse:
         disclaimer=disclaimer,
         ai=ai,
     )
+
+
+@app.get("/")
+def root():
+    return {
+        "name": "VitalMap Backend",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health",
+        "ai_status": "/ai/status",
+    }
 
 
 @app.get("/health")

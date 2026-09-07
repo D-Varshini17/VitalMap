@@ -5,10 +5,12 @@ from copy import deepcopy
 
 from fastapi.testclient import TestClient
 
+os.environ["ENABLE_AI_RECOMMENDATIONS"] = "false"
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from backend.app.main import app  # noqa: E402
-from backend.app.ai_recommendation import AI_KEYS  # noqa: E402
+from backend.app.ai_recommendation import AI_KEYS, AIRecommendationService  # noqa: E402
 from backend.app.unit_conversion import (  # noqa: E402
     albumin_to_gdl,
     bilirubin_to_mgdl,
@@ -187,7 +189,7 @@ def assert_ai_package(body):
     ai = body.get("ai")
     assert isinstance(ai, dict), "Missing AI recommendation package"
     assert ai.get("provider") == "ollama"
-    assert ai.get("processing") == "Local Device / Local Computer"
+    assert ai.get("processing") == "Local Ollama"
     assert ai.get("cloud_ai") == "Disabled"
     for key in AI_KEYS:
         assert key in ai, f"Missing AI key: {key}"
@@ -290,6 +292,19 @@ def test_same_labs_different_lifestyle_changes_recommendation_context():
     )
 
 
+def test_ai_normalizes_malformed_or_partial_response():
+    service = AIRecommendationService()
+    fenced = "prefix " + "`" * 3 + "json\n{\"summary\":\"ok\"}\n" + "`" * 3 + " suffix"
+    parsed = service._parse_json_text(fenced)
+    assert parsed == {"summary": "ok"}
+    normalized = service._normalize_package(
+        {"summary": None, "doctor_followup": " ", "top_priorities": "Track values over time."},
+        {"summary": "Fallback summary", "doctor_followup": "Fallback follow-up"},
+    )
+    assert normalized["summary"] == "Fallback summary"
+    assert normalized["doctor_followup"] == "Fallback follow-up"
+    assert normalized["top_priorities"] == ["Track values over time."]
+
 def test_mixed_nlr_units_are_not_calculated():
     payload = deepcopy(FULL_HIGH_RISK)
     payload["cbc"]["neutrophils_unit"] = "%"
@@ -304,5 +319,6 @@ if __name__ == "__main__":
     test_full_high_risk_sample()
     test_limited_report_sample_more_data_needed()
     test_same_labs_different_lifestyle_changes_recommendation_context()
+    test_ai_normalizes_malformed_or_partial_response()
     test_mixed_nlr_units_are_not_calculated()
     print("All analyze checks passed.")

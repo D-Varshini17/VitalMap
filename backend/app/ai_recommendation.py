@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 import urllib.request
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -42,7 +43,9 @@ class AIRecommendationService:
         self.provider = os.getenv("AI_RECOMMENDATION_PROVIDER", "ollama").lower()
         self.ollama_model = os.getenv("OLLAMA_MODEL", "qwen3:1.7b")
         self.ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
-        self.timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "20"))
+        self.timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "12"))
+        self._status_cache: Dict[str, Any] | None = None
+        self._status_cache_at = 0.0
 
     def enhance_results(self, results: List[Dict[str, Any]], payload: Dict[str, Any]):
         # Backward-compatible hook: per-result cloud enhancement is intentionally no longer used.
@@ -67,33 +70,71 @@ class AIRecommendationService:
         if self.provider != "ollama":
             return self._envelope(False, f"unsupported provider: {self.provider}", fallback, None)
         try:
+            status = self.status()
+            if not status.get("available"):
+                envelope = self._envelope(False, status.get("status", "unavailable"), fallback, None)
+                envelope["ollama_server"] = bool(status.get("ollama_server"))
+                envelope["model_installed"] = bool(status.get("model_installed"))
+                envelope["available"] = False
+                envelope["connected"] = False
+                return envelope
+            logger.info("[VitalMap AI] Generating recommendations")
             ai = self._generate_with_ollama(results, more_needed, payload, overall_risk, general_health_pattern)
             normalized = self._with_context(self._normalize_package(ai, fallback), results, more_needed)
+            logger.info("[VitalMap AI] Recommendation generated")
             return self._envelope(True, "connected", normalized, None)
         except Exception as exc:  # noqa: BLE001 - service must not break screening
             logger.exception("Ollama recommendation generation failed: %s", exc)
             return self._envelope(False, "unavailable", fallback, str(exc))
 
-    def status(self) -> Dict[str, Any]:
+    def status(self, *, use_cache: bool = True) -> Dict[str, Any]:
+        if use_cache and self._status_cache and time.monotonic() - self._status_cache_at < 30:
+            return dict(self._status_cache)
+        status = self._check_ollama_status()
+        self._status_cache = dict(status)
+        self._status_cache_at = time.monotonic()
+        return status
+
+    def _check_ollama_status(self) -> Dict[str, Any]:
         base = {
             "enabled": self.enabled,
+            "available": False,
             "provider": self.provider,
             "model": self.ollama_model,
             "base_url": self.ollama_base_url,
-            "processing": "Local Device / Local Computer",
+            "processing": "Local Ollama",
             "cloud_ai": "Disabled",
+            "ollama_server": False,
+            "model_installed": False,
+            "connected": False,
         }
-        if not self.enabled or self.provider != "ollama":
-            return {**base, "connected": False, "status": "disabled" if not self.enabled else "unsupported provider"}
+        if not self.enabled:
+            return {**base, "status": "disabled"}
+        if self.provider != "ollama":
+            return {**base, "status": "unsupported provider"}
         try:
             request = urllib.request.Request(f"{self.ollama_base_url}/api/tags", method="GET")
-            with urllib.request.urlopen(request, timeout=5) as response:
+            with urllib.request.urlopen(request, timeout=3) as response:
                 data = json.loads(response.read().decode("utf-8"))
-            models = [item.get("name") for item in data.get("models", [])]
-            return {**base, "connected": self.ollama_model in models, "status": "connected" if self.ollama_model in models else "model missing", "models": models}
+            models = [str(item.get("name", "")) for item in data.get("models", [])]
+            installed = self.ollama_model in models
+            if installed:
+                logger.info("[VitalMap AI] Ollama connected")
+                logger.info("[VitalMap AI] Model %s available", self.ollama_model)
+            else:
+                logger.warning("[VitalMap AI] Model %s missing", self.ollama_model)
+            return {
+                **base,
+                "available": installed,
+                "ollama_server": True,
+                "model_installed": installed,
+                "connected": installed,
+                "status": "connected" if installed else "model missing",
+                "models": models,
+            }
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Ollama status check failed: %s", exc)
-            return {**base, "connected": False, "status": "unavailable", "error": str(exc)}
+            logger.warning("[VitalMap AI] Ollama unavailable, using fallback: %s", exc)
+            return {**base, "status": "unavailable", "error": str(exc)}
 
     def _generate_with_ollama(
         self,
@@ -112,7 +153,7 @@ class AIRecommendationService:
                 ],
                 "stream": False,
                 "format": "json",
-                "options": {"temperature": 0.2},
+                "options": {"temperature": 0.2, "num_predict": 700},
             }
         ).encode("utf-8")
         request = urllib.request.Request(
@@ -276,9 +317,12 @@ Doctor follow-up must never be empty. Return valid JSON only. Do not output Mark
             "provider": "ollama",
             "model": self.ollama_model,
             "base_url": self.ollama_base_url,
+            "available": connected,
+            "ollama_server": connected,
+            "model_installed": connected,
             "connected": connected,
             "status": status,
-            "processing": "Local Device / Local Computer",
+            "processing": "Local Ollama",
             "cloud_ai": "Disabled",
             "generatedAt": datetime.now(timezone.utc).isoformat(),
             "error": error,

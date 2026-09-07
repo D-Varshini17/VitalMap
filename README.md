@@ -14,63 +14,98 @@ Flutter Android/Web app
         |-- offline fallback --> Flutter local analysis engine
 ```
 
-The analysis API runs on port `8000`; the mock authentication server runs on
-port `5000`. The Flutter app uses `http://127.0.0.1:8000` locally and
-`http://10.0.2.2:8000` from an Android emulator. The API can be overridden with
-the `API_BASE_URL` Dart define.
+The analysis API runs on port `8000`. The Flutter app uses `VITALMAP_BACKEND_URL` to point at the FastAPI backend. Use `http://127.0.0.1:8000` for Flutter Web on the same laptop, and use the laptop LAN IP for a physical Android phone.
 
-## Quick start
+## Quick start on Windows
 
-### Backend
+VitalMap is designed to run locally with the deterministic FormulaEngine first, then optional local Ollama recommendations. Ollama is never allowed to change medical scores, thresholds, risk categories, or warning flags.
 
-From the repository root in PowerShell:
+### First-time setup
+
+Double-click:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r backend/requirements.txt
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+setup_windows.bat
 ```
 
-The API documentation is available at `http://127.0.0.1:8000/docs` and the
-health check is `http://127.0.0.1:8000/health`.
+This checks Python 3.11+, creates `.venv` when needed, installs `backend\requirements.txt`, verifies FastAPI/Uvicorn, checks Ollama, and tells you to run `ollama pull qwen3:1.7b` if the model is missing.
 
-Authentication is provided by Firebase Authentication; no local auth server is required.
+### Start VitalMap backend + AI
 
-### Flutter frontend
+Double-click:
+
+```powershell
+start_vitalmap.bat
+```
+
+The launcher checks Ollama, starts FastAPI in a separate terminal, waits for `/health`, and prints the backend URLs.
+
+### Or start the backend manually
+
+From the repository root:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+```
+
+For development reload mode:
+
+```powershell
+run_backend_dev.bat
+```
+
+### Browser checks
+
+Open these after the backend starts:
+
+```text
+http://127.0.0.1:8000/
+http://127.0.0.1:8000/docs
+http://127.0.0.1:8000/health
+http://127.0.0.1:8000/ai/status
+```
+
+### Flutter Web
 
 ```powershell
 cd frontend
 flutter pub get
-flutter run -d chrome
+flutter run -d chrome --dart-define=VITALMAP_BACKEND_URL=http://127.0.0.1:8000
 ```
 
-For an Android emulator, use `flutter run -d emulator-5554`; the app selects
-the emulator host address for the local backend. To use another API:
+The Flutter client never uses `0.0.0.0` as a destination address. If the backend or Ollama is unavailable, the app falls back safely and deterministic calculations still work.
+
+### Android physical phone
+
+`127.0.0.1` on Android means the phone itself. For a phone on the same Wi-Fi network, find your laptop IPv4 address:
 
 ```powershell
-flutter run -d chrome --dart-define="API_BASE_URL=https://example.com"
+ipconfig
 ```
 
-If the hosted analysis API cannot be reached, the client uses
-`local_analysis_engine.dart` for an offline result.
-
-## Validation
-
-Backend smoke and integration checks can be run from the repository root:
+Then launch Flutter with your laptop LAN address:
 
 ```powershell
-python backend/test_unit.py
-python backend/test_analyze.py
-python backend/test_sample.py
+cd frontend
+flutter run --dart-define=VITALMAP_BACKEND_URL=http://YOUR_LAPTOP_IP:8000
 ```
 
-Flutter checks are run from `frontend/`:
+Debug/profile Android builds allow local cleartext HTTP so the phone can reach your laptop during development. Release builds are not weakened for local HTTP.
+
+### Diagnostics
+
+Double-click:
 
 ```powershell
-flutter analyze
-flutter test
+diagnose_vitalmap.bat
 ```
+
+It checks Python, `.venv`, pip, FastAPI, Uvicorn, Ollama, `qwen3:1.7b`, Ollama API, backend health, Local AI status, and Flutter. Failed items print the corrective command.
+
+### Deployed web behavior
+
+Vercel cannot access Ollama running on your laptop at `127.0.0.1:11434`. Deployed builds treat Local AI as unavailable unless the browser can reach a backend you started locally. Deterministic calculations and fallback recommendations continue without a paid/cloud LLM.
 
 ## Project map
 
@@ -119,7 +154,7 @@ source.
 | `backend/app/unit_conversion.py` | Converts supported glucose, lipid, creatinine, blood-count, body-measurement, and other units. |
 | `backend/app/risk_rules.py` | Thresholds, statuses, colors, and classifications for calculated indicators. |
 | `backend/app/explanation_engine.py` | Produces overall risk wording, contributors, suggestions, follow-up guidance, and safety disclaimers. |
-| `backend/app/ai_recommendation.py` | Optional OpenAI/Gemini recommendation enhancement with filtering and rule-based fallback. Disabled by default. |
+| `backend/app/ai_recommendation.py` | Optional local Ollama recommendation package with safe normalization, status checks, and deterministic fallback. |
 
 ### Flutter application source
 
@@ -252,6 +287,3 @@ Build the ARM64 release with:
 ```
 
 The resulting APK is copied to `releases/VitalMap-release-arm64.apk`.
-
-
-

@@ -382,7 +382,9 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Widget _localAiCard() {
     final configured = BackendAnalysisService.isConfigured;
-    final connected = _aiStatus?['connected'] == true;
+    final connected =
+        _aiStatus?['available'] == true || _aiStatus?['connected'] == true;
+    final tested = _aiStatus != null;
     final status = _aiStatus?['status']?.toString() ??
         (configured ? 'Not tested' : 'Backend URL not configured');
     final model = _aiStatus?['model']?.toString() ?? 'qwen3:1.7b';
@@ -407,7 +409,9 @@ class _MoreScreenState extends State<MoreScreen> {
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 2),
                 Text(
-                  'Status: ${connected ? 'Connected' : status}',
+                  connected
+                      ? 'Connected'
+                      : (tested ? 'Unavailable' : 'Status: $status'),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 12,
@@ -430,12 +434,12 @@ class _MoreScreenState extends State<MoreScreen> {
         ]),
         const SizedBox(height: 10),
         _aiInfoRow('Model', model),
-        _aiInfoRow('Processing', 'Local Device / Local Computer'),
+        _aiInfoRow('Processing', 'Local Ollama'),
         _aiInfoRow('Cloud AI', 'Disabled'),
-        if (!configured) ...[
+        if (!connected && tested) ...[
           const SizedBox(height: 8),
           Text(
-            'Start the FastAPI backend and pass --dart-define=VITALMAP_BACKEND_URL=http://127.0.0.1:8000 to enable local AI recommendations.',
+            'Your health calculations still work normally. Start Ollama on your computer and install qwen3:1.7b to enable personalized AI insights.',
             style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 12,
