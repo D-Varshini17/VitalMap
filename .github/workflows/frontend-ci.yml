@@ -94,6 +94,9 @@ jobs:
           output: artifacts/test-reports/security/trivy-results.json
           severity: CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN
           exit-code: 0
+      - name: Install report workbook generator
+        if: always()
+        run: npm install --no-save xlsx
       - name: Generate master test report
         if: always()
         run: node scripts/generate_master_test_report.cjs
