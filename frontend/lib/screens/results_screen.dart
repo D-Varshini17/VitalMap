@@ -804,18 +804,21 @@ class _ResultsScreenState extends State<ResultsScreen> {
           _stringList(ai['liver_recommendations'])),
       _AiCategory(Icons.medical_information_outlined, 'Kidney',
           _stringList(ai['kidney_recommendations'])),
-      _AiCategory(Icons.air_outlined, 'Lungs',
-          _stringList(ai['lung_recommendations'])),
+      _AiCategory(
+          Icons.air_outlined, 'Lungs', _stringList(ai['lung_recommendations'])),
       _AiCategory(Icons.monitor_heart_outlined, 'Metabolic Health',
           _stringList(ai['metabolic_recommendations'])),
       _AiCategory(Icons.playlist_add_check_outlined, 'Improve Your Screening',
           _stringList(ai['missing_data_recommendations'])),
       _AiCategory(Icons.medical_services_outlined, 'Doctor Follow-up',
           [_aiText(ai['doctor_followup'])]),
-      _AiCategory(Icons.question_answer_outlined,
+      _AiCategory(
+          Icons.question_answer_outlined,
           'Questions You Can Ask Your Doctor',
           _stringList(ai['questions_for_doctor'])),
-    ].where((category) => category.items.any((item) => item.isNotEmpty)).toList();
+    ]
+        .where((category) => category.items.any((item) => item.isNotEmpty))
+        .toList();
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -879,7 +882,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
         for (final category in categories)
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
-            childrenPadding: const EdgeInsets.only(left: 6, right: 6, bottom: 8),
+            childrenPadding:
+                const EdgeInsets.only(left: 6, right: 6, bottom: 8),
             leading: Icon(category.icon,
                 color: Theme.of(context).colorScheme.primary),
             title: Text(category.title,
@@ -912,7 +916,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-
   Widget _aiContextChips(
     Map<String, dynamic> dataCompleteness,
     Map<String, dynamic> healthTrend,
@@ -934,10 +937,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.18),
               ),
             ),
             child: Text(
@@ -966,7 +973,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
       ),
       child: Text(
         connected ? 'Ollama $model' : 'AI fallback',
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w900),
+        style:
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w900),
       ),
     );
   }
@@ -1046,6 +1054,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
       }
     }
     return fallback;
+  }
+
+  List<String> _stringList(dynamic value) {
+    if (value is List) {
+      return value
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+    }
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? const [] : [text];
   }
 
   String? _firstText(List<Map<String, dynamic>> sources, String key) {
