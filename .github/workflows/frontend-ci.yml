@@ -47,6 +47,7 @@ jobs:
         run: node scripts/load_test.cjs
       - name: Build Android release
         working-directory: frontend
+        timeout-minutes: 30
         run: flutter build apk --release
 
       - uses: actions/upload-artifact@v4
@@ -60,6 +61,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Android runtime smoke test
         continue-on-error: true
+        timeout-minutes: 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -70,6 +72,7 @@ jobs:
           script: flutter test integration_test/mobile_smoke_test.dart -d emulator-5554
       - name: Appium Flutter Android smoke test
         continue-on-error: true
+        timeout-minutes: 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
