@@ -595,12 +595,17 @@ class LocalAnalysisEngine {
     moreNeeded.add({
       'index_name': indexName,
       'organ': organ,
+      'risk_level': 'More Data Needed',
+      'summary':
+          'Additional information is needed before this screening indicator can be interpreted.',
       'missing_inputs': missing,
       'required_units': FormulaMetadata.forIndex(indexName)?.requiredUnits ??
           'Use the units shown on the original laboratory report.',
       'why_required':
           'These values are required by the displayed formula and cannot be estimated safely.',
       'message': '$indexName needs ${missing.join(', ')}.',
+      'doctor_followup':
+          'Additional information is needed before this screening indicator can be interpreted. Consider discussing the required laboratory values with a healthcare professional.',
     });
   }
 

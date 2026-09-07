@@ -527,6 +527,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
       if (missingForOrgan.isNotEmpty) {
         message =
             HealthUiAdapter.missingSummaryForOrgan(organName, missingForOrgan);
+        matchedMetric =
+            HealthUiAdapter.metricFromMissingData(missingForOrgan.first);
       }
     }
     final imageSize = Responsive.isDesktop(context) ? 112.0 : 96.0;

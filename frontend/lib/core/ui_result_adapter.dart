@@ -13,6 +13,7 @@ class HealthMetric {
     required this.rawStatus,
     required this.statusLabel,
     required this.summary,
+    required this.doctorFollowup,
     required this.valuesUsed,
     this.source,
   });
@@ -26,6 +27,7 @@ class HealthMetric {
   final String rawStatus;
   final String statusLabel;
   final String summary;
+  final String doctorFollowup;
   final Map<String, dynamic> valuesUsed;
   final Map<String, dynamic>? source;
 }
@@ -98,6 +100,7 @@ class HealthUiAdapter {
               AppStyles.displayStatusLabel(rawStatus, indexName: indexName),
           summary: result['summary']?.toString() ??
               'Calculated from the values available in your report.',
+          doctorFollowup: _doctorFollowupForResult(result, rawStatus),
           valuesUsed: _approvedValuesUsed(
             indexName,
             Map<String, dynamic>.from(
@@ -138,6 +141,60 @@ class HealthUiAdapter {
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item))
         .toList();
+  }
+
+  static HealthMetric metricFromMissingData(Map<String, dynamic> item) {
+    final indexName = item['index_name']?.toString() ?? 'Indicator';
+    final organKey = item['organ']?.toString() ?? 'General';
+    final missing = (item['missing_inputs'] as List<dynamic>? ?? [])
+        .map((value) => cleanKey(value.toString()))
+        .where((value) => value.isNotEmpty)
+        .toList();
+    final followUp = item['doctor_followup']?.toString().trim();
+    final source = <String, dynamic>{
+      ...item,
+      'risk_level': item['risk_level']?.toString() ?? 'More Data Needed',
+      'summary': item['summary']?.toString() ??
+          'Additional information is needed before this screening indicator can be interpreted.',
+      'values_used': const <String, dynamic>{},
+      'formula_used': item['why_required']?.toString() ??
+          'Required values are missing, so the formula cannot be applied yet.',
+      'doctor_followup': followUp != null && followUp.isNotEmpty
+          ? followUp
+          : 'Additional information is needed before this screening indicator can be interpreted. Consider discussing the required laboratory values with a healthcare professional.',
+      'recommendation': {
+        'actions': const <String>[],
+        'lifestyle': const <String>[],
+        'food': const <String>[],
+        'monitoring': [
+          missing.isEmpty
+              ? 'Add the required laboratory values to calculate this screening indicator.'
+              : 'Add ${_joinReadable(missing)} to calculate $indexName.',
+        ],
+        'clinician_follow_up': [
+          followUp != null && followUp.isNotEmpty
+              ? followUp
+              : 'Additional information is needed before this screening indicator can be interpreted. Consider discussing the required laboratory values with a healthcare professional.',
+        ],
+        'cautions': [disclaimer],
+        'why': item['why_required']?.toString() ??
+            'VitalMap needs the required source values before it can calculate this screening indicator.',
+      },
+    };
+    return HealthMetric(
+      indexName: indexName,
+      displayName: displayName(indexName),
+      organKey: organKey,
+      organName: organName(organKey),
+      scoreText: 'More Data',
+      unit: '',
+      rawStatus: 'More Data Needed',
+      statusLabel: 'More Data Needed',
+      summary: source['summary'].toString(),
+      doctorFollowup: source['doctor_followup'].toString(),
+      valuesUsed: const {},
+      source: source,
+    );
   }
 
   static Map<String, int> statusCounts(
@@ -393,6 +450,8 @@ class HealthUiAdapter {
           statusLabel:
               AppStyles.displayStatusLabel(rawStatus, indexName: 'BMI'),
           summary: 'Body mass index is auto-calculated from height and weight.',
+          doctorFollowup:
+              'Discuss your screening results with a qualified healthcare professional if you have questions or concerns.',
           valuesUsed: {'height_cm': heightCm, 'weight_kg': weightKg},
         ),
       );
@@ -418,6 +477,8 @@ class HealthUiAdapter {
           statusLabel: AppStyles.displayStatusLabel(rawStatus),
           summary:
               'Waist measurement can add context to metabolic and lipid-related screening insights.',
+          doctorFollowup:
+              'Discuss your screening results with a qualified healthcare professional if you have questions or concerns.',
           valuesUsed: {'waist_cm': waistCm},
         ),
       );
@@ -521,6 +582,26 @@ class HealthUiAdapter {
       for (final entry in values.entries)
         if (allowed.contains(entry.key)) entry.key: entry.value,
     };
+  }
+
+  static String _doctorFollowupForResult(
+    Map<String, dynamic> result,
+    String rawStatus,
+  ) {
+    final direct = result['doctor_followup']?.toString().trim();
+    if (direct != null && direct.isNotEmpty) return direct;
+    final recommendation = Map<String, dynamic>.from(
+      result['recommendation'] as Map? ?? const {},
+    );
+    final nested = (recommendation['clinician_follow_up'] as List? ?? const [])
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .join(' ');
+    if (nested.isNotEmpty) return nested;
+    if (rawStatus == 'More Data Needed') {
+      return 'Additional information is needed before this screening indicator can be interpreted. Consider discussing the required laboratory values with a healthcare professional.';
+    }
+    return 'Discuss your screening results with a qualified healthcare professional if you have questions or concerns.';
   }
 
   static String _formatScore(dynamic score) {

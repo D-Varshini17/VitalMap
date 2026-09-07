@@ -29,8 +29,7 @@ class IndexDetailScreen extends StatelessWidget {
       ..._stringList(recommendation['food']),
       ..._stringList(recommendation['monitoring']),
     ];
-    final doctorFollowup = source['doctor_followup']?.toString() ??
-        'Clinical review is suggested if values remain outside the expected range or symptoms persist.';
+    final doctorFollowup = _doctorFollowup(source, recommendation);
 
     return Scaffold(
       appBar: AppBar(
@@ -158,7 +157,7 @@ class IndexDetailScreen extends StatelessWidget {
                   : suggestions,
               checkmarks: true,
             ),
-            _section(context, 'Doctor follow-up', [doctorFollowup]),
+            _doctorFollowupSection(context, doctorFollowup),
             _section(context, 'Limitations and cautions', [
               ..._stringList(recommendation['cautions']),
               recommendation['evidence_note']?.toString() ??
@@ -245,6 +244,75 @@ class IndexDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _doctorFollowupSection(BuildContext context, String followup) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? Color.alphaBlend(
+            colors.primary.withValues(alpha: 0.14),
+            colors.surface,
+          )
+        : Color.alphaBlend(
+            colors.primary.withValues(alpha: 0.08),
+            colors.surface,
+          );
+    final border = isDark
+        ? colors.primary.withValues(alpha: 0.38)
+        : colors.primary.withValues(alpha: 0.22);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: isDark ? 0.20 : 0.10),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              Icons.medical_services_outlined,
+              color: colors.primary,
+              size: 21,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Doctor follow-up',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: colors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  followup,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colors.onSurface,
+                    height: 1.38,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _bullet(BuildContext context, String item, {bool checkmarks = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -294,6 +362,22 @@ class IndexDetailScreen extends StatelessWidget {
     }
     if (raw is String && raw.trim().isNotEmpty) return [raw];
     return const [];
+  }
+
+  String _doctorFollowup(
+    Map<String, dynamic> source,
+    Map<String, dynamic> recommendation,
+  ) {
+    final direct = source['doctor_followup']?.toString().trim();
+    if (direct != null && direct.isNotEmpty) return direct;
+    final nested = _stringList(recommendation['clinician_follow_up']);
+    if (nested.isNotEmpty) return nested.join(' ');
+    final normalized = metric.doctorFollowup.trim();
+    if (normalized.isNotEmpty) return normalized;
+    if (metric.rawStatus == 'More Data Needed') {
+      return 'Additional information is needed before this screening indicator can be interpreted. Consider discussing the required laboratory values with a healthcare professional.';
+    }
+    return 'Discuss your screening results with a qualified healthcare professional if you have questions or concerns.';
   }
 
   String _prettyKey(String key) {
