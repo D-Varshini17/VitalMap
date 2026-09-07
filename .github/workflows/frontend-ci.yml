@@ -42,6 +42,8 @@ jobs:
       - name: Build production Web
         working-directory: frontend
         run: flutter build web --release
+      - name: Load test production Web build
+        run: node scripts/load_test.cjs
       - name: Build Android release
         working-directory: frontend
         run: flutter build apk --release
@@ -64,3 +66,40 @@ jobs:
           profile: pixel_2
           working-directory: frontend
           script: flutter test integration_test/mobile_smoke_test.dart -d emulator-5554
+      - name: Appium Flutter Android smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          script: |
+            mkdir -p artifacts/test-reports/appium
+            npm install --no-save webdriverio
+            npm install -g appium
+            appium driver install uiautomator2
+            appium --base-path / > artifacts/test-reports/appium/appium-server.log 2>&1 &
+            sleep 20
+            node scripts/appium_flutter_smoke.cjs
+      - name: Prepare security report directory
+        if: always()
+        run: mkdir -p artifacts/test-reports/security
+      - name: Vulnerability scan
+        if: always()
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: artifacts/test-reports/security/trivy-results.json
+          severity: CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN
+          exit-code: 0
+      - name: Generate master test report
+        if: always()
+        run: node scripts/generate_master_test_report.cjs
+      - name: Upload master test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalmap-master-test-report
+          path: artifacts/test-reports
