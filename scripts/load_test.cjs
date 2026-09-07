@@ -62,6 +62,19 @@ function percentile(values, p) {
   return sorted[Math.max(0, Math.min(sorted.length - 1, index))];
 }
 
+function minMax(values) {
+  let min = Number.POSITIVE_INFINITY;
+  let max = 0;
+  for (const value of values) {
+    if (value < min) min = value;
+    if (value > max) max = value;
+  }
+  return {
+    min: Number((Number.isFinite(min) ? min : 0).toFixed(2)),
+    max: Number(max.toFixed(2)),
+  };
+}
+
 (async () => {
   if (!fs.existsSync(path.join(root, 'index.html'))) {
     throw new Error('frontend/build/web/index.html not found. Run flutter build web --release first.');
@@ -85,6 +98,7 @@ function percentile(values, p) {
 
   const latencies = results.map(r => r.ms);
   const failed = results.filter(r => r.status < 200 || r.status >= 400);
+  const latencyRange = minMax(latencies);
   const report = {
     name: 'VitalMap web load smoke test',
     target: 'local production Flutter web build',
@@ -94,10 +108,10 @@ function percentile(values, p) {
     failedRequests: failed.length,
     requestsPerSecond: Number((results.length / (durationMs / 1000)).toFixed(2)),
     latencyMs: {
-      min: Number(Math.min(...latencies).toFixed(2)),
+      min: latencyRange.min,
       p50: Number(percentile(latencies, 50).toFixed(2)),
       p95: Number(percentile(latencies, 95).toFixed(2)),
-      max: Number(Math.max(...latencies).toFixed(2)),
+      max: latencyRange.max,
     },
     pass: failed.length === 0 && percentile(latencies, 95) < 1000,
     failures: failed.slice(0, 25),
