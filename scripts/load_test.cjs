@@ -9,7 +9,10 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const durationMs = Number(process.env.LOAD_TEST_DURATION_MS || 15000);
 const concurrency = Number(process.env.LOAD_TEST_CONCURRENCY || 12);
-const paths = ['/', '/build-info.json', '/manifest.json'];
+const paths = ['/', '/manifest.json'];
+if (fs.existsSync(path.join(root, 'build-info.json'))) {
+  paths.push('/build-info.json');
+}
 const contentTypes = new Map([
   ['.html', 'text/html; charset=utf-8'],
   ['.js', 'application/javascript; charset=utf-8'],
