@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/responsive.dart';
 import '../core/ui_result_adapter.dart';
+import '../services/backend_analysis_service.dart';
 import '../services/export_summary_service.dart';
 import '../storage/local_storage.dart';
 import '../widgets/brand_logo.dart';
@@ -36,6 +37,8 @@ class _MoreScreenState extends State<MoreScreen> {
   Map<String, dynamic>? _payload;
   Map<String, dynamic>? _response;
   DateTime? _lastChecked;
+  bool _checkingAi = false;
+  Map<String, dynamic>? _aiStatus;
 
   @override
   void initState() {
@@ -194,6 +197,8 @@ class _MoreScreenState extends State<MoreScreen> {
                 ),
               ],
             ),
+            _localAiCard(),
+            const SizedBox(height: 18),
             _menuSection(
               context,
               'Settings',
@@ -373,6 +378,112 @@ class _MoreScreenState extends State<MoreScreen> {
         ],
       ),
     );
+  }
+
+  Widget _localAiCard() {
+    final configured = BackendAnalysisService.isConfigured;
+    final connected = _aiStatus?['connected'] == true;
+    final status = _aiStatus?['status']?.toString() ??
+        (configured ? 'Not tested' : 'Backend URL not configured');
+    final model = _aiStatus?['model']?.toString() ?? 'qwen3:1.7b';
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.auto_awesome_outlined,
+              color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Local AI',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 2),
+                Text(
+                  'Status: ${connected ? 'Connected' : status}',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: !configured || _checkingAi ? null : _testLocalAi,
+            icon: _checkingAi
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.wifi_tethering_outlined, size: 18),
+            label: const Text('Test Local AI'),
+          ),
+        ]),
+        const SizedBox(height: 10),
+        _aiInfoRow('Model', model),
+        _aiInfoRow('Processing', 'Local Device / Local Computer'),
+        _aiInfoRow('Cloud AI', 'Disabled'),
+        if (!configured) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Start the FastAPI backend and pass --dart-define=VITALMAP_BACKEND_URL=http://127.0.0.1:8000 to enable local AI recommendations.',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 12,
+                height: 1.35),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  Widget _aiInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(children: [
+        SizedBox(
+          width: 92,
+          child: Text(label,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
+        ),
+        Expanded(
+          child: Text(value,
+              style:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+        ),
+      ]),
+    );
+  }
+
+  Future<void> _testLocalAi() async {
+    setState(() => _checkingAi = true);
+    try {
+      final status = await BackendAnalysisService.localAiStatus();
+      if (!mounted) return;
+      setState(() => _aiStatus = status);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _aiStatus = {
+            'connected': false,
+            'status': 'unavailable',
+            'model': 'qwen3:1.7b',
+            'error': error.toString(),
+          });
+    } finally {
+      if (mounted) setState(() => _checkingAi = false);
+    }
   }
 
   Widget _profileStatsCard() {

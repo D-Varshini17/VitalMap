@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import '../core/local_analysis_engine.dart';
 import '../core/responsive.dart';
 import '../services/firestore_service.dart';
+import '../services/backend_analysis_service.dart';
 import '../storage/local_storage.dart';
 import '../utils/unit_conversion.dart';
 import '../widgets/brand_logo.dart';
@@ -343,7 +344,17 @@ class _InputScreenState extends State<InputScreen> {
     setState(() => analysisStep = 'Calculating screening indices');
     await Future<void>.delayed(const Duration(milliseconds: 180));
     if (!mounted) return;
-    final response = _analysisEngine.analyze(payload);
+    Map<String, dynamic>? response;
+    if (BackendAnalysisService.isConfigured) {
+      setState(
+          () => analysisStep = 'Generating your personalized local insights');
+      try {
+        response = await BackendAnalysisService.analyze(payload);
+      } catch (_) {
+        response = null;
+      }
+    }
+    response ??= _analysisEngine.analyze(payload);
     setState(() => analysisStep = 'Preparing your health map');
     await Future<void>.delayed(const Duration(milliseconds: 180));
     if (!mounted) return;

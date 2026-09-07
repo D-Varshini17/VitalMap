@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from backend.app.main import app  # noqa: E402
+from backend.app.ai_recommendation import AI_KEYS  # noqa: E402
 from backend.app.unit_conversion import (  # noqa: E402
     albumin_to_gdl,
     bilirubin_to_mgdl,
@@ -181,6 +182,22 @@ def post_analyze(payload):
     return body
 
 
+
+def assert_ai_package(body):
+    ai = body.get("ai")
+    assert isinstance(ai, dict), "Missing AI recommendation package"
+    assert ai.get("provider") == "ollama"
+    assert ai.get("processing") == "Local Device / Local Computer"
+    assert ai.get("cloud_ai") == "Disabled"
+    for key in AI_KEYS:
+        assert key in ai, f"Missing AI key: {key}"
+    assert str(ai.get("summary", "")).strip()
+    assert str(ai.get("doctor_followup", "")).strip()
+    assert isinstance(ai.get("data_completeness"), dict)
+    assert "percent" in ai["data_completeness"]
+    assert isinstance(ai.get("health_trend"), dict)
+
+
 def result_by_index(body, index_name):
     for result in body["calculated_results"]:
         if result["index_name"] == index_name:
@@ -236,6 +253,8 @@ def test_full_high_risk_sample():
     ]:
         result_by_index(body, index)
 
+    assert_ai_package(body)
+
     aip = result_by_index(body, "AIP")
     assert "ai_recommendation" in aip
     assert aip["score"] == result_by_index(body, "AIP")["score"]
@@ -248,6 +267,7 @@ def test_limited_report_sample_more_data_needed():
     assert body["calculated_results"] == []
     assert len(body["more_data_needed"]) > 0
     assert all("message" in item for item in body["more_data_needed"])
+    assert_ai_package(body)
 
 
 def test_same_labs_different_lifestyle_changes_recommendation_context():

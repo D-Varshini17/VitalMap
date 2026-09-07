@@ -121,6 +121,7 @@ class FirestoreService {
       'resultData': response,
       'calculatedValues': response['calculated_results'],
       'organScores': response['organ_scores'],
+      'ai': response['ai'],
       'riskLevels': response['risk_levels'],
       'overallRisk': response['overall_risk'],
       'explanations': response['explanations'],

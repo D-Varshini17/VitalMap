@@ -119,6 +119,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   const SizedBox(height: 24),
                   _personalizedRecommendations(metrics),
                   const SizedBox(height: 24),
+                  _localAiSection(),
+                  const SizedBox(height: 24),
                   _tipsForImprovement(metrics),
                   const SizedBox(height: 24),
                   if (moreData.isNotEmpty) _moreDataNeededCards(moreData),
@@ -769,6 +771,213 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
+  Widget _localAiSection() {
+    final ai = Map<String, dynamic>.from(response?['ai'] as Map? ?? const {});
+    if (ai.isEmpty) return const SizedBox.shrink();
+    final connected = ai['connected'] == true;
+    final dataCompleteness =
+        Map<String, dynamic>.from(ai['data_completeness'] as Map? ?? const {});
+    final healthTrend =
+        Map<String, dynamic>.from(ai['health_trend'] as Map? ?? const {});
+    final categories = <_AiCategory>[
+      _AiCategory(Icons.flag_outlined, 'Your Top Priorities',
+          _stringList(ai['top_priorities'])),
+      _AiCategory(Icons.restaurant_outlined, 'Nutrition',
+          _stringList(ai['nutrition_recommendations'])),
+      _AiCategory(Icons.water_drop_outlined, 'Hydration',
+          _stringList(ai['hydration_recommendations'])),
+      _AiCategory(Icons.directions_run_outlined, 'Physical Activity',
+          _stringList(ai['physical_activity_recommendations'])),
+      _AiCategory(Icons.bedtime_outlined, 'Sleep & Recovery',
+          _stringList(ai['sleep_recommendations'])),
+      _AiCategory(Icons.self_improvement_outlined, 'Stress & Wellness',
+          _stringList(ai['stress_recommendations'])),
+      _AiCategory(Icons.health_and_safety_outlined, 'Lifestyle',
+          _stringList(ai['lifestyle_recommendations'])),
+      _AiCategory(Icons.eco_outlined, 'Environmental Health',
+          _stringList(ai['environment_recommendations'])),
+      _AiCategory(Icons.fact_check_outlined, 'Preventive Care',
+          _stringList(ai['preventive_recommendations'])),
+      _AiCategory(Icons.favorite_border, 'Heart',
+          _stringList(ai['heart_recommendations'])),
+      _AiCategory(Icons.biotech_outlined, 'Liver',
+          _stringList(ai['liver_recommendations'])),
+      _AiCategory(Icons.medical_information_outlined, 'Kidney',
+          _stringList(ai['kidney_recommendations'])),
+      _AiCategory(Icons.air_outlined, 'Lungs',
+          _stringList(ai['lung_recommendations'])),
+      _AiCategory(Icons.monitor_heart_outlined, 'Metabolic Health',
+          _stringList(ai['metabolic_recommendations'])),
+      _AiCategory(Icons.playlist_add_check_outlined, 'Improve Your Screening',
+          _stringList(ai['missing_data_recommendations'])),
+      _AiCategory(Icons.medical_services_outlined, 'Doctor Follow-up',
+          [_aiText(ai['doctor_followup'])]),
+      _AiCategory(Icons.question_answer_outlined,
+          'Questions You Can Ask Your Doctor',
+          _stringList(ai['questions_for_doctor'])),
+    ].where((category) => category.items.any((item) => item.isNotEmpty)).toList();
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.auto_awesome_outlined,
+              color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('VitalMap Local AI',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900)),
+              const SizedBox(height: 2),
+              Text(
+                'Personalized insights generated from your screening',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600),
+              ),
+            ]),
+          ),
+          _aiStatusPill(connected, ai['model']?.toString() ?? 'qwen3:1.7b'),
+        ]),
+        const SizedBox(height: 12),
+        Text(
+          _aiText(ai['summary']),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            height: 1.4,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+        _aiContextChips(dataCompleteness, healthTrend),
+        const SizedBox(height: 10),
+        Text(
+          'AI processing is performed using a locally hosted Ollama model when the backend is configured. Firebase may still store account and screening data.',
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 11,
+              height: 1.35),
+        ),
+        const SizedBox(height: 10),
+        for (final category in categories)
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: const EdgeInsets.only(left: 6, right: 6, bottom: 8),
+            leading: Icon(category.icon,
+                color: Theme.of(context).colorScheme.primary),
+            title: Text(category.title,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+            children: [
+              for (final item in category.items)
+                if (item.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.check_circle_outline,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(item,
+                                style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    height: 1.35)),
+                          ),
+                        ]),
+                  ),
+            ],
+          ),
+      ]),
+    );
+  }
+
+
+  Widget _aiContextChips(
+    Map<String, dynamic> dataCompleteness,
+    Map<String, dynamic> healthTrend,
+  ) {
+    final percent = dataCompleteness['percent'];
+    final label = dataCompleteness['label']?.toString().trim();
+    final trend = healthTrend['status']?.toString().trim();
+    final items = <String>[
+      if (percent != null) 'Recommendation Context: $percent% data available',
+      if (label != null && label.isNotEmpty) label,
+      if (trend != null && trend.isNotEmpty) 'Health Trend: $trend',
+    ];
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final item in items)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+              ),
+            ),
+            child: Text(
+              item,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _aiStatusPill(bool connected, String model) {
+    final color = connected
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.24)),
+      ),
+      child: Text(
+        connected ? 'Ollama $model' : 'AI fallback',
+        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w900),
+      ),
+    );
+  }
+
+  String _aiText(dynamic value) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty
+        ? 'AI recommendations are temporarily unavailable. Your calculated screening results are unaffected.'
+        : text;
+  }
+
   List<Widget> _recommendationCards(List<HealthMetric> metrics) {
     final allSources =
         metrics.map((m) => m.source ?? const <String, dynamic>{}).toList();
@@ -1230,4 +1439,12 @@ class _ScoreRingPainter extends CustomPainter {
     return oldDelegate.progress != progress ||
         oldDelegate.foreground != foreground;
   }
+}
+
+class _AiCategory {
+  const _AiCategory(this.icon, this.title, this.items);
+
+  final IconData icon;
+  final String title;
+  final List<String> items;
 }

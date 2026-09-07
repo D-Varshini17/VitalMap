@@ -196,3 +196,4 @@ class AnalyzeResponse(BaseModel):
     more_data_needed: List[MoreDataNeeded]
     general_health_pattern: List[str]
     disclaimer: str
+    ai: Dict[str, Any] | None = None
