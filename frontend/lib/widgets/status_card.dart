@@ -53,9 +53,7 @@ class StatusCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(subtitle,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: const TextStyle(fontSize: 12, color: AppStyles.muted),
                   textAlign: TextAlign.center),
               if (trailing != null) ...[const SizedBox(height: 8), trailing!]
             ],

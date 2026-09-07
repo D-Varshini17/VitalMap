@@ -168,15 +168,19 @@ class _InputScreenState extends State<InputScreen> {
           id: 'heart',
           title: 'Heart / Lipid Profile',
           subtitle: 'AIP',
-          emoji: '❤️',
+          icon: Icons.favorite_border,
+          tint: const Color(0xFFFFEEF2),
+          iconColor: const Color(0xFFD94870),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
         _ReportSection(
           id: 'diabetes',
-          title: 'Diabetes / Metabolic',
-          subtitle: 'TyG, metabolic insight',
-          emoji: '🍬',
+          title: 'Diabetes / Glucose Profile',
+          subtitle: 'Blood sugar and metabolic health',
+          icon: Icons.water_drop_outlined,
+          tint: const Color(0xFFE7F3EF),
+          iconColor: const Color(0xFF16806A),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
@@ -184,7 +188,9 @@ class _InputScreenState extends State<InputScreen> {
           id: 'liver',
           title: 'Liver Function Test',
           subtitle: 'APRI, FIB-4, FLI, NAFLD',
-          emoji: '🧪',
+          icon: Icons.science_outlined,
+          tint: const Color(0xFFE4F2ED),
+          iconColor: const Color(0xFF128064),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
@@ -192,7 +198,9 @@ class _InputScreenState extends State<InputScreen> {
           id: 'cbc',
           title: 'CBC / Differential',
           subtitle: 'NLR and liver support',
-          emoji: '🩸',
+          icon: Icons.bloodtype_outlined,
+          tint: const Color(0xFFFFECEE),
+          iconColor: const Color(0xFFD93B45),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
@@ -200,15 +208,19 @@ class _InputScreenState extends State<InputScreen> {
           id: 'kidney',
           title: 'Kidney Function',
           subtitle: 'eGFR',
-          emoji: '💧',
+          icon: Icons.health_and_safety_outlined,
+          tint: const Color(0xFFE5F4F1),
+          iconColor: const Color(0xFF17856C),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
         _ReportSection(
           id: 'vitals',
           title: 'Lungs / Vitals',
-          subtitle: 'SpO₂',
-          emoji: '🫁',
+          subtitle: 'SpO2',
+          icon: Icons.air_outlined,
+          tint: const Color(0xFFEAF4FD),
+          iconColor: const Color(0xFF2D8BD7),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
@@ -216,7 +228,9 @@ class _InputScreenState extends State<InputScreen> {
           id: 'pancreas',
           title: 'Pancreatic Enzymes',
           subtitle: 'LAR',
-          emoji: '🔬',
+          icon: Icons.biotech_outlined,
+          tint: const Color(0xFFF0EEFF),
+          iconColor: const Color(0xFF6B5CC7),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
@@ -224,7 +238,9 @@ class _InputScreenState extends State<InputScreen> {
           id: 'cancer',
           title: 'Cancer Awareness',
           subtitle: 'AFP, CA 15-3, CA 27.29',
-          emoji: '🎗️',
+          icon: Icons.radar_outlined,
+          tint: const Color(0xFFFFEDF3),
+          iconColor: const Color(0xFFD94870),
           background: Theme.of(context).colorScheme.surface,
           accent: Theme.of(context).colorScheme.primary,
         ),
@@ -684,8 +700,10 @@ class _InputScreenState extends State<InputScreen> {
       appBar: isDesktop
           ? null
           : AppBar(
+              toolbarHeight: 76,
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   BrandAppBarTitle(title: 'VitalMap'),
                   SizedBox(height: 2),
@@ -821,6 +839,7 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _reportsScreen(bool isDesktop) {
     final selectedCards = _selectedReportCards();
+    final colors = Theme.of(context).colorScheme;
     final reportPicker = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -845,14 +864,13 @@ class _InputScreenState extends State<InputScreen> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 5, child: reportPicker),
-                  const SizedBox(width: 22),
+                  Expanded(flex: 7, child: reportPicker),
+                  const SizedBox(width: 26),
                   Expanded(
-                    flex: 6,
+                    flex: 10,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _stepHeader('Selected report inputs'),
                         if (selectedCards.isEmpty)
                           _emptyReportSelectionCard()
                         else
@@ -877,7 +895,7 @@ class _InputScreenState extends State<InputScreen> {
             );
           },
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
         _actionButtons(),
         _flowFooter(previousId: 'environment'),
         Padding(
@@ -885,7 +903,7 @@ class _InputScreenState extends State<InputScreen> {
           child: Text(
             'Review screening insights on the Result tab after analysis.',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: colors.onSurfaceVariant,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1522,16 +1540,12 @@ class _InputScreenState extends State<InputScreen> {
   Widget _reportPicker() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 980
-            ? 3
-            : constraints.maxWidth >= 620
-                ? 2
-                : 1;
+        final columns = constraints.maxWidth >= 760 ? 2 : 1;
         final cardWidth =
-            (constraints.maxWidth - (12 * (columns - 1))) / columns;
+            (constraints.maxWidth - (10 * (columns - 1))) / columns;
         return Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: 10,
+          runSpacing: 10,
           children: [
             for (final section in _reportSections)
               SizedBox(
@@ -1559,9 +1573,28 @@ class _InputScreenState extends State<InputScreen> {
   Widget _actionButtons() {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final colors = Theme.of(context).colorScheme;
+        final backButton = OutlinedButton.icon(
+          onPressed: loading ? null : () => _setActiveTop('environment'),
+          icon: const Icon(Icons.arrow_back, size: 22),
+          label: const Text('Back'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: colors.primary,
+            backgroundColor: colors.surface,
+            side: BorderSide(color: colors.outlineVariant),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        );
         final analyzeButton = GradientActionButton(
           onPressed: loading ? null : analyze,
-          icon: Icons.arrow_forward,
+          icon: Icons.bar_chart_rounded,
           loading: loading,
           label: loading ? analysisStep : 'Analyze Available Values',
         );
@@ -1578,13 +1611,25 @@ class _InputScreenState extends State<InputScreen> {
           icon: const Icon(Icons.bookmark_border),
           label: const Text('Save Draft'),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+            foregroundColor: colors.primary,
+            backgroundColor: colors.surface,
+            side: BorderSide(color: colors.outlineVariant),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         );
         if (constraints.maxWidth < 560) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SizedBox(width: double.infinity, child: backButton),
+              const SizedBox(height: 10),
               SizedBox(width: double.infinity, child: analyzeButton),
               const SizedBox(height: 10),
               SizedBox(width: double.infinity, child: saveButton),
@@ -1593,9 +1638,11 @@ class _InputScreenState extends State<InputScreen> {
         }
         return Row(
           children: [
-            Expanded(child: analyzeButton),
-            const SizedBox(width: 12),
-            Expanded(child: saveButton),
+            SizedBox(width: 142, child: backButton),
+            const SizedBox(width: 34),
+            Expanded(flex: 3, child: analyzeButton),
+            const SizedBox(width: 34),
+            SizedBox(width: 192, child: saveButton),
           ],
         );
       },
@@ -1604,7 +1651,7 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _heartCard() {
     return _SectionCard(
-      title: '❤️ Heart / Lipid Profile',
+      title: 'Heart / Lipid Profile',
       icon: Icons.favorite_border,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
@@ -1638,7 +1685,7 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _diabetesCard() {
     return _SectionCard(
-      title: '🍬 Diabetes / Glucose Profile',
+      title: 'Diabetes / Glucose Profile',
       icon: Icons.water_drop_outlined,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
@@ -1670,8 +1717,8 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _liverCard() {
     return _SectionCard(
-      title: '🧪 Liver Function Test',
-      icon: Icons.monitor_heart_outlined,
+      title: 'Liver Function Test',
+      icon: Icons.science_outlined,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
       reportId: 'liver',
@@ -1734,7 +1781,7 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _cbcCard() {
     return _SectionCard(
-      title: '🩸 Blood / CBC Differential',
+      title: 'CBC / Differential',
       icon: Icons.bloodtype_outlined,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
@@ -1778,8 +1825,8 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _kidneyCard() {
     return _SectionCard(
-      title: '💧 Kidney Function Test',
-      icon: Icons.opacity_outlined,
+      title: 'Kidney Function',
+      icon: Icons.health_and_safety_outlined,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
       reportId: 'kidney',
@@ -1804,8 +1851,8 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _vitalsCard() {
     return _SectionCard(
-      title: '🫁 Lungs / Vitals',
-      icon: Icons.speed_outlined,
+      title: 'Lungs / Vitals',
+      icon: Icons.air_outlined,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
       reportId: 'vitals',
@@ -1830,8 +1877,8 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _pancreasCard() {
     return _SectionCard(
-      title: '🔬 Pancreatic Enzymes',
-      icon: Icons.science_outlined,
+      title: 'Pancreatic Enzymes',
+      icon: Icons.biotech_outlined,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
       reportId: 'pancreas',
@@ -1862,8 +1909,8 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _cancerCard() {
     return _SectionCard(
-      title: '🎗️ Cancer Awareness Markers',
-      icon: Icons.health_and_safety_outlined,
+      title: 'Cancer Awareness',
+      icon: Icons.radar_outlined,
       background: Theme.of(context).colorScheme.surface,
       accent: Theme.of(context).colorScheme.primary,
       reportId: 'cancer',
@@ -2073,21 +2120,60 @@ class _InputScreenState extends State<InputScreen> {
     bool allowSkip = true,
     FocusNode? focusNode,
   }) {
+    final colors = Theme.of(context).colorScheme;
     final hasAlternativeUnits = units.length > 1;
+    if (!allowSkip) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.outlineVariant),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _numberField(
+                      controller,
+                      label,
+                      required: required,
+                      borderless: true,
+                      focusNode: focusNode,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: hasAlternativeUnits
+                        ? _unitDropdown(unit, units, onUnitChanged,
+                            borderless: true)
+                        : _compactFixedUnitLabel(units.first),
+                  ),
+                ],
+              ),
+            ),
+            _fieldHelper(helper, allowSkip: allowSkip, controller: controller),
+          ],
+        ),
+      );
+    }
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: Theme.of(context).colorScheme.outlineVariant),
+              border: Border.all(color: colors.outlineVariant, width: 1.15),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: _numberField(
@@ -2098,8 +2184,13 @@ class _InputScreenState extends State<InputScreen> {
                     focusNode: focusNode,
                   ),
                 ),
+                Container(
+                  width: 1,
+                  height: 78,
+                  color: colors.outlineVariant,
+                ),
                 SizedBox(
-                  width: 120,
+                  width: 150,
                   child: hasAlternativeUnits
                       ? _unitDropdown(unit, units, onUnitChanged,
                           borderless: true)
@@ -2140,7 +2231,8 @@ class _InputScreenState extends State<InputScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(width: 120, child: _fixedUnitLabel('Auto-calculated')),
+              SizedBox(
+                  width: 120, child: _compactFixedUnitLabel('Auto-calculated')),
             ],
           ),
           _fieldHelper(helper, allowSkip: false),
@@ -2150,6 +2242,39 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   Widget _fixedUnitLabel(String unit) {
+    return Container(
+      height: 78,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Unit',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            unit,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w900,
+              fontSize: 17,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _compactFixedUnitLabel(String unit) {
     return Container(
       height: 56,
       alignment: Alignment.center,
@@ -2181,10 +2306,14 @@ class _InputScreenState extends State<InputScreen> {
     return DropdownButtonFormField<String>(
       initialValue: unit,
       isExpanded: true,
-      style: TextStyle(
+      icon: Icon(
+        Icons.keyboard_arrow_down_rounded,
         color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
         fontSize: 15,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
       ),
       decoration: InputDecoration(
         labelText: 'Unit',
@@ -2193,6 +2322,7 @@ class _InputScreenState extends State<InputScreen> {
         border: borderless ? InputBorder.none : null,
         enabledBorder: borderless ? InputBorder.none : null,
         focusedBorder: borderless ? InputBorder.none : null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       items: units
           .map((item) => DropdownMenuItem(value: item, child: Text(item)))
@@ -2208,19 +2338,32 @@ class _InputScreenState extends State<InputScreen> {
     bool allowSkip = true,
     TextEditingController? controller,
   }) {
+    if (!allowSkip) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(
+          helper ?? 'Select the unit exactly as shown in your report.',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: 12),
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 8,
-        runSpacing: 2,
+        spacing: 12,
+        runSpacing: 6,
         children: [
           Text(
             helper ?? 'Select the unit exactly as shown in your report.',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
           ),
           if (allowSkip && controller != null)
@@ -2231,17 +2374,17 @@ class _InputScreenState extends State<InputScreen> {
                 side: BorderSide(
                     color: Theme.of(context).colorScheme.outlineVariant),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 2,
+                  horizontal: 20,
+                  vertical: 4,
                 ),
-                minimumSize: const Size(0, 28),
+                minimumSize: const Size(0, 34),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999),
                 ),
                 textStyle: const TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               child: const Text('Skip'),
@@ -2275,24 +2418,94 @@ class _InputScreenState extends State<InputScreen> {
     List<String> options,
     ValueChanged<String?> onChanged,
   ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: DropdownButtonFormField<String>(
-        initialValue: value,
-        isExpanded: true,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface,
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
+    final colors = Theme.of(context).colorScheme;
+    if (label != 'Impaired fasting glucose / diabetes') {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: DropdownButtonFormField<String>(
+          initialValue: value,
+          isExpanded: true,
+          style: TextStyle(
+            color: colors.onSurface,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: InputDecoration(labelText: label),
+          items: options
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
+          onChanged: onChanged,
+          validator: (choice) => choice == null
+              ? 'Please complete the compulsory general health questions.'
+              : null,
         ),
-        decoration: InputDecoration(labelText: label),
-        items: options
-            .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-            .toList(),
-        onChanged: onChanged,
-        validator: (choice) => choice == null
-            ? 'Please complete the compulsory general health questions.'
-            : null,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: value,
+            isExpanded: true,
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: colors.onSurfaceVariant,
+            ),
+            style: TextStyle(
+              color: colors.onSurface,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+            decoration: InputDecoration(
+              labelText: label,
+              filled: true,
+              fillColor: colors.surface,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.outlineVariant),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.primary, width: 1.4),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            ),
+            items: options
+                .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+                .toList(),
+            onChanged: onChanged,
+            validator: (choice) => choice == null
+                ? 'Please complete the compulsory general health questions.'
+                : null,
+          ),
+          if (label == 'Impaired fasting glucose / diabetes') ...[
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color: colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Select "Yes" if you have a diagnosis of impaired fasting glucose or diabetes.',
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 13,
+                      height: 1.35,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -2468,18 +2681,19 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = this.accent ?? Theme.of(context).colorScheme.primary;
+    final colors = Theme.of(context).colorScheme;
+    final accent = this.accent ?? colors.primary;
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.only(bottom: 18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: accent.withValues(alpha: 0.18)),
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: colors.outlineVariant, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: accent.withValues(alpha: 0.08),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: accent.withValues(alpha: 0.07),
+            blurRadius: 26,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -2490,11 +2704,11 @@ class _SectionCard extends StatelessWidget {
             left: 0,
             top: 0,
             bottom: 0,
-            width: 5,
+            width: 6,
             child: ColoredBox(color: accent.withValues(alpha: 0.85)),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+            padding: const EdgeInsets.fromLTRB(34, 28, 30, 28),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2502,18 +2716,18 @@ class _SectionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 36,
-                      height: 36,
+                      width: 64,
+                      height: 64,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(14),
+                        color: accent.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: accent.withValues(alpha: 0.16),
+                          color: accent.withValues(alpha: 0.08),
                         ),
                       ),
-                      child: Icon(icon, color: accent, size: 20),
+                      child: Icon(icon, color: accent, size: 34),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 24),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2522,14 +2736,26 @@ class _SectionCard extends StatelessWidget {
                             title,
                             style: Theme.of(context)
                                 .textTheme
-                                .titleMedium
+                                .headlineSmall
                                 ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
+                                  color: colors.onSurface,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _sectionSubtitle(title),
+                            style: TextStyle(
+                              color: colors.onSurfaceVariant,
+                              fontSize: 15,
+                              height: 1.2,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           if (chip != null) ...[
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 18),
                             _SectionChip(label: chip!, color: accent),
                           ],
                         ],
@@ -2539,6 +2765,12 @@ class _SectionCard extends StatelessWidget {
                       IconButton(
                         tooltip: 'Clear this section',
                         onPressed: onClear,
+                        style: IconButton.styleFrom(
+                          foregroundColor: colors.onSurfaceVariant,
+                          backgroundColor: colors.surface,
+                          side: BorderSide(color: colors.outlineVariant),
+                          fixedSize: const Size(42, 42),
+                        ),
                         icon: Icon(
                           Icons.cleaning_services_outlined,
                           color: accent,
@@ -2546,7 +2778,7 @@ class _SectionCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 28),
                 child,
               ],
             ),
@@ -2554,6 +2786,19 @@ class _SectionCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _sectionSubtitle(String title) {
+    return switch (title) {
+      'Diabetes / Glucose Profile' => 'Blood sugar and metabolic health',
+      'Liver Function Test' => 'APRI, FIB-4, FLI, NAFLD',
+      'CBC / Differential' => 'NLR and liver support',
+      'Kidney Function' => 'eGFR',
+      'Lungs / Vitals' => 'SpO2',
+      'Pancreatic Enzymes' => 'LAR',
+      'Cancer Awareness' => 'AFP, CA 15-3, CA 27.29',
+      _ => 'AIP',
+    };
   }
 }
 
@@ -2565,23 +2810,27 @@ class _SectionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
+        color: accentChipFill(color, colors),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Text(
         label,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
+          color: colors.onSurface,
+          fontWeight: FontWeight.w800,
+          fontSize: 14,
         ),
       ),
     );
+  }
+
+  Color accentChipFill(Color color, ColorScheme colors) {
+    return Color.alphaBlend(color.withValues(alpha: 0.10), colors.surface);
   }
 }
 
@@ -2598,58 +2847,85 @@ class _ReportToggleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return InkWell(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 116),
-        padding: const EdgeInsets.all(14),
+        constraints: const BoxConstraints(minHeight: 104),
+        padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: selected
-                ? section.accent
-                : Theme.of(context).colorScheme.outlineVariant,
+            color: selected ? section.accent : colors.outlineVariant,
+            width: selected ? 1.6 : 1.1,
           ),
           boxShadow: [
             BoxShadow(
-              color: section.accent.withValues(alpha: selected ? 0.14 : 0.04),
-              blurRadius: selected ? 18 : 8,
+              color: section.accent.withValues(alpha: selected ? 0.13 : 0.04),
+              blurRadius: selected ? 22 : 14,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Text(section.emoji, style: TextStyle(fontSize: 26)),
-                const Spacer(),
-                Icon(
-                  selected ? Icons.check_circle : Icons.add_circle_outline,
-                  color: selected
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ],
+            Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                color: section.tint,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(section.icon, color: section.iconColor, size: 34),
             ),
-            const SizedBox(height: 10),
-            Text(
-              section.title,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface,
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    section.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 20,
+                      height: 1.05,
+                      color: colors.onSurface,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    section.subtitle,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: colors.onSurfaceVariant,
+                      height: 1.15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              section.subtitle,
-              style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(width: 16),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? section.accent : colors.onSurfaceVariant,
+                  width: 1.6,
+                ),
+              ),
+              child: Icon(
+                selected ? Icons.check : Icons.add,
+                color: selected ? section.accent : colors.onSurfaceVariant,
+                size: 25,
+              ),
             ),
           ],
         ),
@@ -2663,7 +2939,9 @@ class _ReportSection {
     required this.id,
     required this.title,
     required this.subtitle,
-    required this.emoji,
+    required this.icon,
+    required this.tint,
+    required this.iconColor,
     required this.background,
     required this.accent,
   });
@@ -2671,7 +2949,9 @@ class _ReportSection {
   final String id;
   final String title;
   final String subtitle;
-  final String emoji;
+  final IconData icon;
+  final Color tint;
+  final Color iconColor;
   final Color background;
   final Color accent;
 }
