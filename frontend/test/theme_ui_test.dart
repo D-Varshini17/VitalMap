@@ -15,6 +15,10 @@ import 'package:vitalmap/screens/index_detail_screen.dart';
 import 'package:vitalmap/screens/organ_detail_screen.dart';
 import 'package:vitalmap/screens/add_missing_screen.dart';
 import 'package:vitalmap/screens/more_screen.dart';
+import 'package:vitalmap/screens/body_health_map_screen.dart';
+import 'package:vitalmap/screens/health_history_screen.dart';
+import 'package:vitalmap/screens/lab_report_scanner_screen.dart';
+import 'package:vitalmap/screens/symptom_tracker_screen.dart';
 import 'package:vitalmap/theme/app_theme_controller.dart';
 
 void main() {
@@ -79,6 +83,10 @@ void main() {
           const ResultsScreen(),
           ResultsScreen(response: response),
           const InsightScreen(),
+          const BodyHealthMapScreen(),
+          const HealthHistoryScreen(),
+          const LabReportScannerScreen(),
+          const SymptomTrackerScreen(),
           IndexDetailScreen(metric: metric),
           OrganDetailScreen(
               organKey: metric.organKey,
@@ -142,12 +150,10 @@ void main() {
                   onThemeModeChanged: controller.setThemeMode),
             )));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Appearance'));
-    await tester.tap(find.text('Appearance'));
+    await tester.ensureVisible(find.text('Dark mode'));
+    await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Dark'));
-    await tester.pumpAndSettle();
-    expect(find.text('Dark theme selected'), findsOneWidget);
+    expect(find.text('Dark appearance enabled'), findsOneWidget);
     expect(Theme.of(tester.element(find.byType(MoreScreen))).brightness,
         Brightness.dark);
     final restored = AppThemeController();
@@ -170,7 +176,7 @@ void main() {
           themeController: controller, onSignOut: () {}, userEmail: null),
     ));
     await tester.pumpAndSettle();
-    expect(find.text('Your Health Summary'), findsOneWidget);
+    expect(find.text('Your latest VitalMap'), findsOneWidget);
     await tester.tap(find.text('More').last);
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Clear Saved Data'));
@@ -181,7 +187,7 @@ void main() {
     expect(await LocalStorage.loadLastResponse(), isNull);
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
-    expect(find.text('No screening insight yet'), findsOneWidget);
+    expect(find.text('Build your personal health map'), findsOneWidget);
     await tester.tap(find.text('Input'));
     await tester.pumpAndSettle();
     expect(

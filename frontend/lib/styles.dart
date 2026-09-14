@@ -342,22 +342,22 @@ class AppStyles {
 
   static final ThemeData darkTheme = _buildTheme(
     brightness: Brightness.dark,
-    pageColor: Color(0xFF0E1513),
-    surfaceColor: Color(0xFF151F1C),
-    secondarySurface: Color(0xFF1B2925),
-    primaryColor: Color(0xFF62C5A5),
-    onPrimaryColor: Color(0xFF07382B),
-    textColor: Color(0xFFF2F7F5),
-    mutedColor: Color(0xFFB5C5C0),
-    borderColor: Color(0xFF30423C),
+    pageColor: Color(0xFF0B1210),
+    surfaceColor: Color(0xFF121B18),
+    secondarySurface: Color(0xFF192521),
+    primaryColor: Color(0xFF78D2B2),
+    onPrimaryColor: Color(0xFF062E24),
+    textColor: Color(0xFFEAF3EF),
+    mutedColor: Color(0xFFA8B8B2),
+    borderColor: Color(0xFF2A3A34),
     extension: VitalMapColors(
-      success: Color(0xFF62C5A5),
-      successContainer: Color(0xFF1B3A30),
-      onSuccessContainer: Color(0xFFBDEAD9),
+      success: Color(0xFF78D2B2),
+      successContainer: Color(0xFF17372D),
+      onSuccessContainer: Color(0xFFC2EFDF),
       warning: Color(0xFFFFC857),
-      warningContainer: Color(0xFF493817),
+      warningContainer: Color(0xFF3D311B),
       onWarningContainer: Color(0xFFFFE5A3),
-      infoContainer: Color(0xFF20333D),
+      infoContainer: Color(0xFF1A2D34),
       onInfoContainer: Color(0xFFC5E4F2),
     ),
   );
@@ -402,7 +402,7 @@ class AppStyles {
         outlineVariant: borderColor,
         primaryContainer: extension.successContainer,
         onPrimaryContainer: extension.onSuccessContainer,
-        outline: mutedColor,
+        outline: borderColor,
       ),
       extensions: [extension],
       textSelectionTheme: TextSelectionThemeData(
@@ -459,7 +459,7 @@ class AppStyles {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: mutedColor),
+          borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

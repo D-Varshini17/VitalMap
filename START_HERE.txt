@@ -1,0 +1,41 @@
+VitalMap Effective Final Source
+===============================
+
+This is the complete source project, not a patch or builder.
+
+Recommended Windows setup
+-------------------------
+1. Double-click setup_windows.bat
+2. Double-click setup_local_ai.bat (first time only; installs both local Ollama models)
+3. Double-click run_backend.bat and keep that window open
+4. Double-click RUN_VITALMAP_WEB.bat
+
+Local URLs
+----------
+Backend health: http://127.0.0.1:8000/health
+Local tools:    http://127.0.0.1:8000/tools/status
+Local AI:       http://127.0.0.1:8000/ai/status
+API docs:       http://127.0.0.1:8000/docs
+Flutter Web:    http://127.0.0.1:8080 (RUN_VITALMAP_WEB.bat uses this stable port)
+
+Local AI only
+-------------
+Text guidance: qwen3:1.7b
+Report vision: qwen2.5vl:3b
+No OpenAI, Gemini, Claude, Groq, or cloud OCR API is used.
+
+Product flow
+------------
+Home       = what matters now
+Input      = manual entry + reviewed lab-report import
+Result     = current deterministic screening only
+View Detail= formula context + live local Ollama guidance
+Health Map = visual system status, coverage, trend and navigation
+History    = timeline + compare mode
+Daily Check-in = optional energy/sleep/symptom context between screenings
+Insight    = education
+More       = profile/export/settings/privacy/support
+
+Important safety/design rule
+----------------------------
+VitalMap formulas produce the screening scores and status labels. Local Ollama may explain already-final results and generate general food/lifestyle/activity/monitoring guidance, but it cannot recalculate or override the deterministic result.

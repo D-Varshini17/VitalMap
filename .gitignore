@@ -30,3 +30,23 @@ frontend/*-test.log
 .firecrawl/
 
 artifacts/
+
+# Machine state, signing material and release output
+.gradle/
+.kotlin/
+local.properties
+key.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.apk
+*.aab
+*.log
+.idea/
+.vscode/
+temporary_git_transport/
+vercel-dist/
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh

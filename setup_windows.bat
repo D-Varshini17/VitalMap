@@ -48,23 +48,29 @@ if not exist "backend\.env" (
 where ollama >nul 2>nul
 if errorlevel 1 (
   echo [WARN] Ollama was not found.
-  echo Install Ollama, then run:
-  echo ollama pull qwen3:1.7b
+  echo Install Ollama, then run setup_local_ai.bat to install both local models.
 ) else (
   echo Ollama OK
   ollama list | findstr /i "qwen3:1.7b" >nul
   if errorlevel 1 (
     echo [WARN] qwen3:1.7b is not installed.
-    echo Run:
-    echo ollama pull qwen3:1.7b
+    echo Run setup_local_ai.bat
   ) else (
     echo Qwen3 1.7B OK
+  )
+  ollama list | findstr /i "qwen2.5vl:3b" >nul
+  if errorlevel 1 (
+    echo [WARN] qwen2.5vl:3b is not installed. Run setup_local_ai.bat
+  ) else (
+    echo Qwen2.5-VL 3B OK
   )
 )
 
 echo.
-echo Setup complete. Next run:
-echo start_vitalmap.bat
+echo Setup complete.
+echo 1. Run setup_local_ai.bat if either Ollama model was missing.
+echo 2. Run run_backend.bat in one terminal.
+echo 3. Run RUN_VITALMAP_WEB.bat in another terminal.
 pause
 exit /b 0
 

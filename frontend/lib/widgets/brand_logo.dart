@@ -50,7 +50,7 @@ class BrandAppBarTitle extends StatelessWidget {
       children: [
         const BrandLogoMark(size: 32),
         const SizedBox(width: 9),
-        Text(title),
+        Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis)),
       ],
     );
   }

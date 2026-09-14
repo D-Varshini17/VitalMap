@@ -1,5 +1,7 @@
 # VitalMap
 
+> **Effective source build:** This package uses the original VitalMap UI/assets and reorganizes the added features into one coherent flow. See `VITALMAP_EFFECTIVE_REDESIGN.md` and `START_HERE.txt` before running it. Home is a concise current overview; Result is the deterministic screening; View Details adds on-demand local Ollama guidance; Health Map is a visual status/navigation layer; History contains Timeline + Compare; Daily Check-in is optional context only. Light mode is the default and Dark mode is a direct toggle.
+
 VitalMap is a Flutter health-screening client with a FastAPI analysis service.
 It calculates organ-health indicators from user-entered profile, vital, lab,
 lifestyle, and environment data. It is an indicator and education tool, not a
@@ -9,8 +11,9 @@ diagnostic service or replacement for a clinician.
 
 ```text
 Flutter Android/Web app
-        |-- /analyze, /predict --> FastAPI analysis API
-        |-- /login, /register --> Flask mock auth API
+        |-- Firebase Auth / Firestore --> account, drafts, screenings, history/check-ins
+        |-- /analyze, /predict --> FastAPI deterministic analysis API
+        |-- /tools/* --> local-only Ollama guidance and reviewed lab-report extraction
         |-- offline fallback --> Flutter local analysis engine
 ```
 
@@ -111,20 +114,20 @@ It checks Python, `.venv`, pip, FastAPI, Uvicorn, Ollama, `qwen3:1.7b`, Ollama A
 
 ### Deployed web behavior
 
-Vercel cannot access Ollama running on your laptop at `127.0.0.1:11434`, and browsers block an `https://*.vercel.app` page from calling a plain `http://127.0.0.1:8000` API. To use your local API from the deployed web app, start the backend locally, expose port `8000` through an HTTPS tunnel, then open the Vercel app with the tunnel URL:
+Public web builds use `VITALMAP_BACKEND_URL` for the deployed FastAPI service. That service cannot access Ollama on your laptop. When local AI is unavailable, deterministic screening remains available and AI tools report their unavailability.
 
 ```powershell
-start_vitalmap.bat
-open_web_with_local_api.bat https://YOUR-HTTPS-BACKEND-URL
+run_backend.bat
+RUN_VITALMAP_ANDROID_USB.bat
 ```
 
-The helper opens:
+The USB runner detects the authorized phone and sets up:
 
 ```text
-https://vital-map.vercel.app/?backendUrl=https://YOUR-HTTPS-BACKEND-URL
+Android localhost:8000 -> adb reverse -> PC FastAPI -> PC Ollama
 ```
 
-The backend allows Vercel origins by default through `CORS_ALLOW_ORIGIN_REGEX=https://.*\.vercel\.app`. Deterministic calculations and fallback recommendations continue without a paid/cloud LLM if the tunnel or backend is unavailable.
+Use `RUN_VITALMAP_WEB.bat` for local web mode. Runtime `backendUrl` overrides accept loopback addresses only, preventing shared links from silently redirecting medical data to arbitrary hosts. Public builds require an explicit backend URL; arbitrary HTTPS tunnel query overrides are no longer accepted. No cloud AI provider is used.
 
 ## Project map
 

@@ -15,6 +15,7 @@ class VitalMapHeroCard extends StatelessWidget {
     this.subtitle = 'Organ Health Risk Indicator',
     this.description =
         'Enter health details once. Get personalized screening insights.',
+    this.headingSize,
   });
 
   final Widget? trailing;
@@ -23,6 +24,7 @@ class VitalMapHeroCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final String description;
+  final double? headingSize;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +66,7 @@ class VitalMapHeroCard extends StatelessWidget {
                                 style: TextStyle(
                                   color:
                                       Theme.of(context).colorScheme.onSurface,
-                                  fontSize: 24,
+                                  fontSize: headingSize ?? 24,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),

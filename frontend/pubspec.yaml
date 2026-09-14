@@ -17,6 +17,7 @@ dependencies:
   firebase_core: ^3.15.2
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.6.12
+  file_picker: 12.3.0
 
 dev_dependencies:
   integration_test:
@@ -30,6 +31,7 @@ flutter:
   assets:
     - assets/logo_medid.jpeg
     - assets/images/organs/
+    - assets/images/body_health_map.png
     - assets/organs/images/
     - assets/images/logo/
 

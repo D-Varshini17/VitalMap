@@ -18,7 +18,7 @@ class AppThemeController extends ChangeNotifier {
     _themeMode = switch (savedMode) {
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
-      'system' => ThemeMode.system,
+      'system' => ThemeMode.light,
       _ => ThemeMode.light,
     };
     notifyListeners();

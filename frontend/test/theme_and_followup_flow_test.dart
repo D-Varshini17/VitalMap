@@ -31,14 +31,14 @@ void main() {
     expect(controller.themeMode, ThemeMode.light);
   });
 
-  test('explicit system theme still restores as system', () async {
+  test('legacy system theme migrates to light', () async {
     SharedPreferences.setMockInitialValues({'theme_mode': 'system'});
     final controller = AppThemeController();
     addTearDown(controller.dispose);
 
     await controller.load();
 
-    expect(controller.themeMode, ThemeMode.system);
+    expect(controller.themeMode, ThemeMode.light);
   });
 
   testWidgets('doctor follow-up uses recommendation when direct field is blank',

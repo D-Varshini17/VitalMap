@@ -6,12 +6,16 @@ import 'package:flutter/material.dart';
 
 import 'core/responsive.dart';
 import 'firebase_options.dart';
+import 'screens/body_health_map_screen.dart';
+import 'screens/health_history_screen.dart';
+import 'screens/home_overview_screen.dart';
 import 'screens/input_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/results_screen.dart';
 import 'screens/insight_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/more_screen.dart';
+import 'screens/results_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/symptom_tracker_screen.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'storage/local_storage.dart';
@@ -24,13 +28,10 @@ bool firebaseInitialized = false;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     firebaseInitialized = true;
   } catch (_) {
-    // The app can still render its logged-out state when Firebase is not
-    // configured in a local test environment.
+    // Local preview still renders the signed-out flow if Firebase is unavailable.
   }
   runApp(const MyApp());
 }
@@ -136,14 +137,10 @@ class _AuthGateState extends State<AuthGate> {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         final user = snapshot.data;
-        if (user == null) {
-          return const LoginScreen(onLogin: _noopLogin);
-        }
+        if (user == null) return const LoginScreen(onLogin: _noopLogin);
         _ensureProfile(user);
         return HomeContainer(
           key: ValueKey(user.uid),
@@ -175,6 +172,8 @@ class HomeContainer extends StatefulWidget {
 }
 
 class _HomeContainerState extends State<HomeContainer> {
+  // 0 Home, 1 Input, 2 Result, 3 Health Map, 4 History, 5 Daily Check-in,
+  // 6 Insight, 7 More.
   int _currentIndex = 0;
   Map<String, dynamic>? _lastResponse;
   Map<String, dynamic>? _lastPayload;
@@ -198,13 +197,23 @@ class _HomeContainerState extends State<HomeContainer> {
     stored ??= await LocalStorage.loadLastResponse();
     if (!mounted || stored == null) return;
     final saved = stored;
+    final payload = saved['payload'];
     setState(() {
-      _lastResponse = saved['response'] as Map<String, dynamic>?;
-      final payload = saved['payload'];
-      _lastPayload = payload is Map ? Map<String, dynamic>.from(payload) : null;
-      final timestamp = saved['timestamp'] as String?;
+      _lastResponse = saved['response'] is Map
+          ? Map<String, dynamic>.from(saved['response'] as Map)
+          : null;
+      _lastPayload = payload is Map
+          ? Map<String, dynamic>.from(payload)
+          : _lastPayload;
+      final timestamp = saved['timestamp']?.toString();
       _lastChecked = timestamp == null ? null : DateTime.tryParse(timestamp);
     });
+    if (_lastPayload == null) {
+      final localPayload = await LocalStorage.loadLastPayload();
+      if (mounted && localPayload != null) {
+        setState(() => _lastPayload = localPayload);
+      }
+    }
   }
 
   void _handleAnalysisComplete(Map<String, dynamic> response) {
@@ -213,12 +222,26 @@ class _HomeContainerState extends State<HomeContainer> {
       _lastChecked = DateTime.now();
       _currentIndex = 2;
     });
+    LocalStorage.loadLastPayload().then((payload) {
+      if (mounted && payload != null) setState(() => _lastPayload = payload);
+    });
   }
+
+  void _go(int index) => setState(() => _currentIndex = index);
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      ResultsScreen(response: _lastResponse, lastChecked: _lastChecked),
+    final pages = <Widget>[
+      HomeOverviewScreen(
+        response: _lastResponse,
+        payload: _lastPayload,
+        lastChecked: _lastChecked,
+        onStartAnalysis: () => _go(1),
+        onViewResults: () => _go(2),
+        onOpenHealthMap: () => _go(3),
+        onOpenHistory: () => _go(4),
+        onOpenCheckIn: () => _go(5),
+      ),
       InputScreen(
         key: ValueKey(_dataRevision),
         onAnalysisComplete: _handleAnalysisComplete,
@@ -228,42 +251,52 @@ class _HomeContainerState extends State<HomeContainer> {
         payload: _lastPayload,
         lastChecked: _lastChecked,
       ),
+      const BodyHealthMapScreen(),
+      const HealthHistoryScreen(),
+      const SymptomTrackerScreen(),
       const InsightScreen(),
       MoreScreen(
-        key: ValueKey(_lastChecked),
+        key: ValueKey('${_lastChecked ?? ''}-${widget.themeController.themeMode.name}'),
         themeMode: widget.themeController.themeMode,
         onThemeModeChanged: widget.themeController.setThemeMode,
-        onStartAnalysis: () => setState(() => _currentIndex = 1),
-        onViewResults: () => setState(() => _currentIndex = 2),
+        onStartAnalysis: () => _go(1),
+        onViewResults: () => _go(2),
         onSignOut: widget.onSignOut,
         onDataCleared: () => setState(() {
           _lastResponse = null;
           _lastPayload = null;
           _lastChecked = null;
           _dataRevision++;
+          _currentIndex = 0;
         }),
         userEmail: widget.userEmail,
       ),
     ];
+
     final isDesktop = Responsive.isDesktop(context);
     final content = IndexedStack(index: _currentIndex, children: pages);
-
     return Scaffold(
       body: isDesktop
           ? _DesktopShell(
               currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
+              onTap: _go,
               child: content,
             )
           : content,
       bottomNavigationBar: isDesktop
           ? null
-          : _MobileBottomNav(
-              currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
-            ),
+          : _MobileBottomNav(currentIndex: _currentIndex, onTap: _go),
     );
   }
+}
+
+class _NavItem {
+  const _NavItem(this.index, this.label, this.icon, this.activeIcon);
+
+  final int index;
+  final String label;
+  final IconData icon;
+  final IconData activeIcon;
 }
 
 class _MobileBottomNav extends StatelessWidget {
@@ -273,11 +306,11 @@ class _MobileBottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   static const _items = [
-    _DesktopNavItem('Home', Icons.home_outlined, Icons.home),
-    _DesktopNavItem('Input', Icons.edit_note_outlined, Icons.edit_note),
-    _DesktopNavItem('Result', Icons.insights_outlined, Icons.insights),
-    _DesktopNavItem('Insight', Icons.lightbulb_outline, Icons.lightbulb),
-    _DesktopNavItem('More', Icons.more_horiz, Icons.more),
+    _NavItem(0, 'Home', Icons.home_outlined, Icons.home),
+    _NavItem(1, 'Input', Icons.edit_note_outlined, Icons.edit_note),
+    _NavItem(2, 'Result', Icons.insights_outlined, Icons.insights),
+    _NavItem(6, 'Insight', Icons.lightbulb_outline, Icons.lightbulb),
+    _NavItem(7, 'More', Icons.more_horiz, Icons.more),
   ];
 
   @override
@@ -300,12 +333,13 @@ class _MobileBottomNav extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.outlineVariant,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .shadow
+                          .withValues(alpha: 0.12),
                       blurRadius: 28,
                       offset: const Offset(0, 14),
                     ),
@@ -313,12 +347,12 @@ class _MobileBottomNav extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    for (var i = 0; i < _items.length; i++)
+                    for (final item in _items)
                       Expanded(
                         child: _MobileNavItemButton(
-                          item: _items[i],
-                          selected: currentIndex == i,
-                          onTap: () => onTap(i),
+                          item: item,
+                          selected: currentIndex == item.index,
+                          onTap: () => onTap(item.index),
                         ),
                       ),
                   ],
@@ -338,7 +372,8 @@ class _MobileNavItemButton extends StatelessWidget {
     required this.selected,
     required this.onTap,
   });
-  final _DesktopNavItem item;
+
+  final _NavItem item;
   final bool selected;
   final VoidCallback onTap;
 
@@ -357,20 +392,8 @@ class _MobileNavItemButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected
                 ? Theme.of(context).colorScheme.surfaceContainer
-                : Theme.of(context).colorScheme.surface,
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(22),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.24),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -416,92 +439,118 @@ class _DesktopShell extends StatelessWidget {
   final ValueChanged<int> onTap;
   final Widget child;
 
-  static const _items = [
-    _DesktopNavItem('Home', Icons.home_outlined, Icons.home),
-    _DesktopNavItem('Input', Icons.edit_note_outlined, Icons.edit_note),
-    _DesktopNavItem('Result', Icons.insights_outlined, Icons.insights),
-    _DesktopNavItem(
-      'Insight',
-      Icons.lightbulb_outline,
-      Icons.lightbulb,
-    ),
-    _DesktopNavItem('More', Icons.more_horiz, Icons.more),
+  static const _primary = [
+    _NavItem(0, 'Home', Icons.home_outlined, Icons.home),
+    _NavItem(1, 'Input', Icons.edit_note_outlined, Icons.edit_note),
+    _NavItem(2, 'Result', Icons.insights_outlined, Icons.insights),
+  ];
+  static const _intelligence = [
+    _NavItem(3, 'Health Map', Icons.accessibility_new_outlined, Icons.accessibility_new),
+    _NavItem(4, 'History', Icons.timeline_outlined, Icons.timeline),
+    _NavItem(5, 'Daily Check-in', Icons.favorite_border, Icons.favorite),
+  ];
+  static const _secondary = [
+    _NavItem(6, 'Insight', Icons.lightbulb_outline, Icons.lightbulb),
+    _NavItem(7, 'More', Icons.more_horiz, Icons.more),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return DecoratedBox(
-          decoration:
-              BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
-          child: Row(
-            children: [
-              _DesktopSidebar(
-                items: _items,
-                currentIndex: currentIndex,
-                onTap: onTap,
-              ),
-              Expanded(child: child),
-            ],
+    return DecoratedBox(
+      decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+      child: Row(
+        children: [
+          _DesktopSidebar(
+            primary: _primary,
+            intelligence: _intelligence,
+            secondary: _secondary,
+            currentIndex: currentIndex,
+            onTap: onTap,
           ),
-        );
-      },
+          Expanded(child: child),
+        ],
+      ),
     );
   }
 }
 
 class _DesktopSidebar extends StatelessWidget {
   const _DesktopSidebar({
-    required this.items,
+    required this.primary,
+    required this.intelligence,
+    required this.secondary,
     required this.currentIndex,
     required this.onTap,
   });
 
-  final List<_DesktopNavItem> items;
+  final List<_NavItem> primary;
+  final List<_NavItem> intelligence;
+  final List<_NavItem> secondary;
   final int currentIndex;
   final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
-      width: 184,
+      width: 216,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          right:
-              BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-        ),
+        color: colors.surface,
+        border: Border(right: BorderSide(color: colors.outlineVariant)),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            blurRadius: 24,
+            color: colors.shadow.withValues(alpha: 0.06),
+            blurRadius: 22,
             offset: const Offset(8, 0),
           ),
         ],
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 18, 8, 16),
+          padding: const EdgeInsets.fromLTRB(10, 18, 10, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Center(child: BrandLogoMark(size: 42, glow: true)),
-              const SizedBox(height: 30),
-              for (var i = 0; i < items.length; i++) ...[
+              const Center(child: BrandLogoMark(size: 44, glow: true)),
+              const SizedBox(height: 24),
+              for (final item in primary) ...[
                 _DesktopNavButton(
-                  item: items[i],
-                  selected: i == currentIndex,
-                  onTap: () => onTap(i),
+                  item: item,
+                  selected: currentIndex == item.index,
+                  onTap: () => onTap(item.index),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 7),
+              ],
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 8, 8),
+                child: Text(
+                  'HEALTH INTELLIGENCE',
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 10,
+                    letterSpacing: 0.8,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              for (final item in intelligence) ...[
+                _DesktopNavButton(
+                  item: item,
+                  selected: currentIndex == item.index,
+                  onTap: () => onTap(item.index),
+                ),
+                const SizedBox(height: 7),
               ],
               const Spacer(),
-              Tooltip(
-                message: 'Screening insights only',
-                child: Icon(Icons.info_outline,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
+              for (final item in secondary) ...[
+                _DesktopNavButton(
+                  item: item,
+                  selected: currentIndex == item.index,
+                  onTap: () => onTap(item.index),
+                ),
+                const SizedBox(height: 7),
+              ],
             ],
           ),
         ),
@@ -517,71 +566,51 @@ class _DesktopNavButton extends StatelessWidget {
     required this.onTap,
   });
 
-  final _DesktopNavItem item;
+  final _NavItem item;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Material(
-      color: selected
-          ? Theme.of(context).colorScheme.surfaceContainer
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(18),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11),
           decoration: BoxDecoration(
-            color: selected
-                ? Theme.of(context).colorScheme.surfaceContainer
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            color: selected ? colors.surfaceContainer : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected
-                  ? Theme.of(context).colorScheme.outlineVariant
-                  : Colors.transparent,
+              color: selected ? colors.outlineVariant : Colors.transparent,
             ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.10),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : null,
           ),
-          child: Row(children: [
-            Icon(selected ? item.activeIcon : item.icon,
-                color: selected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant),
-            const SizedBox(width: 12),
-            Expanded(
-                child: Text(item.label,
-                    style: TextStyle(
-                        color: selected
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight:
-                            selected ? FontWeight.w800 : FontWeight.w500))),
-          ]),
+          child: Row(
+            children: [
+              Icon(
+                selected ? item.activeIcon : item.icon,
+                size: 21,
+                color: selected ? colors.primary : colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: TextStyle(
+                    color: selected ? colors.onSurface : colors.onSurfaceVariant,
+                    fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
-
-class _DesktopNavItem {
-  const _DesktopNavItem(this.label, this.icon, this.activeIcon);
-
-  final String label;
-  final IconData icon;
-  final IconData activeIcon;
 }

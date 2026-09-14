@@ -182,7 +182,7 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () => _showInfoSheet(
                     context,
                     'App Settings',
-                    'Use Appearance to choose your theme, the input page to change units, and Clear Saved Data to remove the local draft and latest result.',
+                    'Use the Dark mode switch to change appearance, the Input page to change units, and Clear Saved Data to remove the local draft and latest result.',
                   ),
                 ),
                 _menuItem(
@@ -214,11 +214,24 @@ class _MoreScreenState extends State<MoreScreen> {
                   ),
                 ),
                 _menuItem(
-                  icon: Icons.dark_mode_outlined,
-                  title: 'Appearance',
-                  subtitle: _themeModeLabel(widget.themeMode),
-                  onTap: () => _showThemeModeSheet(context),
-                  trailing: const Icon(Icons.chevron_right),
+                  icon: widget.themeMode == ThemeMode.dark
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                  title: 'Dark mode',
+                  subtitle: widget.themeMode == ThemeMode.dark
+                      ? 'Dark appearance enabled'
+                      : 'Light appearance is the default',
+                  onTap: () => widget.onThemeModeChanged(
+                    widget.themeMode == ThemeMode.dark
+                        ? ThemeMode.light
+                        : ThemeMode.dark,
+                  ),
+                  trailing: Switch(
+                    value: widget.themeMode == ThemeMode.dark,
+                    onChanged: (enabled) => widget.onThemeModeChanged(
+                      enabled ? ThemeMode.dark : ThemeMode.light,
+                    ),
+                  ),
                 ),
                 _menuItem(
                   icon: Icons.delete_outline,
@@ -382,12 +395,12 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Widget _localAiCard() {
     final configured = BackendAnalysisService.isConfigured;
-    final connected =
-        _aiStatus?['available'] == true || _aiStatus?['connected'] == true;
     final tested = _aiStatus != null;
-    final status = _aiStatus?['status']?.toString() ??
-        (configured ? 'Not tested' : 'Backend URL not configured');
-    final model = _aiStatus?['model']?.toString() ?? 'qwen3:1.7b';
+    final textReady = _aiStatus?['text_model_installed'] == true;
+    final visionReady = _aiStatus?['vision_model_installed'] == true;
+    final connected = textReady && visionReady;
+    final textModel = _aiStatus?['text_model']?.toString() ?? 'qwen3:1.7b';
+    final visionModel = _aiStatus?['vision_model']?.toString() ?? 'qwen2.5vl:3b';
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -404,14 +417,15 @@ class _MoreScreenState extends State<MoreScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Local AI',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                const Text('Local AI',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 2),
                 Text(
                   connected
-                      ? 'Connected'
-                      : (tested ? 'Unavailable' : 'Status: $status'),
+                      ? 'Ready for guidance and report scanning'
+                      : tested
+                          ? 'Local setup needs attention'
+                          : 'Run a local readiness check',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 12,
@@ -429,17 +443,18 @@ class _MoreScreenState extends State<MoreScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.wifi_tethering_outlined, size: 18),
-            label: const Text('Test Local AI'),
+            label: const Text('Check'),
           ),
         ]),
         const SizedBox(height: 10),
-        _aiInfoRow('Model', model),
+        _aiInfoRow('Guidance', '$textModel ${textReady ? '✓' : tested ? 'missing' : ''}'.trim()),
+        _aiInfoRow('Report vision', '$visionModel ${visionReady ? '✓' : tested ? 'missing' : ''}'.trim()),
         _aiInfoRow('Processing', 'Local Ollama'),
         _aiInfoRow('Cloud AI', 'Disabled'),
         if (!connected && tested) ...[
           const SizedBox(height: 8),
           Text(
-            'Your health calculations still work normally. Start Ollama on your computer and install qwen3:1.7b to enable personalized AI insights.',
+            'Deterministic screening still works. Run setup_local_ai.bat and keep Ollama running to enable both local guidance and lab-report vision.',
             style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 12,
@@ -474,15 +489,14 @@ class _MoreScreenState extends State<MoreScreen> {
   Future<void> _testLocalAi() async {
     setState(() => _checkingAi = true);
     try {
-      final status = await BackendAnalysisService.localAiStatus();
+      final status = await BackendAnalysisService.localToolsStatus();
       if (!mounted) return;
       setState(() => _aiStatus = status);
     } catch (error) {
       if (!mounted) return;
       setState(() => _aiStatus = {
-            'connected': false,
-            'status': 'unavailable',
-            'model': 'qwen3:1.7b',
+            'text_model_installed': false,
+            'vision_model_installed': false,
             'error': error.toString(),
           });
     } finally {
@@ -684,47 +698,6 @@ class _MoreScreenState extends State<MoreScreen> {
         trailing: trailing ?? const Icon(Icons.chevron_right),
       ),
     );
-  }
-
-  String _themeModeLabel(ThemeMode mode) {
-    return switch (mode) {
-      ThemeMode.dark => 'Dark theme selected',
-      ThemeMode.light => 'Light theme selected',
-      ThemeMode.system => 'Using device appearance',
-    };
-  }
-
-  Future<void> _showThemeModeSheet(BuildContext context) async {
-    final selected = await showModalBottomSheet<ThemeMode>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final option in [
-              (
-                ThemeMode.system,
-                'System Default',
-                Icons.brightness_auto_outlined
-              ),
-              (ThemeMode.light, 'Light', Icons.light_mode_outlined),
-              (ThemeMode.dark, 'Dark', Icons.dark_mode_outlined),
-            ])
-              ListTile(
-                leading: Icon(option.$3),
-                title: Text(option.$2),
-                trailing: option.$1 == widget.themeMode
-                    ? Icon(Icons.check,
-                        color: Theme.of(context).colorScheme.primary)
-                    : null,
-                onTap: () => Navigator.of(context).pop(option.$1),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (selected != null) widget.onThemeModeChanged(selected);
   }
 
   Future<void> _exportSummary() async {

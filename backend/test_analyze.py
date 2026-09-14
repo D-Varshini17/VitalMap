@@ -187,17 +187,12 @@ def post_analyze(payload):
 
 def assert_ai_package(body):
     ai = body.get("ai")
-    assert isinstance(ai, dict), "Missing AI recommendation package"
+    assert isinstance(ai, dict), "Missing local-AI metadata"
     assert ai.get("provider") == "ollama"
-    assert ai.get("processing") == "Local Ollama"
     assert ai.get("cloud_ai") == "Disabled"
-    for key in AI_KEYS:
-        assert key in ai, f"Missing AI key: {key}"
-    assert str(ai.get("summary", "")).strip()
-    assert str(ai.get("doctor_followup", "")).strip()
-    assert isinstance(ai.get("data_completeness"), dict)
-    assert "percent" in ai["data_completeness"]
-    assert isinstance(ai.get("health_trend"), dict)
+    assert ai.get("local_only") is True
+    assert ai.get("mode") == "on_demand_guidance"
+    assert "Deterministic screening completed" in str(ai.get("message", ""))
 
 
 def result_by_index(body, index_name):

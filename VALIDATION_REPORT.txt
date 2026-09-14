@@ -1,0 +1,37 @@
+VitalMap Effective Final Source - Validation Report
+===================================================
+
+Backend compilation: PASS
+Backend deterministic unit test: Unit test passed: formulas returned ['AIP', 'TyG', 'APRI', 'FIB-4', 'FLI', 'NLR', 'eGFR', 'LAR']
+Backend analyze tests: All analyze checks passed.
+
+FastAPI route smoke test:
+/health 200
+/tools/status 200
+/ai/status 200
+/openapi.json 200
+/analyze OK
+/predict OK
+/tools/lab-report/scan OK
+/tools/metric-guidance OK
+/tools/report-guidance OK
+/tools/changes/explain OK
+/analyze sample 200 seconds 0.002
+ai_mode on_demand_guidance cloud_ai Disabled
+
+Dart source structural/import check:
+dart_files 38
+structural_errors 0
+
+Cloud-AI endpoint/provider keyword audit (backend + frontend/lib):
+No OpenAI/Gemini/Anthropic/Claude/Groq references found in executable app source.
+
+Body Health Map asset:
+d57ce7373e9ddcc76ede0d05f5c87a5f3d47632c7298c4984ba9454e9a213248  frontend/assets/images/body_health_map.png
+PNG dimensions: 1424 x 745 (verified against the user-supplied image during packaging)
+
+Important limitation:
+Flutter SDK is not installed in this packaging container, so flutter analyze / flutter test / a live Chrome build could not be executed here. CHECK_PROJECT.bat is included and runs flutter pub get, flutter analyze and flutter test on the user's Windows machine. A source-level import/delimiter check was run instead in this environment.
+
+Ollama runtime note:
+The packaging container does not run the user's local Ollama models. Local Ollama endpoints, model checks, timeouts and routes were validated structurally; live qwen3:1.7b and qwen2.5vl:3b inference must be exercised on the user's computer.

@@ -13,5 +13,6 @@ flutter --version
 cd "$ROOT/frontend"
 flutter clean
 flutter pub get --enforce-lockfile
-flutter build web --release
+: "${VITALMAP_BACKEND_URL:?Set VITALMAP_BACKEND_URL to the deployed HTTPS FastAPI URL}"
+flutter build web --release --dart-define="VITALMAP_BACKEND_URL=$VITALMAP_BACKEND_URL"
 node "$ROOT/scripts/write-build-info.cjs"

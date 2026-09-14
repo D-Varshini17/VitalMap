@@ -1,0 +1,44 @@
+"""Exercise actual Ollama with synthetic report data; no patient records."""
+import io
+import json
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from backend.app.local_health_tools import LocalHealthToolsService
+from PIL import Image, ImageDraw, ImageFont
+import pymupdf
+
+service = LocalHealthToolsService()
+results = {}
+
+def check(name, operation):
+    started = time.monotonic()
+    try:
+        value = operation()
+        results[name] = {'ok': True, 'seconds': round(time.monotonic() - started, 1), 'response': value}
+    except Exception as error:
+        results[name] = {'ok': False, 'error': str(error)}
+    Path('artifacts/local-ai-verification.json').write_text(json.dumps(results, indent=2), encoding='utf-8')
+    print(name, results[name]['ok'], flush=True)
+
+check('status', service.status)
+check('guidance', lambda: service.metric_guidance({'metric': {'indicator': 'AIP', 'value': '0.10', 'status': 'Low Concern', 'values_used': {'triglycerides': 100, 'hdl': 50}}}))
+document = pymupdf.open()
+page = document.new_page()
+page.insert_text((72, 72), 'SYNTHETIC LAB REPORT\nFasting glucose: 95 mg/dL\nHDL cholesterol: 50 mg/dL', fontsize=18)
+pdf = document.tobytes()
+check('text_pdf', lambda: service.scan_report(filename='synthetic.pdf', content_type='application/pdf', data=pdf))
+image = Image.new('RGB', (1100, 500), 'white')
+draw = ImageDraw.Draw(image)
+font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 36)
+draw.multiline_text((40, 40), 'SYNTHETIC LAB REPORT\nFasting glucose: 95 mg/dL\nHDL cholesterol: 50 mg/dL', fill='black', font=font, spacing=25)
+for fmt in ['JPEG', 'PNG']:
+    stream = io.BytesIO()
+    image.save(stream, format=fmt)
+    data = stream.getvalue()
+    check(fmt.lower(), lambda: service.scan_report(filename='synthetic.' + fmt.lower(), content_type='image/' + fmt.lower(), data=data))
+scanned = pymupdf.open()
+scanned.new_page().insert_image(pymupdf.Rect(20, 20, 570, 270), stream=data)
+check('scanned_pdf', lambda: service.scan_report(filename='scanned.pdf', content_type='application/pdf', data=scanned.tobytes()))

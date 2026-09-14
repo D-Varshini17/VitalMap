@@ -28,7 +28,7 @@ void main() {
     await restored.setThemeMode(ThemeMode.system);
     final systemRestored = AppThemeController();
     await systemRestored.load();
-    expect(systemRestored.themeMode, ThemeMode.system);
+    expect(systemRestored.themeMode, ThemeMode.light);
 
     controller.dispose();
     restored.dispose();

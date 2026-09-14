@@ -3,3 +3,10 @@ frontend/build/
 .flutter-sdk/
 backend/
 releases/
+artifacts/
+temporary_git_transport/
+.venv/
+**/.env
+**/key.properties
+**/*.jks
+**/*.keystore

@@ -7,7 +7,7 @@ import 'package:vitalmap/styles.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test('all appearance values survive a new controller', () async {
-    for (final mode in ThemeMode.values) {
+    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
       SharedPreferences.setMockInitialValues({});
       final controller = AppThemeController();
       await controller.setThemeMode(mode);

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import '../core/local_analysis_engine.dart';
 import '../core/responsive.dart';
+import '../core/input_typography.dart';
 import '../services/firestore_service.dart';
 import '../services/backend_analysis_service.dart';
 import '../storage/local_storage.dart';
@@ -11,6 +12,7 @@ import '../utils/unit_conversion.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/disclaimer.dart';
 import '../widgets/health_dashboard_widgets.dart';
+import 'lab_report_scanner_screen.dart';
 
 class InputScreen extends StatefulWidget {
   const InputScreen({super.key, required this.onAnalysisComplete});
@@ -358,8 +360,6 @@ class _InputScreenState extends State<InputScreen> {
     setState(() => analysisStep = 'Preparing your health map');
     await Future<void>.delayed(const Duration(milliseconds: 180));
     if (!mounted) return;
-    setState(() => loading = false);
-
     await LocalStorage.saveLastResponse(response);
     if (user != null) {
       try {
@@ -368,8 +368,16 @@ class _InputScreenState extends State<InputScreen> {
           payload: payload,
           response: response,
         );
-      } catch (_) {}
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Screening saved on this device. Account sync failed; check your connection.'),
+          ));
+        }
+      }
     }
+    if (!mounted) return;
+    setState(() => loading = false);
     widget.onAnalysisComplete(response);
   }
 
@@ -736,7 +744,9 @@ class _InputScreenState extends State<InputScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _IntroCard(onStart: _startAssessment),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
+              _labReportImportCard(),
+              const SizedBox(height: 10),
               _buildTopTabs(),
               const SizedBox(height: 14),
               _activeFlowBody(isDesktop),
@@ -745,6 +755,70 @@ class _InputScreenState extends State<InputScreen> {
         ),
       ),
     );
+  }
+
+  Widget _labReportImportCard() {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: _openLabReportScanner,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: colors.outlineVariant),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainer,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(Icons.document_scanner_outlined, color: colors.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Upload / Scan Lab Report', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Extract values locally with Ollama, review every value and unit, then import only the rows you approve into these same Input fields.',
+                      style: TextStyle(color: colors.onSurfaceVariant, height: 1.35),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: colors.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openLabReportScanner() async {
+    final imported = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const LabReportScannerScreen()),
+    );
+    if (imported == true && mounted) {
+      await _loadSavedPayload();
+      if (!mounted) return;
+      setState(() => _activeTop = 'reports');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reviewed report values were imported into Input.')),
+      );
+    }
   }
 
   void _setActiveTop(String id) {
@@ -1613,10 +1687,21 @@ class _InputScreenState extends State<InputScreen> {
           onPressed: loading
               ? null
               : () async {
-                  await LocalStorage.saveLastPayload(_payload());
+                  final payload = _payload();
+                  await LocalStorage.saveLastPayload(payload);
+                  final user = Firebase.apps.isEmpty ? null : FirebaseAuth.instance.currentUser;
+                  var message = 'Saved for later on this device.';
+                  if (user != null) {
+                    try {
+                      await FirestoreService.saveDraft(user.uid, payload);
+                      message = 'Draft saved to your account.';
+                    } catch (_) {
+                      message = 'Saved on this device. Account sync failed; check your connection and retry.';
+                    }
+                  }
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Saved for later.')),
+                    SnackBar(content: Text(message)),
                   );
                 },
           icon: const Icon(Icons.bookmark_border),
@@ -2031,13 +2116,14 @@ class _InputScreenState extends State<InputScreen> {
       focusNode: focusNode,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       style: TextStyle(
-        fontSize: 18,
+        fontSize: InputTypography.value,
         fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurface,
       ),
       onChanged: (_) => setState(() {}),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: const TextStyle(fontSize: InputTypography.label),
         suffixText: unitSuffix,
         filled: !borderless,
         fillColor: borderless ? Colors.transparent : null,
@@ -2062,7 +2148,7 @@ class _InputScreenState extends State<InputScreen> {
         }
         if (text.isEmpty) return null;
         final parsed = double.tryParse(text);
-        if (parsed == null) {
+        if (parsed == null || !parsed.isFinite) {
           return 'Please enter a valid number.';
         }
         return _validateNumericValue(label, parsed);
@@ -2133,7 +2219,7 @@ class _InputScreenState extends State<InputScreen> {
   }) {
     final colors = Theme.of(context).colorScheme;
     final hasAlternativeUnits = units.length > 1;
-    if (!allowSkip) {
+    if (!allowSkip || Responsive.isMobile(context)) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Column(
@@ -2549,7 +2635,8 @@ class _IntroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return VitalMapHeroCard(
       title: 'Welcome to VitalMap',
-      subtitle: 'AI-powered organ health insights',
+      headingSize: InputTypography.heading(context),
+      subtitle: 'Deterministic screening with optional local AI guidance',
       compact: true,
       description:
           'Understand your body with friendly screening guidance based on the values you choose to share.',
@@ -2750,7 +2837,7 @@ class _SectionCard extends StatelessWidget {
                                 .headlineSmall
                                 ?.copyWith(
                                   color: colors.onSurface,
-                                  fontSize: 24,
+                                  fontSize: InputTypography.section(context),
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0,
                                 ),
@@ -2902,7 +2989,7 @@ class _ReportToggleCard extends StatelessWidget {
                     section.title,
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 20,
+                      fontSize: InputTypography.section(context),
                       height: 1.05,
                       color: colors.onSurface,
                       letterSpacing: 0,
