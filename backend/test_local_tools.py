@@ -67,3 +67,23 @@ def test_deterministic_endpoints_do_not_call_ollama():
         first = client.post('/analyze', json=payload)
         assert first.status_code == 200
         assert client.post('/predict', json=payload).json() == first.json()
+
+
+def test_vision_transcription_precedes_field_extraction():
+    service = LocalHealthToolsService()
+    extracted = {'fields': [{'key': 'fasting_glucose', 'value': 95, 'unit': 'mg/dL', 'confidence': 'high'}]}
+    with patch.object(service, '_installed_models', return_value=[service.vision_model]), patch.object(service, '_optimize_image', return_value=b'image'), patch.object(service, '_chat_json', side_effect=[{'text': 'Fasting glucose 95 mg/dL'}, extracted]) as chat:
+        result = service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
+        assert result['fields'][0]['value'] == 95
+        assert chat.call_args_list[0].kwargs['model'] == service.vision_model
+        assert chat.call_args_list[1].kwargs['model'] == service.text_model
+        assert 'Fasting glucose 95 mg/dL' in chat.call_args_list[1].kwargs['messages'][1]['content']
+
+
+def test_pdf_page_limit_is_explicit():
+    import pymupdf
+    with pymupdf.open() as document:
+        for _ in range(4):
+            document.new_page()
+        with pytest.raises(LocalHealthToolsError, match='3 pages'):
+            LocalHealthToolsService._extract_pdf_text(document.tobytes())

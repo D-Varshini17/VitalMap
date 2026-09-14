@@ -212,8 +212,11 @@ class LocalHealthToolsService:
                 "Unsupported file type. Use PDF, PNG, JPG, JPEG, WEBP, TXT, or CSV."
             )
 
+        transcript = payload.pop('_transcribed_text', None)
         normalized = self._normalize_extraction(payload)
-        if mode in {"pdf_text", "text"}:
+        if transcript:
+            text = transcript
+        if mode in {"pdf_text", "text"} or transcript:
             # Printed reference ranges must be present in the source, never inferred.
             source_text = re.sub(r"\s+", "", text).lower()
             for field in normalized["fields"] + normalized["extras"]:
@@ -294,6 +297,7 @@ class LocalHealthToolsService:
             "strict_rules": [
                 "The supplied score, status, formula output, and warning flags are final. Never recalculate or alter them.",
                 "Do not diagnose a disease or say the user has a condition.",
+                "Do not classify individual biomarker values as normal, high, low, or elevated. Only refer to the supplied finalized indicator status and explanation.",
                 "Never infer overall health, normal health, or absence of health risks from a single screening indicator.",
                 "Do not prescribe medicines, supplements, or treatment.",
                 "Do not recommend calorie restriction, fasting, weight-loss targets, body-shape goals, or extreme exercise.",
@@ -396,7 +400,7 @@ class LocalHealthToolsService:
             return out
 
         summary = re.sub(r"\s+", " ", str(raw.get("summary", ""))).strip()[:700]
-        if re.search(r"no (?:immediate )?health risks|general health is within|you (?:have|suffer from) (?:diabetes|cancer|kidney disease)|stop (?:taking|your) medication", json.dumps(raw), re.IGNORECASE):
+        if re.search(r"no (?:immediate |significant )?health risks|generally healthy|healthy profile|within normal|normal ranges|general health is within|you (?:have|suffer from) (?:diabetes|cancer|kidney disease)|stop (?:taking|your) medication", json.dumps(raw), re.IGNORECASE):
             raise LocalHealthToolsError("Local AI guidance made an unsupported medical claim. Your screening is unchanged; retry guidance.", 502)
         if not summary or any(not isinstance(raw.get(key), list) for key in ('food', 'exercise', 'lifestyle', 'risk_factors', 'monitor_next')):
             raise LocalHealthToolsError("Ollama returned incomplete guidance. Retry to generate all sections.", 502)
@@ -448,7 +452,7 @@ class LocalHealthToolsService:
         if not images:
             raise LocalHealthToolsError("No readable report pages were found.")
         encoded = [base64.b64encode(self._optimize_image(item)).decode("ascii") for item in images[:3]]
-        return self._chat_json(
+        transcription = self._chat_json(
             model=self.vision_model,
             messages=[
                 {
@@ -460,13 +464,19 @@ class LocalHealthToolsService:
                 },
                 {
                     "role": "user",
-                    "content": self._extraction_prompt(),
+                    "content": 'Transcribe all visible text in this report image exactly, including test names, numbers and units. Do not interpret it. Return a JSON object with one key, "text", whose value is the exact transcribed text. Do not invent text that is not visible.',
                     "images": encoded,
                 },
             ],
             num_predict=1200,
             timeout=self.vision_timeout,
         )
+        text = transcription.get('text')
+        if not isinstance(text, str) or not text.strip():
+            raise LocalHealthToolsError('The vision model could not read report text. Try a clearer, closely cropped image.', 502)
+        extracted = self._extract_from_text(text)
+        extracted['_transcribed_text'] = text
+        return extracted
 
     @staticmethod
     def _optimize_image(data: bytes) -> bytes:
@@ -606,7 +616,7 @@ class LocalHealthToolsService:
                 "format": "json",
                 "think": False,
                 "options": {"temperature": 0.1, "num_predict": num_predict, "num_ctx": 4096},
-                "keep_alive": "2m",
+                "keep_alive": 0,
             }
         ).encode("utf-8")
         request = urllib.request.Request(
