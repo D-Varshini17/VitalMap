@@ -162,6 +162,29 @@ void main() {
     restored.dispose();
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets('More uses the restored screening without a device cache',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(MaterialApp(
+      theme: AppStyles.lightTheme,
+      home: MoreScreen(
+        onStartAnalysis: () {},
+        onViewResults: () {},
+        onSignOut: () {},
+        userEmail: null,
+        themeMode: ThemeMode.light,
+        onThemeModeChanged: (_) {},
+        response: response,
+        payload: const {'profile': {'age': 45, 'sex': 'Female'}},
+        lastChecked: DateTime(2026, 9, 15),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Female - 45 yrs'), findsOneWidget);
+    expect(find.text('Not assessed yet'), findsNothing);
+    expect(await LocalStorage.loadLastResponse(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
   testWidgets('clearing saved data refreshes preserved shell pages',
       (tester) async {
     SharedPreferences.setMockInitialValues({});

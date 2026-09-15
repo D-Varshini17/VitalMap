@@ -18,6 +18,9 @@ class MoreScreen extends StatefulWidget {
     required this.themeMode,
     required this.onThemeModeChanged,
     this.onDataCleared,
+    this.response,
+    this.payload,
+    this.lastChecked,
   });
 
   final VoidCallback onStartAnalysis;
@@ -27,6 +30,9 @@ class MoreScreen extends StatefulWidget {
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
   final VoidCallback? onDataCleared;
+  final Map<String, dynamic>? response;
+  final Map<String, dynamic>? payload;
+  final DateTime? lastChecked;
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();
@@ -52,11 +58,12 @@ class _MoreScreenState extends State<MoreScreen> {
     if (!mounted) return;
     final rawResponse = storedResponse?['response'];
     setState(() {
-      _payload = payload;
-      _response =
-          rawResponse is Map ? Map<String, dynamic>.from(rawResponse) : null;
+      _payload = widget.payload ?? payload;
+      _response = widget.response ??
+          (rawResponse is Map ? Map<String, dynamic>.from(rawResponse) : null);
       final timestamp = storedResponse?['timestamp']?.toString();
-      _lastChecked = timestamp == null ? null : DateTime.tryParse(timestamp);
+      _lastChecked = widget.lastChecked ??
+          (timestamp == null ? null : DateTime.tryParse(timestamp));
     });
   }
 
@@ -400,7 +407,8 @@ class _MoreScreenState extends State<MoreScreen> {
     final visionReady = _aiStatus?['vision_model_installed'] == true;
     final connected = textReady && visionReady;
     final textModel = _aiStatus?['text_model']?.toString() ?? 'qwen3:1.7b';
-    final visionModel = _aiStatus?['vision_model']?.toString() ?? 'qwen2.5vl:3b';
+    final visionModel =
+        _aiStatus?['vision_model']?.toString() ?? 'qwen2.5vl:3b';
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -418,7 +426,8 @@ class _MoreScreenState extends State<MoreScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Local AI',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 2),
                 Text(
                   connected
@@ -447,8 +456,14 @@ class _MoreScreenState extends State<MoreScreen> {
           ),
         ]),
         const SizedBox(height: 10),
-        _aiInfoRow('Guidance', '$textModel ${textReady ? '✓' : tested ? 'missing' : ''}'.trim()),
-        _aiInfoRow('Report vision', '$visionModel ${visionReady ? '✓' : tested ? 'missing' : ''}'.trim()),
+        _aiInfoRow(
+            'Guidance',
+            '$textModel ${textReady ? '✓' : tested ? 'missing' : ''}'
+                .trim()),
+        _aiInfoRow(
+            'Report vision',
+            '$visionModel ${visionReady ? '✓' : tested ? 'missing' : ''}'
+                .trim()),
         _aiInfoRow('Processing', 'Local Ollama'),
         _aiInfoRow('Cloud AI', 'Disabled'),
         if (!connected && tested) ...[

@@ -28,7 +28,8 @@ bool firebaseInitialized = false;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
     firebaseInitialized = true;
   } catch (_) {
     // Local preview still renders the signed-out flow if Firebase is unavailable.
@@ -121,6 +122,8 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   String? _profileEnsuredForUid;
+  late final Stream<User?> _authChanges =
+      FirebaseAuth.instance.authStateChanges();
 
   void _ensureProfile(User user) {
     if (_profileEnsuredForUid == user.uid) return;
@@ -134,10 +137,11 @@ class _AuthGateState extends State<AuthGate> {
       return LoginScreen(onLogin: (_) {});
     }
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: _authChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
         }
         final user = snapshot.data;
         if (user == null) return const LoginScreen(onLogin: _noopLogin);
@@ -202,9 +206,8 @@ class _HomeContainerState extends State<HomeContainer> {
       _lastResponse = saved['response'] is Map
           ? Map<String, dynamic>.from(saved['response'] as Map)
           : null;
-      _lastPayload = payload is Map
-          ? Map<String, dynamic>.from(payload)
-          : _lastPayload;
+      _lastPayload =
+          payload is Map ? Map<String, dynamic>.from(payload) : _lastPayload;
       final timestamp = saved['timestamp']?.toString();
       _lastChecked = timestamp == null ? null : DateTime.tryParse(timestamp);
     });
@@ -256,7 +259,8 @@ class _HomeContainerState extends State<HomeContainer> {
       const SymptomTrackerScreen(),
       const InsightScreen(),
       MoreScreen(
-        key: ValueKey('${_lastChecked ?? ''}-${widget.themeController.themeMode.name}'),
+        key: ValueKey(
+            '${_lastChecked ?? ''}-${widget.themeController.themeMode.name}'),
         themeMode: widget.themeController.themeMode,
         onThemeModeChanged: widget.themeController.setThemeMode,
         onStartAnalysis: () => _go(1),
@@ -270,6 +274,9 @@ class _HomeContainerState extends State<HomeContainer> {
           _currentIndex = 0;
         }),
         userEmail: widget.userEmail,
+        response: _lastResponse,
+        payload: _lastPayload,
+        lastChecked: _lastChecked,
       ),
     ];
 
@@ -333,7 +340,8 @@ class _MobileBottomNav extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  border:
+                      Border.all(color: Theme.of(context).colorScheme.outline),
                   boxShadow: [
                     BoxShadow(
                       color: Theme.of(context)
@@ -445,7 +453,8 @@ class _DesktopShell extends StatelessWidget {
     _NavItem(2, 'Result', Icons.insights_outlined, Icons.insights),
   ];
   static const _intelligence = [
-    _NavItem(3, 'Health Map', Icons.accessibility_new_outlined, Icons.accessibility_new),
+    _NavItem(3, 'Health Map', Icons.accessibility_new_outlined,
+        Icons.accessibility_new),
     _NavItem(4, 'History', Icons.timeline_outlined, Icons.timeline),
     _NavItem(5, 'Daily Check-in', Icons.favorite_border, Icons.favorite),
   ];
@@ -457,7 +466,8 @@ class _DesktopShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+      decoration:
+          BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
       child: Row(
         children: [
           _DesktopSidebar(
@@ -601,7 +611,8 @@ class _DesktopNavButton extends StatelessWidget {
                 child: Text(
                   item.label,
                   style: TextStyle(
-                    color: selected ? colors.onSurface : colors.onSurfaceVariant,
+                    color:
+                        selected ? colors.onSurface : colors.onSurfaceVariant,
                     fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
                     fontSize: 13,
                   ),
