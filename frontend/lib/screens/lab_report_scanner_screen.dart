@@ -690,6 +690,10 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
     setState(() {
       _scanning = true;
       _error = null;
+      _fields = [];
+      _extras = [];
+      _warnings = [];
+      _included = <int>{};
       _analysisResponse = null;
       _guidance = null;
     });
@@ -850,6 +854,7 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
         'pdf_vision' => 'scanned PDF vision',
         'vision' => 'image vision',
         'text' => 'text report',
+        'local_ocr' => 'report text',
         _ => mode,
       };
 }

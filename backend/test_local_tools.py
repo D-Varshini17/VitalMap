@@ -1,4 +1,5 @@
 import io
+import json
 from unittest.mock import patch
 
 import pytest
@@ -23,13 +24,24 @@ def test_image_optimization(format):
     Image.new('RGB', (3000, 2200), 'white').save(stream, format=format)
     result = LocalHealthToolsService._optimize_image(stream.getvalue())
     with Image.open(io.BytesIO(result)) as image:
-        assert max(image.size) <= 2000
+        assert max(image.size) <= 1280
         assert image.format == 'JPEG'
 
 
 def test_invalid_image_is_useful_error():
     with pytest.raises(LocalHealthToolsError, match='invalid'):
         LocalHealthToolsService._optimize_image(b'not an image')
+
+
+def test_truncated_model_output_is_not_silently_imported_or_retried():
+    service = LocalHealthToolsService()
+    payload = {'done_reason': 'length', 'message': {'content': '{"fields":[]}'}}
+    with patch.object(service, '_installed_models', return_value=[service.text_model]), \
+            patch('urllib.request.urlopen') as request:
+        request.return_value.__enter__.return_value.read.return_value = json.dumps(payload).encode()
+        with pytest.raises(LocalHealthToolsError, match='size limit'):
+            service._chat_json(model=service.text_model, messages=[], num_predict=10)
+        assert request.call_count == 1
 
 
 def test_scanner_multipart_contract_and_service_error():
@@ -72,12 +84,25 @@ def test_deterministic_endpoints_do_not_call_ollama():
 def test_vision_transcription_precedes_field_extraction():
     service = LocalHealthToolsService()
     extracted = {'fields': [{'key': 'fasting_glucose', 'value': 95, 'unit': 'mg/dL', 'confidence': 'high'}]}
-    with patch.object(service, '_installed_models', return_value=[service.vision_model]), patch.object(service, '_optimize_image', return_value=b'image'), patch.object(service, '_chat_json', side_effect=[{'text': 'Fasting glucose 95 mg/dL'}, extracted]) as chat:
+    with patch.object(service, '_local_image_text', return_value=None), patch.object(service, '_installed_models', return_value=[service.vision_model]), patch.object(service, '_optimize_image', return_value=b'image'), patch.object(service, '_chat_json', side_effect=[{'text': 'Fasting glucose 95 mg/dL'}, extracted]) as chat:
         result = service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
         assert result['fields'][0]['value'] == 95
         assert chat.call_args_list[0].kwargs['model'] == service.vision_model
         assert chat.call_args_list[1].kwargs['model'] == service.text_model
         assert 'Fasting glucose 95 mg/dL' in chat.call_args_list[1].kwargs['messages'][1]['content']
+
+
+def test_local_ocr_uses_text_model_and_requires_explicit_review():
+    service = LocalHealthToolsService()
+    extracted = {'fields': [{'key': 'fasting_glucose', 'value': 95, 'unit': 'mg/dL', 'confidence': 'high'}]}
+    with patch.object(service, '_local_image_text', return_value='Fasting glucose 95 mg/dL'), \
+            patch.object(service, '_extract_from_text', return_value=extracted) as extract, \
+            patch.object(service, '_installed_models', side_effect=AssertionError('Vision must not run')):
+        result = service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
+        extract.assert_called_once_with('Fasting glucose 95 mg/dL')
+        assert result['mode'] == 'local_ocr'
+        assert result['fields'][0]['confidence'] == 'medium'
+        assert result['review_required'] is True
 
 
 def test_pdf_page_limit_is_explicit():

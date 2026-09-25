@@ -157,7 +157,14 @@ class BackendAnalysisService {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_errorMessage(response, 'Lab report scan failed'));
     }
-    return _decodeMap(response.body) ?? <String, dynamic>{};
+    final result = _decodeMap(response.body) ?? <String, dynamic>{};
+    if ((result['fields'] as List? ?? const []).isEmpty &&
+        (result['extras'] as List? ?? const []).isEmpty) {
+      throw const ReportProcessorException(
+          'No readable lab values were found. Choose a clear lab-result table '
+          'showing test names, measured values and units, or crop the image to that table.');
+    }
+    return result;
   }
 
   static Future<Map<String, dynamic>> explainChanges(

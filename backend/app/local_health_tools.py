@@ -14,6 +14,9 @@ import json
 import math
 import os
 import re
+import subprocess
+import tempfile
+from pathlib import Path
 import urllib.error
 import urllib.request
 from typing import Any, Dict, Iterable, List
@@ -212,8 +215,17 @@ class LocalHealthToolsService:
                 "Unsupported file type. Use PDF, PNG, JPG, JPEG, WEBP, TXT, or CSV."
             )
 
+        reader = payload.pop('_image_reader', None)
+        if reader == 'windows_ocr':
+            mode = 'local_ocr'
+            preview = 'Report text read locally with Windows OCR and structured by local Ollama.'
         transcript = payload.pop('_transcribed_text', None)
         normalized = self._normalize_extraction(payload)
+        if reader == 'windows_ocr':
+            for field in normalized['fields'] + normalized['extras']:
+                if field['confidence'] != 'low':
+                    field['confidence'] = 'medium'
+            normalized['warnings'].append('Local OCR was used. Check every value and unit against the report before selecting it for import.')
         if transcript:
             text = transcript
         if mode in {"pdf_text", "text"} or transcript:
@@ -444,6 +456,12 @@ class LocalHealthToolsService:
         return self._extract_from_images([data])
 
     def _extract_from_images(self, images: List[bytes]) -> Dict[str, Any]:
+        text = self._local_image_text(images)
+        if text:
+            extracted = self._extract_from_text(text)
+            extracted['_transcribed_text'] = text
+            extracted['_image_reader'] = 'windows_ocr'
+            return extracted
         models = self._installed_models()
         if not self._has_model(models, self.vision_model):
             raise LocalHealthToolsError(
@@ -464,7 +482,7 @@ class LocalHealthToolsService:
                 },
                 {
                     "role": "user",
-                    "content": 'Transcribe all visible text in this report image exactly, including test names, numbers and units. Do not interpret it. Return a JSON object with one key, "text", whose value is the exact transcribed text. Do not invent text that is not visible.',
+                    "content": 'Copy only the laboratory result rows from this image: test name, measured value, unit and printed reference range. Skip logos, addresses, patient details and explanatory paragraphs. Do not interpret or calculate. Return a JSON object with one key, "text", containing the copied rows. Omit unreadable rows; never invent text.',
                     "images": encoded,
                 },
             ],
@@ -479,13 +497,52 @@ class LocalHealthToolsService:
         return extracted
 
     @staticmethod
+    def _local_image_text(images: List[bytes]) -> str | None:
+        """Use the installed offline Windows OCR engine before CPU vision.
+
+        Temporary report images are removed even when OCR fails. Other hosts,
+        or Windows machines without an OCR language, retain Ollama vision.
+        """
+        if os.name != 'nt' or not images:
+            return None
+        script = str(Path(__file__).with_name('windows_report_ocr.ps1'))
+        parts = []
+        try:
+            with tempfile.TemporaryDirectory(prefix='vitalmap-ocr-') as directory:
+                for index, data in enumerate(images[:3]):
+                    file = Path(directory) / f'page-{index}.png'
+                    with Image.open(io.BytesIO(data)) as source:
+                        if source.width * source.height > 40_000_000:
+                            raise LocalHealthToolsError('Report image exceeds 40 megapixels. Export a smaller image.')
+                        image = ImageOps.exif_transpose(source).convert('RGB')
+                        image.thumbnail((3000, 3000))
+                        image.save(file, format='PNG')
+                    process = subprocess.run(
+                        ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                         '-File', script, '-ImagePath', str(file)],
+                        capture_output=True, encoding='utf-8', timeout=30,
+                        creationflags=subprocess.CREATE_NO_WINDOW,
+                    )
+                    if process.returncode:
+                        return None
+                    text = json.loads(process.stdout).get('text', '').strip()
+                    if not text:
+                        return None
+                    parts.append(text)
+            return '\n\n'.join(parts)
+        except (OSError, ValueError, subprocess.TimeoutExpired):
+            return None
+
+    @staticmethod
     def _optimize_image(data: bytes) -> bytes:
         try:
             with Image.open(io.BytesIO(data)) as source:
                 if source.width * source.height > 40_000_000:
                     raise LocalHealthToolsError("Report image exceeds 40 megapixels. Export a smaller image.")
                 image = ImageOps.exif_transpose(source).convert("RGB")
-                image.thumbnail((2000, 2000))
+                # Large phone screenshots produce excessive visual tokens on
+                # CPU-only laptops. Bound the visual workload before Ollama.
+                image.thumbnail((1280, 1280))
                 output = io.BytesIO()
                 image.save(output, format="JPEG", quality=88, optimize=True)
                 return output.getvalue()
@@ -641,6 +698,10 @@ class LocalHealthToolsService:
         except json.JSONDecodeError as exc:
             raise LocalHealthToolsError("Ollama returned an unreadable response.") from exc
 
+        if data.get("done_reason") == "length":
+            raise LocalHealthToolsError(
+                "The local model response exceeded its size limit. For report scans, crop to the lab-result table or upload one section at a time.", 502
+            )
         content = (data.get("message") or {}).get("content", "")
         parsed = self._parse_json_text(str(content))
         if not parsed:

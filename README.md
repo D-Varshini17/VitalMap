@@ -18,6 +18,10 @@ Report uploads and local guidance use `VITALMAP_TOOLS_URL` (default
 `http://127.0.0.1:8000`), separately from the public deterministic analysis API's
 `VITALMAP_BACKEND_URL`. Render does not host Ollama. Files are not sent there as
 a fallback. The scanner checks model readiness before uploading report bytes.
+On Windows, the installed offline OCR engine reads image/scanned-PDF text first;
+local Ollama structures the extracted values. Those OCR values require explicit
+review and selection. Ollama vision remains the fallback when native OCR is
+unavailable. This avoids slow CPU-only vision inference for normal printed labs.
 
 > **Effective source build:** This package uses the original VitalMap UI/assets and reorganizes the added features into one coherent flow. See `VITALMAP_EFFECTIVE_REDESIGN.md` and `START_HERE.txt` before running it. Home is a concise current overview; Result is the deterministic screening; View Details adds on-demand local Ollama guidance; Health Map is a visual status/navigation layer; History contains Timeline + Compare; Daily Check-in is optional context only. Light mode is the default and Dark mode is a direct toggle.
 

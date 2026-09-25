@@ -52,6 +52,17 @@ void main() {
             .having((e) => e.message, 'message', contains('qwen2.5vl:3b'))));
     expect(methods, ['GET']);
   });
+  test('empty extraction explains how to choose a readable report', () async {
+    await expectLater(scan(MockClient((request) async {
+      return http.Response(
+          request.method == 'GET'
+              ? '{"text_model_installed":true,"vision_model_installed":true}'
+              : '{"fields":[],"extras":[]}',
+          200);
+    })),
+        throwsA(isA<ReportProcessorException>().having(
+            (e) => e.message, 'message', contains('No readable lab values'))));
+  });
   test('lost USB connection during upload gives retry instructions', () async {
     await expectLater(scan(MockClient((request) async {
       if (request.method == 'GET') {
