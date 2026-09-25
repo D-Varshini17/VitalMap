@@ -25,10 +25,7 @@ if (-not $authorized.Count) {
 }
 if ($authorized.Count -gt 1) { Write-Host 'Connect only the phone you want to run VitalMap on.'; exit 1 }
 $deviceId = ($authorized[0] -split '\s+')[0]
-try {
-    $health = Invoke-RestMethod 'http://127.0.0.1:8000/health' -TimeoutSec 5
-    if ($health.status -ne 'ok') { throw 'Backend is not healthy' }
-} catch { Write-Host 'Start run_backend.bat and wait for FastAPI on port 8000, then retry.'; exit 1 }
+& (Join-Path $PSScriptRoot 'start_local_report_processor.ps1')
 & $adbPath -s $deviceId reverse tcp:8000 tcp:8000
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if (-not $env:JAVA_HOME -and (Test-Path 'C:\Program Files\Android\Android Studio\jbr\bin\java.exe')) {

@@ -1,5 +1,24 @@
 # VitalMap
 
+## Report uploads on web and Android
+
+Run `START_LOCAL_REPORT_PROCESSOR.bat` on the laptop before extracting a report.
+It starts the local backend/Ollama, checks both models, and restores port 8000
+forwarding for connected Android phones. Keep the laptop running; reconnecting
+or restarting a phone requires running the launcher again. Android must have
+USB debugging authorized. `RUN_VITALMAP_ANDROID_USB.bat` now starts the processor
+automatically before launching the app.
+
+For the deployed website, run `open_web_with_local_api.bat` on the laptop. It
+opens https://vital-map-rose.vercel.app after starting the processor. Allow local
+network access if the browser requests it. The web app must run on the same
+computer as the processor (or on a USB-forwarded Android device).
+
+Report uploads and local guidance use `VITALMAP_TOOLS_URL` (default
+`http://127.0.0.1:8000`), separately from the public deterministic analysis API's
+`VITALMAP_BACKEND_URL`. Render does not host Ollama. Files are not sent there as
+a fallback. The scanner checks model readiness before uploading report bytes.
+
 > **Effective source build:** This package uses the original VitalMap UI/assets and reorganizes the added features into one coherent flow. See `VITALMAP_EFFECTIVE_REDESIGN.md` and `START_HERE.txt` before running it. Home is a concise current overview; Result is the deterministic screening; View Details adds on-demand local Ollama guidance; Health Map is a visual status/navigation layer; History contains Timeline + Compare; Daily Check-in is optional context only. Light mode is the default and Dark mode is a direct toggle.
 
 VitalMap is a Flutter health-screening client with a FastAPI analysis service.
