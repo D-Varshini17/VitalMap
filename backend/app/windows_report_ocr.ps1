@@ -25,6 +25,10 @@ try {
     $bitmap = Await-Result ($decoder.GetSoftwareBitmapAsync()) ([Windows.Graphics.Imaging.SoftwareBitmap])
     try {
         $result = Await-Result ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
-        @{text=($result.Lines | ForEach-Object { $_.Text }) -join "`n"} | ConvertTo-Json -Compress
+        $words = @($result.Lines | ForEach-Object { $_.Words } | ForEach-Object {
+            @{text=$_.Text; x=$_.BoundingRect.X; y=$_.BoundingRect.Y;
+              width=$_.BoundingRect.Width; height=$_.BoundingRect.Height}
+        })
+        @{text=($result.Lines | ForEach-Object { $_.Text }) -join "`n"; words=$words} | ConvertTo-Json -Compress -Depth 4
     } finally { $bitmap.Dispose() }
 } finally { $stream.Dispose() }

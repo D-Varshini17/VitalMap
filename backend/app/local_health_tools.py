@@ -218,7 +218,7 @@ class LocalHealthToolsService:
         reader = payload.pop('_image_reader', None)
         if reader == 'windows_ocr':
             mode = 'local_ocr'
-            preview = 'Report text read locally with Windows OCR and structured by local Ollama.'
+            preview = 'Report text read locally with Windows OCR. Review the copied rows against the original report.'
         transcript = payload.pop('_transcribed_text', None)
         normalized = self._normalize_extraction(payload)
         if reader == 'windows_ocr':
@@ -458,7 +458,9 @@ class LocalHealthToolsService:
     def _extract_from_images(self, images: List[bytes]) -> Dict[str, Any]:
         text = self._local_image_text(images)
         if text:
-            extracted = self._extract_from_text(text)
+            extracted = self._extract_printed_rows(text)
+            if not extracted['fields']:
+                extracted = self._extract_from_text(text)
             extracted['_transcribed_text'] = text
             extracted['_image_reader'] = 'windows_ocr'
             return extracted
@@ -497,6 +499,62 @@ class LocalHealthToolsService:
         return extracted
 
     @staticmethod
+    def _ocr_rows(words: List[Dict[str, Any]]) -> str:
+        """Restore table rows from OCR geometry instead of concatenating columns."""
+        rows: List[List[Dict[str, Any]]] = []
+        for word in sorted(words, key=lambda w: w['y'] + w['height'] / 2):
+            center = word['y'] + word['height'] / 2
+            if rows:
+                anchor = rows[-1][0]
+                aligned = abs(center - (anchor['y'] + anchor['height'] / 2)) <= max(word['height'], anchor['height']) * .75
+            else:
+                aligned = False
+            if aligned:
+                rows[-1].append(word)
+            else:
+                rows.append([word])
+        return '\n'.join(' '.join(w['text'] for w in sorted(row, key=lambda w: w['x'])) for row in rows)
+
+    @classmethod
+    def _extract_printed_rows(cls, text: str) -> Dict[str, Any]:
+        """Copy only adjacent labelled numeric results with explicit units."""
+        found: Dict[str, Dict[str, Any]] = {}
+        conflicts: set[str] = set()
+        number = r'(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?'
+        units = r'(?:mmol/L|mg/dL|g/dL|g/L|IU/L|U/L|10\^9/L|ng/mL|U/mL|mg/L|[uµμ]mol/L|%)'
+        reference = r'(?:[<>≤≥]=?\s*' + number + r'|' + number + r'\s*[-–]\s*' + number + r')'
+        result_first_table = any(re.search(r'\bResult\b.*\bReference\b.*\bUnit\b', line, re.IGNORECASE) for line in text.splitlines())
+        for line in text.splitlines():
+            for key, meta in cls.SUPPORTED_FIELDS.items():
+                names = sorted(set([meta['label'], *meta['aliases']]), key=len, reverse=True)
+                pattern = (r'^\s*(?:' + '|'.join(re.escape(n) for n in names) + r')\s*:?\s*(?P<value>' + number
+                           + r')\s*(?:(?:Very\s+)?(?:High|Low|Normal)\s+(?P<reference>' + reference
+                           + r')\s+)?(?P<unit>' + units + r')(?!\w)')
+                match = re.search(pattern, line, re.IGNORECASE)
+                if not match and result_first_table:
+                    # The printed header must explicitly put results before reference values.
+                    table_pattern = (r'^\s*(?:' + '|'.join(re.escape(n) for n in names)
+                                     + r')\s*:?\s*(?P<value>' + number + r')\s+'
+                                     + r'(?:(?:Very\s+)?(?:High|Low|Normal)\s+)?'
+                                     + r'(?P<reference>' + reference + r'|' + number + r')\s+'
+                                     + r'(?P<unit>' + units + r')(?!\w)')
+                    match = re.search(table_pattern, line, re.IGNORECASE)
+                if not match:
+                    continue
+                printed_reference = match['reference'] or ''
+                if printed_reference and not re.fullmatch(reference, printed_reference):
+                    printed_reference = ''  # A lone limit may have lost its comparison sign in OCR.
+                item = {'key': key, 'label': meta['label'], 'value': float(match['value'].replace(',', '')),
+                        'unit': match['unit'], 'reference_range': printed_reference, 'confidence': 'medium'}
+                if key in found and (found[key]['value'], found[key]['unit'].lower()) != (item['value'], item['unit'].lower()):
+                    conflicts.add(key)
+                found[key] = item
+        warnings = ['Only clearly labelled result rows are listed. Check the report for missing tests and printed reference ranges before importing.']
+        if conflicts:
+            warnings.append('Conflicting repeated results were omitted. Enter those values manually after checking the report.')
+        return {'fields': [item for key, item in found.items() if key not in conflicts], 'extras': [], 'warnings': warnings}
+
+    @staticmethod
     def _local_image_text(images: List[bytes]) -> str | None:
         """Use the installed offline Windows OCR engine before CPU vision.
 
@@ -525,7 +583,9 @@ class LocalHealthToolsService:
                     )
                     if process.returncode:
                         return None
-                    text = json.loads(process.stdout).get('text', '').strip()
+                    payload = json.loads(process.stdout)
+                    words = payload.get('words', [])
+                    text = (LocalHealthToolsService._ocr_rows(words) if words else payload.get('text', '')).strip()
                     if not text:
                         return None
                     parts.append(text)

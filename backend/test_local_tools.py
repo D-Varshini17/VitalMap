@@ -95,14 +95,54 @@ def test_vision_transcription_precedes_field_extraction():
 def test_local_ocr_uses_text_model_and_requires_explicit_review():
     service = LocalHealthToolsService()
     extracted = {'fields': [{'key': 'fasting_glucose', 'value': 95, 'unit': 'mg/dL', 'confidence': 'high'}]}
-    with patch.object(service, '_local_image_text', return_value='Fasting glucose 95 mg/dL'), \
+    with patch.object(service, '_local_image_text', return_value='Fasting glucose\n95\nmg/dL'), \
             patch.object(service, '_extract_from_text', return_value=extracted) as extract, \
             patch.object(service, '_installed_models', side_effect=AssertionError('Vision must not run')):
         result = service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
-        extract.assert_called_once_with('Fasting glucose 95 mg/dL')
+        extract.assert_called_once_with('Fasting glucose\n95\nmg/dL')
         assert result['mode'] == 'local_ocr'
         assert result['fields'][0]['confidence'] == 'medium'
         assert result['review_required'] is True
+
+
+def test_printed_rows_skip_inference_and_require_review():
+    service = LocalHealthToolsService()
+    with patch.object(service, '_local_image_text', return_value='Fasting glucose: 95 mg/dL\nHDL cholesterol 50 mg/dL'), \
+            patch.object(service, '_extract_from_text', side_effect=AssertionError('Model must not run')):
+        result = service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
+    assert {f['key']: f['value'] for f in result['fields']} == {'fasting_glucose': 95, 'hdl': 50}
+    assert result['review_required'] is True
+    assert all(f['confidence'] == 'medium' for f in result['fields'])
+
+
+def test_printed_rows_do_not_coerce_comparators_ranges_or_conflicts():
+    result = LocalHealthToolsService._extract_printed_rows(
+        'Fasting glucose <95 mg/dL\nHDL cholesterol 40-60 mg/dL\n'
+        'Creatinine 1.2\nAlbumin 4 g/dL\nAlbumin 5 g/dL')
+    assert result['fields'] == []
+
+
+def test_table_result_column_is_not_reference_column():
+    text = ('Investigation Result Reference Value Unit\n'
+            'Triglycerides 250.00 High 150.00 mg/dL\n'
+            'HDL Cholesterol 50.00 > 40.00 mg/dL')
+    fields = LocalHealthToolsService._extract_printed_rows(text)['fields']
+    assert [(f['key'], f['value'], f['reference_range']) for f in fields] == [
+        ('triglycerides', 250, ''), ('hdl', 50, '> 40.00')]
+    assert LocalHealthToolsService._extract_printed_rows(
+        'Investigation Reference Value Result Unit\nHDL Cholesterol 40 50 mg/dL')['fields'] == []
+
+
+def test_ocr_geometry_restores_columns_without_merging_next_row():
+    words = [
+        {'text': 'HDL cholesterol', 'x': 0, 'y': 100, 'height': 20},
+        {'text': 'Triglycerides', 'x': 0, 'y': 150, 'height': 20},
+        {'text': '50', 'x': 100, 'y': 110, 'height': 15},
+        {'text': '250', 'x': 100, 'y': 160, 'height': 15},
+        {'text': 'mg/dL', 'x': 200, 'y': 108, 'height': 20},
+        {'text': 'mg/dL', 'x': 200, 'y': 158, 'height': 20},
+    ]
+    assert LocalHealthToolsService._ocr_rows(words) == 'HDL cholesterol 50 mg/dL\nTriglycerides 250 mg/dL'
 
 
 def test_pdf_page_limit_is_explicit():

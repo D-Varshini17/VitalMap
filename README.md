@@ -19,7 +19,9 @@ Report uploads and local guidance use `VITALMAP_TOOLS_URL` (default
 `VITALMAP_BACKEND_URL`. Render does not host Ollama. Files are not sent there as
 a fallback. The scanner checks model readiness before uploading report bytes.
 On Windows, the installed offline OCR engine reads image/scanned-PDF text first;
-local Ollama structures the extracted values. Those OCR values require explicit
+clearly labelled rows are copied directly, with local Ollama handling other layouts.
+Table rows retain their OCR positions so result and reference columns stay distinct.
+Only recognized rows are listed; check for omitted tests. Those OCR values require explicit
 review and selection. Ollama vision remains the fallback when native OCR is
 unavailable. This avoids slow CPU-only vision inference for normal printed labs.
 
