@@ -259,6 +259,7 @@ class LocalHealthToolsService:
             "task": "Explain the supplied VitalMap comparison in plain language.",
             "strict_rules": [
                 "Do not calculate or modify any VitalMap score, value, risk label, or formula.",
+                "Use indicator names exactly as supplied. Never expand abbreviations from memory.",
                 "Do not diagnose disease or claim that one change caused another.",
                 "Refer to input differences as values that changed alongside the screening result, not proven causes.",
                 "Do not prescribe medication or treatment.",
@@ -355,7 +356,16 @@ class LocalHealthToolsService:
             raise LocalHealthToolsError("Deterministic VitalMap analysis is required first.")
         context = {
             "overall_risk": analysis.get("overall_risk"),
-            "calculated_results": analysis.get("calculated_results"),
+            # Keep the overview model focused on finalized screening indices.
+            # Repeated recommendation blocks otherwise crowd the instructions
+            # out of its context window and get mistaken for new conclusions.
+            "calculated_results": [
+                {key: item[key] for key in (
+                    'index_name', 'display_name', 'organ', 'score', 'risk_level',
+                    'possible_contributors',
+                ) if key in item}
+                for item in self._iter_dicts(analysis.get('calculated_results'))
+            ],
             "general_health_pattern": analysis.get("general_health_pattern"),
             "general_health": payload.get("general_health", {}),
         }
@@ -364,6 +374,9 @@ class LocalHealthToolsService:
             "strict_rules": [
                 "Do not diagnose disease or claim the lab report proves a condition.",
                 "Do not calculate, modify, upgrade, or downgrade any supplied VitalMap score, status, risk category, or warning flag.",
+                "Do not classify individual biomarker values as high, low, elevated, reduced, normal, or abnormal. Only describe the supplied finalized screening indicator statuses.",
+                "Scores in this context are computed screening indices, not individual lab measurements. A High index status does not mean that each input value is high. Do not discuss individual lab classifications.",
+                "For risk_factors, restate only explicitly supplied contributors or screening indicator statuses. Never invent a risk factor from a raw lab value or infer disease risk.",
                 "Risk factors must only restate supplied contributors, entered lifestyle context, or supplied indicator statuses; never invent causes.",
                 "Do not prescribe medicines, supplements, or treatment.",
                 "Do not recommend calorie restriction, fasting, weight-loss targets, body-shape goals, or extreme exercise.",
@@ -394,11 +407,35 @@ class LocalHealthToolsService:
                 {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
             ],
             num_predict=850,
+            response_schema={
+                'type': 'object',
+                'properties': {
+                    'summary': {'type': 'string'},
+                    **{key: {'type': 'array', 'items': {'type': 'string'}, 'maxItems': 3}
+                       for key in ('food', 'exercise', 'lifestyle', 'risk_factors', 'monitor_next')},
+                },
+                'required': ['summary', 'food', 'exercise', 'lifestyle', 'risk_factors', 'monitor_next'],
+                'additionalProperties': False,
+            },
         )
         return self._normalize_guidance(raw)
 
     @staticmethod
     def _normalize_guidance(raw: Dict[str, Any]) -> Dict[str, Any]:
+        # A model must not invent clinical classifications for individual lab
+        # measurements. Only the deterministic screening engine assigns status.
+        names = {
+            name for meta in LocalHealthToolsService.SUPPORTED_FIELDS.values()
+            for name in [meta['label'], *meta['aliases']]
+        } | {'HDL', 'LDL', 'glucose', 'blood glucose', 'fasting glucose', 'cholesterol'}
+        markers = '(?:' + '|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True)) + ')'
+        classification = r'(?:high|low|elevated|reduced|normal|abnormal|raised)'
+        unsupported = (r'\b' + classification + r'\s+(?:levels? of\s+)?' + markers + r'\b'
+                       + r'|\b' + markers + r'\b(?:\s+(?:levels?|values?|is|are|was|were))*\s+' + classification + r'\b')
+        if re.search(unsupported, json.dumps(raw), re.IGNORECASE):
+            raise LocalHealthToolsError(
+                'Local AI added an unsupported lab-value classification. Your screening is unchanged; retry guidance.', 502)
+
         def clean(value: Any, limit: int = 5) -> List[str]:
             if not isinstance(value, list):
                 return []
@@ -719,6 +756,7 @@ class LocalHealthToolsService:
         num_predict: int,
         timeout: float | None = None,
         _retry: bool = True,
+        response_schema: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         models = self._installed_models()
         if not self._has_model(models, model):
@@ -730,7 +768,7 @@ class LocalHealthToolsService:
                 "model": model,
                 "messages": messages,
                 "stream": False,
-                "format": "json",
+                "format": response_schema or "json",
                 "think": False,
                 "options": {"temperature": 0.1, "num_predict": num_predict, "num_ctx": 4096},
                 "keep_alive": 0,
@@ -766,7 +804,7 @@ class LocalHealthToolsService:
         parsed = self._parse_json_text(str(content))
         if not parsed:
             if _retry:
-                return self._chat_json(model=model, messages=messages, num_predict=num_predict, timeout=timeout, _retry=False)
+                return self._chat_json(model=model, messages=messages, num_predict=num_predict, timeout=timeout, _retry=False, response_schema=response_schema)
             raise LocalHealthToolsError("Ollama returned invalid or empty JSON after one retry.", 502)
         return parsed
 

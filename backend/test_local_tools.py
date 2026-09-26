@@ -145,6 +145,43 @@ def test_ocr_geometry_restores_columns_without_merging_next_row():
     assert LocalHealthToolsService._ocr_rows(words) == 'HDL cholesterol 50 mg/dL\nTriglycerides 250 mg/dL'
 
 
+@pytest.mark.parametrize('claim', ['High HDL', 'Elevated fasting glucose', 'Triglycerides are high'])
+def test_guidance_rejects_unsupported_lab_classifications(claim):
+    raw = {'summary': 'Review your screening indicators.', 'food': [], 'exercise': [],
+           'lifestyle': [], 'risk_factors': [claim], 'monitor_next': []}
+    with pytest.raises(LocalHealthToolsError, match='unsupported lab-value classification'):
+        LocalHealthToolsService._normalize_guidance(raw)
+
+
+def test_guidance_preserves_supplied_indicator_status():
+    raw = {'summary': 'The AIP screening status is Attention Needed.', 'food': [], 'exercise': [],
+           'lifestyle': [], 'risk_factors': ['AIP: Attention Needed'], 'monitor_next': []}
+    assert LocalHealthToolsService._normalize_guidance(raw)['risk_factors'] == ['AIP: Attention Needed']
+
+
+def test_report_guidance_keeps_finalized_scores_without_reinterpreting_raw_labs():
+    import copy
+    import json
+    service = LocalHealthToolsService()
+    analysis = {'overall_risk': 'Attention Needed', 'calculated_results': [{
+        'index_name': 'AIP', 'score': 0.301, 'risk_level': 'High',
+        'values_used': {'hdl_mg/dL': 50}, 'possible_contributors': [],
+        'ai_recommendation': {'simple_summary': 'Repeated generated advice'},
+    }]}
+    before = copy.deepcopy(analysis)
+    generated = {'summary': 'Review your AIP screening.', 'food': [], 'exercise': [],
+                 'lifestyle': [], 'risk_factors': [], 'monitor_next': []}
+    with patch.object(service, '_chat_json', return_value=generated) as chat:
+        service.report_guidance({'analysis': analysis})
+    context = json.loads(chat.call_args.kwargs['messages'][1]['content'])['context']
+    metric = context['calculated_results'][0]
+    assert metric['score'] == 0.301
+    assert metric['risk_level'] == 'High'
+    assert 'values_used' not in metric
+    assert 'ai_recommendation' not in metric
+    assert analysis == before
+
+
 def test_pdf_page_limit_is_explicit():
     import pymupdf
     with pymupdf.open() as document:
