@@ -371,7 +371,8 @@ class _InputScreenState extends State<InputScreen> {
       } catch (_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Screening saved on this device. Account sync failed; check your connection.'),
+            content: Text(
+                'Screening saved on this device. Account sync failed; check your connection.'),
           ));
         }
       }
@@ -715,42 +716,46 @@ class _InputScreenState extends State<InputScreen> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Responsive.isDesktop(context);
-    return Scaffold(
-      appBar: isDesktop
-          ? null
-          : AppBar(
-              toolbarHeight: 76,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BrandAppBarTitle(title: 'VitalMap'),
-                  SizedBox(height: 2),
-                  Text(
-                    'Organ Health Risk Indicator',
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
-                ],
+    return Theme(
+      data: InputTypography.theme(context),
+      child: Scaffold(
+        appBar: isDesktop
+            ? null
+            : AppBar(
+                toolbarHeight: 76,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    BrandAppBarTitle(title: 'VitalMap'),
+                    SizedBox(height: 2),
+                    Text(
+                      'Organ Health Risk Indicator',
+                      style: TextStyle(
+                          fontSize: 12,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+                elevation: 0,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               ),
-              elevation: 0,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Form(
+          key: _formKey,
+          child: ResponsivePage(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _IntroCard(onStart: _startAssessment),
+                const SizedBox(height: 10),
+                _labReportImportCard(),
+                const SizedBox(height: 10),
+                _buildTopTabs(),
+                const SizedBox(height: 14),
+                _activeFlowBody(isDesktop),
+              ],
             ),
-      body: Form(
-        key: _formKey,
-        child: ResponsivePage(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _IntroCard(onStart: _startAssessment),
-              const SizedBox(height: 10),
-              _labReportImportCard(),
-              const SizedBox(height: 10),
-              _buildTopTabs(),
-              const SizedBox(height: 14),
-              _activeFlowBody(isDesktop),
-            ],
           ),
         ),
       ),
@@ -782,18 +787,22 @@ class _InputScreenState extends State<InputScreen> {
                   color: colors.surfaceContainer,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(Icons.document_scanner_outlined, color: colors.primary),
+                child: Icon(Icons.document_scanner_outlined,
+                    color: colors.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Upload / Scan Lab Report', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                    const Text('Upload / Scan Lab Report',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
-                      'Extract values locally with Ollama, review every value and unit, then import only the rows you approve into these same Input fields.',
-                      style: TextStyle(color: colors.onSurfaceVariant, height: 1.35),
+                      'Choose a report, review its values and units, then import the rows you approve.',
+                      style: TextStyle(
+                          color: colors.onSurfaceVariant, height: 1.35),
                     ),
                   ],
                 ),
@@ -816,7 +825,8 @@ class _InputScreenState extends State<InputScreen> {
       if (!mounted) return;
       setState(() => _activeTop = 'reports');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reviewed report values were imported into Input.')),
+        const SnackBar(
+            content: Text('Reviewed report values were imported into Input.')),
       );
     }
   }
@@ -1074,7 +1084,10 @@ class _InputScreenState extends State<InputScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                Text(title,
+                    style: TextStyle(
+                        fontSize: InputTypography.section(context),
+                        fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
@@ -1136,67 +1149,37 @@ class _InputScreenState extends State<InputScreen> {
       ('environment', 'Environment'),
       ('reports', 'Reports'),
     ];
-
-    final activeIndex = tabs.indexWhere((tab) => tab.$1 == _activeTop);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          for (var index = 0; index < tabs.length; index++) ...[
-            Expanded(
-              child: InkWell(
-                onTap: () => _setActiveTop(tabs[index].$1),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundColor: index <= activeIndex
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.surfaceContainer,
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: index <= activeIndex
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 7),
-                    Flexible(
-                      child: Text(
-                        tabs[index].$2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: index == activeIndex
-                              ? Theme.of(context).colorScheme.onSurface
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+    final colors = Theme.of(context).colorScheme;
+    return LayoutBuilder(builder: (context, constraints) {
+      final columns = constraints.maxWidth < 600 ? 2 : 4;
+      final width = (constraints.maxWidth - (columns - 1) * 8) / columns;
+      return Wrap(spacing: 8, runSpacing: 8, children: [
+        for (var index = 0; index < tabs.length; index++)
+          SizedBox(
+            width: width,
+            child: OutlinedButton(
+              onPressed: () => _setActiveTop(tabs[index].$1),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, 48),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                backgroundColor: tabs[index].$1 == _activeTop
+                    ? colors.primaryContainer
+                    : colors.surface,
+                foregroundColor: colors.onSurface,
+                textStyle: const TextStyle(
+                    fontSize: InputTypography.label,
+                    fontWeight: FontWeight.w600),
               ),
+              child: Row(children: [
+                Text('${index + 1}'),
+                const SizedBox(width: 8),
+                Expanded(child: Text(tabs[index].$2)),
+              ]),
             ),
-            if (index < tabs.length - 1)
-              Expanded(
-                child: Container(
-                    height: 1,
-                    color: Theme.of(context).colorScheme.outlineVariant),
-              ),
-          ],
-        ],
-      ),
-    );
+          ),
+      ]);
+    });
   }
 
   Widget _stepHeader(String text) {
@@ -1342,7 +1325,7 @@ class _InputScreenState extends State<InputScreen> {
               children: [
                 Text(
                   'Why we ask this?',
-                  style: TextStyle(fontWeight: FontWeight.w900),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
                 SizedBox(height: 4),
                 Text(
@@ -1672,8 +1655,8 @@ class _InputScreenState extends State<InputScreen> {
               borderRadius: BorderRadius.circular(18),
             ),
             textStyle: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
+              fontSize: InputTypography.value,
+              fontWeight: FontWeight.w600,
             ),
           ),
         );
@@ -1689,14 +1672,17 @@ class _InputScreenState extends State<InputScreen> {
               : () async {
                   final payload = _payload();
                   await LocalStorage.saveLastPayload(payload);
-                  final user = Firebase.apps.isEmpty ? null : FirebaseAuth.instance.currentUser;
+                  final user = Firebase.apps.isEmpty
+                      ? null
+                      : FirebaseAuth.instance.currentUser;
                   var message = 'Saved for later on this device.';
                   if (user != null) {
                     try {
                       await FirestoreService.saveDraft(user.uid, payload);
                       message = 'Draft saved to your account.';
                     } catch (_) {
-                      message = 'Saved on this device. Account sync failed; check your connection and retry.';
+                      message =
+                          'Saved on this device. Account sync failed; check your connection and retry.';
                     }
                   }
                   if (!context.mounted) return;
@@ -1715,8 +1701,8 @@ class _InputScreenState extends State<InputScreen> {
               borderRadius: BorderRadius.circular(18),
             ),
             textStyle: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
+              fontSize: InputTypography.value,
+              fontWeight: FontWeight.w600,
             ),
           ),
         );
@@ -2352,7 +2338,7 @@ class _InputScreenState extends State<InputScreen> {
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 13,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -2361,8 +2347,8 @@ class _InputScreenState extends State<InputScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.w900,
-              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              fontSize: InputTypography.value,
               letterSpacing: 0,
             ),
           ),
@@ -2387,7 +2373,7 @@ class _InputScreenState extends State<InputScreen> {
         style: TextStyle(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontWeight: FontWeight.w600,
-          fontSize: 15,
+          fontSize: InputTypography.body,
           letterSpacing: 0,
         ),
       ),
@@ -2409,7 +2395,7 @@ class _InputScreenState extends State<InputScreen> {
       ),
       style: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
-        fontSize: 15,
+        fontSize: InputTypography.body,
         fontWeight: FontWeight.w700,
       ),
       decoration: InputDecoration(
@@ -2459,7 +2445,7 @@ class _InputScreenState extends State<InputScreen> {
             helper ?? 'Select the unit exactly as shown in your report.',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontSize: 15,
+              fontSize: InputTypography.body,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -2481,7 +2467,7 @@ class _InputScreenState extends State<InputScreen> {
                 ),
                 textStyle: const TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               child: const Text('Skip'),
@@ -2524,7 +2510,7 @@ class _InputScreenState extends State<InputScreen> {
           isExpanded: true,
           style: TextStyle(
             color: colors.onSurface,
-            fontSize: 15,
+            fontSize: InputTypography.body,
             fontWeight: FontWeight.w600,
           ),
           decoration: InputDecoration(labelText: label),
@@ -2551,8 +2537,8 @@ class _InputScreenState extends State<InputScreen> {
             ),
             style: TextStyle(
               color: colors.onSurface,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontSize: InputTypography.value,
+              fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
               labelText: label,
@@ -2567,7 +2553,7 @@ class _InputScreenState extends State<InputScreen> {
                 borderSide: BorderSide(color: colors.primary, width: 1.4),
               ),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             ),
             items: options
                 .map((item) => DropdownMenuItem(value: item, child: Text(item)))
@@ -2640,7 +2626,8 @@ class _IntroCard extends StatelessWidget {
       compact: true,
       description:
           'Understand your body with friendly screening guidance based on the values you choose to share.',
-      trailing: const _HeroHealthGraphic(),
+      trailing:
+          Responsive.isDesktop(context) ? const _HeroHealthGraphic() : null,
       bottom: Align(
         alignment: Alignment.centerLeft,
         child: GradientActionButton(
@@ -2718,7 +2705,7 @@ class _HeroMetricIcon extends StatelessWidget {
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 11,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -2806,7 +2793,7 @@ class _SectionCard extends StatelessWidget {
             child: ColoredBox(color: accent.withValues(alpha: 0.85)),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(34, 28, 30, 28),
+            padding: EdgeInsets.all(Responsive.isMobile(context) ? 16 : 22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2814,8 +2801,8 @@ class _SectionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: accent.withValues(alpha: 0.10),
                         borderRadius: BorderRadius.circular(18),
@@ -2823,9 +2810,9 @@ class _SectionCard extends StatelessWidget {
                           color: accent.withValues(alpha: 0.08),
                         ),
                       ),
-                      child: Icon(icon, color: accent, size: 34),
+                      child: Icon(icon, color: accent, size: 24),
                     ),
-                    const SizedBox(width: 24),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2838,7 +2825,7 @@ class _SectionCard extends StatelessWidget {
                                 ?.copyWith(
                                   color: colors.onSurface,
                                   fontSize: InputTypography.section(context),
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w700,
                                   letterSpacing: 0,
                                 ),
                           ),
@@ -2847,7 +2834,7 @@ class _SectionCard extends StatelessWidget {
                             _sectionSubtitle(title),
                             style: TextStyle(
                               color: colors.onSurfaceVariant,
-                              fontSize: 15,
+                              fontSize: InputTypography.body,
                               height: 1.2,
                               fontWeight: FontWeight.w600,
                             ),
@@ -2876,7 +2863,7 @@ class _SectionCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 18),
                 child,
               ],
             ),
@@ -2888,6 +2875,11 @@ class _SectionCard extends StatelessWidget {
 
   String _sectionSubtitle(String title) {
     return switch (title) {
+      'Basic Profile' => 'Measurements used across screening indicators',
+      'Lifestyle' => 'Everyday habits and general health context',
+      'Food Habits' => 'Your usual food and drink choices',
+      'Environment' => 'Your surroundings and exposure context',
+      'Heart / Lipid Profile' => 'AIP',
       'Diabetes / Glucose Profile' => 'Blood sugar and metabolic health',
       'Liver Function Test' => 'APRI, FIB-4, FLI, NAFLD',
       'CBC / Differential' => 'NLR and liver support',
@@ -2895,7 +2887,7 @@ class _SectionCard extends StatelessWidget {
       'Lungs / Vitals' => 'SpO2',
       'Pancreatic Enzymes' => 'LAR',
       'Cancer Awareness' => 'AFP, CA 15-3, CA 27.29',
-      _ => 'AIP',
+      _ => 'Enter the values available to you',
     };
   }
 }
@@ -2920,7 +2912,7 @@ class _SectionChip extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: colors.onSurface,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           fontSize: 14,
         ),
       ),
@@ -2950,8 +2942,8 @@ class _ReportToggleCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 104),
-        padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
+        constraints: const BoxConstraints(minHeight: 80),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(18),
@@ -2971,15 +2963,15 @@ class _ReportToggleCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 58,
-              height: 58,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: section.tint,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(section.icon, color: section.iconColor, size: 34),
+              child: Icon(section.icon, color: section.iconColor, size: 24),
             ),
-            const SizedBox(width: 24),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2988,7 +2980,7 @@ class _ReportToggleCard extends StatelessWidget {
                   Text(
                     section.title,
                     style: TextStyle(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w700,
                       fontSize: InputTypography.section(context),
                       height: 1.05,
                       color: colors.onSurface,
@@ -2999,7 +2991,7 @@ class _ReportToggleCard extends StatelessWidget {
                   Text(
                     section.subtitle,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: InputTypography.body,
                       color: colors.onSurfaceVariant,
                       height: 1.15,
                       fontWeight: FontWeight.w600,

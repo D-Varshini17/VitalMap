@@ -1,3 +1,4 @@
+import '../core/input_typography.dart';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -38,72 +39,76 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const BrandAppBarTitle(title: 'Import Lab Report')),
-      body: ResponsivePage(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _stepHeader(),
-            const SizedBox(height: 14),
-            _localOnlyBanner(),
-            const SizedBox(height: 14),
-            _pickCard(),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              _errorCard(_error!),
-            ],
-            if (_fields.isNotEmpty || _extras.isNotEmpty) ...[
-              const SizedBox(height: 18),
-              _extractionSummary(),
-              const SizedBox(height: 12),
-              _reviewHeader(),
-              const SizedBox(height: 10),
-              for (var i = 0; i < _fields.length; i++) ...[
-                _fieldCard(i),
-                const SizedBox(height: 8),
-              ],
-              if (_extras.isNotEmpty) ...[
+    return Theme(
+      data: InputTypography.theme(context),
+      child: Scaffold(
+        appBar:
+            AppBar(title: const BrandAppBarTitle(title: 'Import Lab Report')),
+        body: ResponsivePage(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _stepHeader(),
+              const SizedBox(height: 14),
+              _localOnlyBanner(),
+              const SizedBox(height: 14),
+              _pickCard(),
+              if (_error != null) ...[
                 const SizedBox(height: 12),
-                _extrasCard(),
+                _errorCard(_error!),
               ],
-              if (_warnings.isNotEmpty) ...[
+              if (_fields.isNotEmpty || _extras.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                _extractionSummary(),
+                const SizedBox(height: 12),
+                _reviewHeader(),
                 const SizedBox(height: 10),
-                _warningCard(),
+                for (var i = 0; i < _fields.length; i++) ...[
+                  _fieldCard(i),
+                  const SizedBox(height: 8),
+                ],
+                if (_extras.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _extrasCard(),
+                ],
+                if (_warnings.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _warningCard(),
+                ],
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _saving || _analyzing ? null : _saveAndAnalyse,
+                    icon: _saving || _analyzing
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.auto_graph_outlined),
+                    label: Text(_saving
+                        ? 'Saving reviewed values...'
+                        : _analyzing
+                            ? 'Running VitalMap analysis...'
+                            : 'Save reviewed values & analyse'),
+                  ),
+                ),
               ],
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _saving || _analyzing ? null : _saveAndAnalyse,
-                  icon: _saving || _analyzing
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.auto_graph_outlined),
-                  label: Text(_saving
-                      ? 'Saving reviewed values...'
-                      : _analyzing
-                          ? 'Running VitalMap analysis...'
-                          : 'Save reviewed values & analyse'),
+              if (_analysisResponse != null) ...[
+                const SizedBox(height: 18),
+                _reportIntelligenceCard(),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    icon: const Icon(Icons.edit_note_outlined),
+                    label: const Text('Return to Input with imported values'),
+                  ),
                 ),
-              ),
+              ],
+              const SizedBox(height: 26),
             ],
-            if (_analysisResponse != null) ...[
-              const SizedBox(height: 18),
-              _reportIntelligenceCard(),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  icon: const Icon(Icons.edit_note_outlined),
-                  label: const Text('Return to Input with imported values'),
-                ),
-              ),
-            ],
-            const SizedBox(height: 26),
-          ],
+          ),
         ),
       ),
     );
@@ -216,10 +221,11 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
             children: [
               Icon(Icons.document_scanner_outlined, color: scheme.primary),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                   child: Text('Upload a lab report',
                       style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w900))),
+                          fontSize: InputTypography.section(context),
+                          fontWeight: FontWeight.w900))),
             ],
           ),
           const SizedBox(height: 8),
@@ -476,10 +482,11 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
             children: [
               Icon(Icons.auto_graph_outlined, color: scheme.primary),
               const SizedBox(width: 9),
-              const Expanded(
+              Expanded(
                   child: Text('Report Health Intelligence',
                       style: TextStyle(
-                          fontSize: 19, fontWeight: FontWeight.w900))),
+                          fontSize: InputTypography.section(context),
+                          fontWeight: FontWeight.w900))),
             ],
           ),
           const SizedBox(height: 12),

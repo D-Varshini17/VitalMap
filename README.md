@@ -9,6 +9,14 @@ or restarting a phone requires running the launcher again. Android must have
 USB debugging authorized. `RUN_VITALMAP_ANDROID_USB.bat` now starts the processor
 automatically before launching the app.
 
+You do **not** need to run the launcher for every report. Once started, the
+processor stays running across uploads and app/browser restarts. Run it again
+after restarting the laptop, stopping the processor, or reconnecting Android
+USB. The launcher safely reuses an already-running processor. Report import and
+AI guidance are not standalone phone/cloud features: the laptop must remain
+available. Login, manual screening, saved history, check-ins and PDF export do
+not require local Ollama.
+
 For the deployed website, run `open_web_with_local_api.bat` on the laptop. It
 opens https://vital-map-rose.vercel.app after starting the processor. Allow local
 network access if the browser requests it. The web app must run on the same
@@ -24,6 +32,14 @@ Table rows retain their OCR positions so result and reference columns stay disti
 Only recognized rows are listed; check for omitted tests. Those OCR values require explicit
 review and selection. Ollama vision remains the fallback when native OCR is
 unavailable. This avoids slow CPU-only vision inference for normal printed labs.
+
+## Input layout
+
+Input and report-review typography is scoped to those screens: page headings
+are 20px on phones and 24px on larger screens, section headings 17/19px, values
+and body text 14px, labels 13px, and helper text 12px. System accessibility text
+scaling is preserved. Phone step controls wrap into two columns with full labels
+and 48px touch targets; wider screens keep a single row.
 
 > **Effective source build:** This package uses the original VitalMap UI/assets and reorganizes the added features into one coherent flow. See `VITALMAP_EFFECTIVE_REDESIGN.md` and `START_HERE.txt` before running it. Home is a concise current overview; Result is the deterministic screening; View Details adds on-demand local Ollama guidance; Health Map is a visual status/navigation layer; History contains Timeline + Compare; Daily Check-in is optional context only. Light mode is the default and Dark mode is a direct toggle.
 
