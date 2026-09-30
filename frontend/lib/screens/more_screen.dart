@@ -404,11 +404,8 @@ class _MoreScreenState extends State<MoreScreen> {
     final configured = BackendAnalysisService.isConfigured;
     final tested = _aiStatus != null;
     final textReady = _aiStatus?['text_model_installed'] == true;
-    final visionReady = _aiStatus?['vision_model_installed'] == true;
-    final connected = textReady && visionReady;
+    final connected = textReady;
     final textModel = _aiStatus?['text_model']?.toString() ?? 'qwen3:1.7b';
-    final visionModel =
-        _aiStatus?['vision_model']?.toString() ?? 'qwen2.5vl:3b';
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -431,7 +428,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 const SizedBox(height: 2),
                 Text(
                   connected
-                      ? 'Ready for guidance and report scanning'
+                      ? 'Ready for AI guidance'
                       : tested
                           ? 'Local setup needs attention'
                           : 'Run a local readiness check',
@@ -460,16 +457,13 @@ class _MoreScreenState extends State<MoreScreen> {
             'Guidance',
             '$textModel ${textReady ? '✓' : tested ? 'missing' : ''}'
                 .trim()),
-        _aiInfoRow(
-            'Report vision',
-            '$visionModel ${visionReady ? '✓' : tested ? 'missing' : ''}'
-                .trim()),
+        _aiInfoRow('Report import', 'Offline OCR (no AI)'),
         _aiInfoRow('Processing', 'Local Ollama'),
         _aiInfoRow('Cloud AI', 'Disabled'),
         if (!connected && tested) ...[
           const SizedBox(height: 8),
           Text(
-            'Deterministic screening still works. Run setup_local_ai.bat and keep Ollama running to enable both local guidance and lab-report vision.',
+            'Deterministic screening still works. Run setup_local_ai.bat and keep Ollama running for optional AI guidance. Report import uses offline OCR and does not require Ollama.',
             style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 12,

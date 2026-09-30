@@ -716,7 +716,7 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
         _mode = null;
       });
     } catch (_) {
-      if (mounted && identical(_analysisResponse, requestedAnalysis)) {
+      if (mounted) {
         setState(() => _error =
             'Could not open that file. Download it to your device and choose it again.');
       }
