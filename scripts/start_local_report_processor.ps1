@@ -9,15 +9,6 @@ function Test-Processor {
         return ($health.status -eq 'ok' -and $health.service -eq 'VitalMap Backend')
     } catch { return $false }
 }
-try { Invoke-RestMethod 'http://127.0.0.1:11434/api/tags' -TimeoutSec 3 | Out-Null }
-catch {
-    $ollama = Get-Command ollama -ErrorAction SilentlyContinue
-    $ollamaPath = if ($ollama) { $ollama.Source } else { Join-Path $env:LOCALAPPDATA 'Programs\Ollama\ollama.exe' }
-    if (-not (Test-Path -LiteralPath $ollamaPath)) { throw 'Install Ollama, then run setup_local_ai.bat.' }
-    Start-Process -FilePath $ollamaPath -ArgumentList 'serve' -WindowStyle Hidden `
-        -RedirectStandardOutput (Join-Path $logs 'ollama-runtime.log') `
-        -RedirectStandardError (Join-Path $logs 'ollama-runtime-error.log') | Out-Null
-}
 if (-not (Test-Processor)) {
     $python = Join-Path $projectRoot '.venv\Scripts\python.exe'
     if (-not (Test-Path -LiteralPath $python)) { throw 'Run setup_windows.bat first to install the local backend.' }
@@ -32,11 +23,9 @@ if (-not (Test-Processor)) {
     }
     if (-not (Test-Processor)) { throw 'Backend startup timed out. See artifacts/backend-runtime-error.log.' }
 }
-$status = Invoke-RestMethod 'http://127.0.0.1:8000/tools/status' -TimeoutSec 15
-if (-not $status.text_model_installed -or -not $status.vision_model_installed) {
-    throw 'Ollama models are not ready. Run setup_local_ai.bat to install qwen3:1.7b and qwen2.5vl:3b, then retry.'
-}
-Write-Host 'Local report processor ready: text and image models available.'
+$status = Invoke-RestMethod 'http://127.0.0.1:8000/tools/report-status' -TimeoutSec 15
+if (-not $status.image_ocr_available) { throw 'Restart the updated Windows backend to enable offline OCR.' }
+Write-Host 'Report processor ready: offline OCR and PDF text reading. Ollama is not required.'
 if ($ConnectUsb) {
     $adb = Get-Command adb -ErrorAction SilentlyContinue
     $adbPath = if ($adb) { $adb.Source } else { Join-Path $env:LOCALAPPDATA 'Android\sdk\platform-tools\adb.exe' }

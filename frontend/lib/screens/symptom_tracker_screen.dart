@@ -88,7 +88,7 @@ class _SymptomTrackerScreenState extends State<SymptomTrackerScreen> {
                 const Text('Why Daily Check-in exists', style: TextStyle(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 4),
                 Text(
-                  'This optional check-in adds day-to-day context between lab screenings. Energy, sleep and selected symptoms appear in History and can be supplied to Local Ollama when it generates wellness guidance. Check-ins never change VitalMap formula scores or risk labels.',
+                  'This optional check-in adds day-to-day context between lab screenings. Energy, sleep and selected symptoms appear in History and can be used for AI wellness guidance. Check-ins never change VitalMap formula scores or risk labels.',
                   style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
                 ),
               ],

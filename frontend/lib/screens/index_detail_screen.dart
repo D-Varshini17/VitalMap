@@ -267,7 +267,7 @@ class _IndexDetailScreenState extends State<IndexDetailScreen> {
             children: [
               Icon(Icons.auto_awesome_outlined, color: colors.primary),
               const SizedBox(width: 9),
-              const Expanded(child: Text('Local AI Guidance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+              const Expanded(child: Text('AI Guidance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(color: colors.surfaceContainer, borderRadius: BorderRadius.circular(999)),
@@ -288,7 +288,7 @@ class _IndexDetailScreenState extends State<IndexDetailScreen> {
           ] else if (_aiError != null) ...[
             Text(_aiError!, style: TextStyle(color: colors.error)),
             const SizedBox(height: 8),
-            OutlinedButton.icon(onPressed: _generateGuidance, icon: const Icon(Icons.refresh), label: const Text('Retry Local AI')),
+            OutlinedButton.icon(onPressed: _generateGuidance, icon: const Icon(Icons.refresh), label: const Text('Retry AI')),
           ] else if (guidance != null) ...[
             if ((guidance['summary']?.toString().trim() ?? '').isNotEmpty)
               Text(guidance['summary'].toString(), style: const TextStyle(height: 1.45, fontWeight: FontWeight.w600)),

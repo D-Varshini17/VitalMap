@@ -3,7 +3,7 @@
 ## Report uploads on web and Android
 
 Run `START_LOCAL_REPORT_PROCESSOR.bat` on the laptop before extracting a report.
-It starts the local backend/Ollama, checks both models, and restores port 8000
+It starts the local backend, checks offline OCR, and restores port 8000
 forwarding for connected Android phones. Keep the laptop running; reconnecting
 or restarting a phone requires running the launcher again. Android must have
 USB debugging authorized. `RUN_VITALMAP_ANDROID_USB.bat` now starts the processor
@@ -25,13 +25,15 @@ computer as the processor (or on a USB-forwarded Android device).
 Report uploads and local guidance use `VITALMAP_TOOLS_URL` (default
 `http://127.0.0.1:8000`), separately from the public deterministic analysis API's
 `VITALMAP_BACKEND_URL`. Render does not host Ollama. Files are not sent there as
-a fallback. The scanner checks model readiness before uploading report bytes.
-On Windows, the installed offline OCR engine reads image/scanned-PDF text first;
-clearly labelled rows are copied directly, with local Ollama handling other layouts.
-Table rows retain their OCR positions so result and reference columns stay distinct.
-Only recognized rows are listed; check for omitted tests. Those OCR values require explicit
-review and selection. Ollama vision remains the fallback when native OCR is
-unavailable. This avoids slow CPU-only vision inference for normal printed labs.
+a fallback. Report import does **not** require Ollama or any AI model.
+Images and scanned PDFs use Windows offline OCR; selectable PDF/TXT text is
+parsed directly. Clearly labelled supported results with explicit units are
+copied using deterministic rules. Unreadable or ambiguous rows are omitted,
+never sent to an AI fallback. Review and select every value before importing.
+Other operating systems support text PDFs/TXT but need the Windows processor
+for image OCR. AI guidance after import is optional and requested separately.
+Start Ollama separately when you want AI guidance; the report launcher no
+longer starts it or checks model installations.
 
 ## Input layout
 

@@ -192,8 +192,8 @@ class FirestoreService {
       'reviewedByUser': true,
       'sourceType': fileName.split('.').last.toLowerCase(),
       'importedAt': FieldValue.serverTimestamp(),
-      'provider': 'ollama',
-      'localAiOnly': true,
+      'provider': 'offline_ocr_or_text',
+      'localProcessing': true,
       'createdAt': FieldValue.serverTimestamp(),
     });
     return ref.id;

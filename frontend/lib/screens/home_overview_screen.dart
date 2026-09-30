@@ -287,7 +287,7 @@ class HomeOverviewScreen extends StatelessWidget {
                     context,
                     Icons.favorite_border,
                     'Daily Check-in',
-                    'Optionally log energy, sleep and symptoms as context for History and Local AI guidance.',
+                    'Optionally log energy, sleep and symptoms as context for History and AI guidance.',
                     onOpenCheckIn,
                   ),
                 ),
@@ -390,7 +390,7 @@ class HomeOverviewScreen extends StatelessWidget {
         context,
         Icons.fact_check_outlined,
         'Review the highest-priority result in detail',
-        'View Details shows the deterministic result first, then generates Local Ollama guidance from your current context.',
+        'View Details shows the deterministic result first, then generates AI guidance from your current context.',
         actionText: 'Open Result',
         onAction: onViewResults,
       );

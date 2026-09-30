@@ -388,7 +388,7 @@ class _HealthHistoryScreenState extends State<HealthHistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(Icons.auto_awesome_outlined, color: colors.primary), const SizedBox(width: 8), const Expanded(child: Text('Local AI change explanation', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900))), const Text('Ollama • local', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800))]),
+          Row(children: [Icon(Icons.auto_awesome_outlined, color: colors.primary), const SizedBox(width: 8), const Expanded(child: Text('AI change explanation', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900))), const Text('Ollama • local', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800))]),
           const SizedBox(height: 6),
           Text('Ollama explains the already-computed comparison. It cannot change scores, statuses or formulas.', style: TextStyle(color: colors.onSurfaceVariant)),
           const SizedBox(height: 10),

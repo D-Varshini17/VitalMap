@@ -577,7 +577,7 @@ class _BodyHealthMapScreenState extends State<BodyHealthMapScreen> {
                 ],
               const SizedBox(height: 16),
               Text(
-                'Tap an indicator to open the normal VitalMap View Details page with formula, values used, contributors, existing follow-up guidance and Local AI wellness suggestions.',
+                'Tap an indicator to open the normal VitalMap View Details page with formula, values used, contributors, existing follow-up guidance and AI wellness suggestions.',
                 style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12, height: 1.4),
               ),
             ],

@@ -81,28 +81,20 @@ def test_deterministic_endpoints_do_not_call_ollama():
         assert client.post('/predict', json=payload).json() == first.json()
 
 
-def test_vision_transcription_precedes_field_extraction():
+def test_unreadable_ocr_never_falls_back_to_ollama():
     service = LocalHealthToolsService()
-    extracted = {'fields': [{'key': 'fasting_glucose', 'value': 95, 'unit': 'mg/dL', 'confidence': 'high'}]}
-    with patch.object(service, '_local_image_text', return_value=None), patch.object(service, '_installed_models', return_value=[service.vision_model]), patch.object(service, '_optimize_image', return_value=b'image'), patch.object(service, '_chat_json', side_effect=[{'text': 'Fasting glucose 95 mg/dL'}, extracted]) as chat:
-        result = service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
-        assert result['fields'][0]['value'] == 95
-        assert chat.call_args_list[0].kwargs['model'] == service.vision_model
-        assert chat.call_args_list[1].kwargs['model'] == service.text_model
-        assert 'Fasting glucose 95 mg/dL' in chat.call_args_list[1].kwargs['messages'][1]['content']
+    with patch.object(service, '_local_image_text', return_value=None), patch.object(service, '_chat_json', side_effect=AssertionError('AI must not run')):
+        with pytest.raises(LocalHealthToolsError, match='OCR could not read'):
+            service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
 
 
-def test_local_ocr_uses_text_model_and_requires_explicit_review():
+def test_text_import_works_without_ollama():
     service = LocalHealthToolsService()
-    extracted = {'fields': [{'key': 'fasting_glucose', 'value': 95, 'unit': 'mg/dL', 'confidence': 'high'}]}
-    with patch.object(service, '_local_image_text', return_value='Fasting glucose\n95\nmg/dL'), \
-            patch.object(service, '_extract_from_text', return_value=extracted) as extract, \
-            patch.object(service, '_installed_models', side_effect=AssertionError('Vision must not run')):
-        result = service.scan_report(filename='lab.png', content_type='image/png', data=b'image')
-        extract.assert_called_once_with('Fasting glucose\n95\nmg/dL')
-        assert result['mode'] == 'local_ocr'
-        assert result['fields'][0]['confidence'] == 'medium'
-        assert result['review_required'] is True
+    with patch.object(service, '_chat_json', side_effect=AssertionError('AI must not run')), patch.object(service, '_installed_models', side_effect=AssertionError('Ollama must not run')):
+        result = service.scan_report(filename='lab.txt', content_type='text/plain', data=b'Fasting glucose 95 mg/dL')
+    assert result['provider'] == 'text_parser'
+    assert result['fields'][0]['value'] == 95
+    assert result['review_required'] is True
 
 
 def test_printed_rows_skip_inference_and_require_review():
@@ -189,3 +181,10 @@ def test_pdf_page_limit_is_explicit():
             document.new_page()
         with pytest.raises(LocalHealthToolsError, match='3 pages'):
             LocalHealthToolsService._extract_pdf_text(document.tobytes())
+
+
+def test_report_status_does_not_require_ollama():
+    with patch.object(LocalHealthToolsService, '_installed_models', side_effect=AssertionError('Ollama must not run')):
+        response = TestClient(app).get('/tools/report-status')
+    assert response.status_code == 200
+    assert response.json()['requires_ollama'] is False

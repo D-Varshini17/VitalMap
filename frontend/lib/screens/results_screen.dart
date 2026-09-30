@@ -889,7 +889,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Result shows the current deterministic screening only. Open View Details on an indicator for formula context, recent trend and detailed Local Ollama food, lifestyle, activity, risk-factor and monitoring guidance.',
+              'Result shows the current deterministic screening only. Open View Details on an indicator for formula context, recent trend and detailed AI food, lifestyle, activity, risk-factor and monitoring guidance.',
               style: TextStyle(color: colors.onSurfaceVariant, height: 1.4, fontWeight: FontWeight.w600),
             ),
           ),

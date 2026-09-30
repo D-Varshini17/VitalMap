@@ -425,7 +425,7 @@ class _MoreScreenState extends State<MoreScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Local AI',
+                const Text('AI',
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 2),

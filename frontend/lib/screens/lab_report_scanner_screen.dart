@@ -27,6 +27,7 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
   bool _scanning = false;
   bool _saving = false;
   bool _analyzing = false;
+  bool _loadingGuidance = false;
   List<Map<String, dynamic>> _fields = [];
   List<Map<String, dynamic>> _extras = [];
   List<String> _warnings = [];
@@ -193,7 +194,7 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
                     style: TextStyle(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 3),
                 Text(
-                  'Reports are read on your laptop using Ollama. ${BackendAnalysisService.reportConnectionHelp} Review every extracted value and unit before saving.',
+                  'Reports are read on your laptop using offline OCR and PDF text extraction. Ollama is not required for import. ${BackendAnalysisService.reportConnectionHelp} Review every extracted value and unit before saving.',
                   style:
                       TextStyle(color: scheme.onSurfaceVariant, height: 1.35),
                 ),
@@ -562,7 +563,7 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
               Icon(Icons.auto_awesome_outlined, color: scheme.primary),
               const SizedBox(width: 8),
               const Expanded(
-                  child: Text('Local AI wellness guidance',
+                  child: Text('AI wellness guidance',
                       style: TextStyle(
                           fontSize: 17, fontWeight: FontWeight.w900))),
               Container(
@@ -575,6 +576,13 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
                         TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
               ),
             ],
+          ),
+          TextButton.icon(
+            onPressed: _loadingGuidance ? null : _requestGuidance,
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: Text(_loadingGuidance
+                ? 'Preparing AI guidance...'
+                : 'Get AI guidance (optional)'),
           ),
           if ((guidance['summary']?.toString().trim() ?? '').isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -595,13 +603,38 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
           const SizedBox(height: 10),
           Text(
             guidance['safety_note']?.toString() ??
-                'General wellness guidance only. Local AI does not change VitalMap calculations, diagnose conditions or prescribe treatment.',
+                'General wellness guidance only. AI does not change VitalMap calculations, diagnose conditions or prescribe treatment.',
             style: TextStyle(
                 color: scheme.onSurfaceVariant, fontSize: 12, height: 1.35),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _requestGuidance() async {
+    if (_loadingGuidance || _analysisResponse == null) return;
+    final requestedAnalysis = _analysisResponse!;
+    setState(() => _loadingGuidance = true);
+    try {
+      final guidance = await BackendAnalysisService.reportGuidance(
+        analysis: requestedAnalysis,
+        generalHealth: Map<String, dynamic>.from(
+            _draftUsed?['general_health'] as Map? ?? const {}),
+      );
+      if (mounted && identical(_analysisResponse, requestedAnalysis)) {
+        setState(() => _guidance = guidance);
+      }
+    } catch (_) {
+      if (mounted && identical(_analysisResponse, requestedAnalysis)) {
+        setState(() => _guidance = {
+              'summary':
+                  'AI guidance is unavailable. Your imported values and calculated results are saved. Start Ollama to use optional AI guidance.',
+            });
+      }
+    } finally {
+      if (mounted) setState(() => _loadingGuidance = false);
+    }
   }
 
   Widget _guidanceGroup(String title, IconData icon, List<String> items) {
@@ -683,7 +716,7 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
         _mode = null;
       });
     } catch (_) {
-      if (mounted) {
+      if (mounted && identical(_analysisResponse, requestedAnalysis)) {
         setState(() => _error =
             'Could not open that file. Download it to your device and choose it again.');
       }
@@ -807,31 +840,6 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
         _analysisResponse = analysis;
       });
 
-      Map<String, dynamic>? guidance;
-      try {
-        guidance = await BackendAnalysisService.reportGuidance(
-          analysis: analysis,
-          generalHealth: Map<String, dynamic>.from(
-              draft['general_health'] as Map? ?? const {}),
-        );
-      } catch (error) {
-        guidance = {
-          'summary':
-              'VitalMap analysis completed. Local AI guidance is unavailable right now: ${error.toString().replaceFirst('Exception: ', '')}',
-          'food': <String>[],
-          'exercise': <String>[],
-          'lifestyle': <String>[],
-          'risk_factors': <String>[],
-          'safety_note':
-              'The deterministic VitalMap results remain available even when local Ollama is offline.',
-        };
-      }
-      if (!mounted) return;
-      setState(() {
-        _draftUsed = draft;
-        _analysisResponse = analysis;
-        _guidance = guidance;
-      });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Reviewed report values were saved and analysed.')));
     } catch (error) {
@@ -858,10 +866,10 @@ class _LabReportScannerScreenState extends State<LabReportScannerScreen> {
 
   String _modeLabel(String mode) => switch (mode) {
         'pdf_text' => 'PDF text',
-        'pdf_vision' => 'scanned PDF vision',
-        'vision' => 'image vision',
+        'pdf_ocr' => 'scanned PDF OCR',
+        'image_ocr' => 'image OCR',
         'text' => 'text report',
-        'local_ocr' => 'report text',
+        'local_ocr' => 'offline OCR',
         _ => mode,
       };
 }

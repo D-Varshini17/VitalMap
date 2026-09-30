@@ -18,7 +18,7 @@ void main() {
       if (request.method == 'GET') {
         return http.Response(
             jsonEncode(
-                {'text_model_installed': true, 'vision_model_installed': true}),
+                {'image_ocr_available': true}),
             200);
       }
       expect(
@@ -27,7 +27,7 @@ void main() {
       return http.Response(
           '{"fields":[{"key":"hdl","value":50,"unit":"mg/dL"}]}', 200);
     }));
-    expect(calls, ['GET /tools/status', 'POST /tools/lab-report/scan']);
+    expect(calls, ['GET /tools/report-status', 'POST /tools/lab-report/scan']);
     expect((result['fields'] as List).single['value'], 50);
   });
   test('offline processor gives recovery steps without uploading report',
@@ -41,22 +41,22 @@ void main() {
             'message', contains('START_LOCAL_REPORT_PROCESSOR.bat'))));
     expect(calls, 1);
   });
-  test('missing vision model stops image upload', () async {
+  test('unavailable OCR stops image upload', () async {
     final methods = <String>[];
     await expectLater(scan(MockClient((request) async {
       methods.add(request.method);
       return http.Response(
-          '{"text_model_installed":true,"vision_model_installed":false}', 200);
+          '{"image_ocr_available":false}', 200);
     })),
         throwsA(isA<ReportProcessorException>()
-            .having((e) => e.message, 'message', contains('qwen2.5vl:3b'))));
+            .having((e) => e.message, 'message', contains('Windows report processor'))));
     expect(methods, ['GET']);
   });
   test('empty extraction explains how to choose a readable report', () async {
     await expectLater(scan(MockClient((request) async {
       return http.Response(
           request.method == 'GET'
-              ? '{"text_model_installed":true,"vision_model_installed":true}'
+              ? '{"image_ocr_available":true}'
               : '{"fields":[],"extras":[]}',
           200);
     })),
@@ -67,7 +67,7 @@ void main() {
     await expectLater(scan(MockClient((request) async {
       if (request.method == 'GET') {
         return http.Response(
-            '{"text_model_installed":true,"vision_model_installed":true}', 200);
+            '{"image_ocr_available":true}', 200);
       }
       throw http.ClientException('Socket closed');
     })),

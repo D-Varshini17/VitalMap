@@ -2622,7 +2622,7 @@ class _IntroCard extends StatelessWidget {
     return VitalMapHeroCard(
       title: 'Welcome to VitalMap',
       headingSize: InputTypography.heading(context),
-      subtitle: 'Deterministic screening with optional local AI guidance',
+      subtitle: 'Deterministic screening with optional AI guidance',
       compact: true,
       description:
           'Understand your body with friendly screening guidance based on the values you choose to share.',

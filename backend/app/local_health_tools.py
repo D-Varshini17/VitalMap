@@ -1,6 +1,7 @@
 """Local-only health helper tools for VitalMap.
 
-This module never calls a cloud AI provider. It talks only to an Ollama server
+Report extraction uses offline OCR and deterministic text parsing, without AI.
+Optional guidance talks only to an Ollama server
 configured through OLLAMA_BASE_URL (default: http://127.0.0.1:11434).
 Deterministic VitalMap calculations remain in FormulaEngine and are never
 recalculated or overridden here.
@@ -8,7 +9,6 @@ recalculated or overridden here.
 
 from __future__ import annotations
 
-import base64
 import io
 import json
 import math
@@ -195,9 +195,9 @@ class LocalHealthToolsService:
             else:
                 page_images = self._render_pdf_pages(data)
                 payload = self._extract_from_images(page_images)
-                mode = "pdf_vision"
+                mode = "pdf_ocr"
                 preview = (
-                    f"{len(page_images)} scanned PDF page(s) processed locally with Ollama vision."
+                    f"{len(page_images)} scanned PDF page(s) processed locally with OCR."
                 )
         elif extension in {".txt", ".csv"} or content_type.startswith("text/"):
             text = data.decode("utf-8", errors="replace")
@@ -208,8 +208,8 @@ class LocalHealthToolsService:
             "image/"
         ):
             payload = self._extract_from_image(data)
-            mode = "vision"
-            preview = "Image processed locally with Ollama vision."
+            mode = "image_ocr"
+            preview = "Image processed locally with OCR."
         else:
             raise LocalHealthToolsError(
                 "Unsupported file type. Use PDF, PNG, JPG, JPEG, WEBP, TXT, or CSV."
@@ -240,7 +240,7 @@ class LocalHealthToolsService:
         return {
             "source_file": safe_name,
             "mode": mode,
-            "provider": "ollama",
+            "provider": "windows_ocr" if reader else "text_parser",
             "local_only": True,
             "fields": normalized["fields"],
             "extras": normalized["extras"],
@@ -469,70 +469,21 @@ class LocalHealthToolsService:
         }
 
     def _extract_from_text(self, text: str) -> Dict[str, Any]:
-        clipped = text[: self.MAX_TEXT_CHARS]
-        prompt = self._extraction_prompt()
-        return self._chat_json(
-            model=self.text_model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a local lab-report transcription helper. Extract only values explicitly present in the supplied report text. "
-                        "Do not infer, diagnose, interpret, calculate, or invent values. Return JSON only."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": f"{prompt}\n\nREPORT TEXT:\n{clipped}",
-                },
-            ],
-            num_predict=900,
-        )
+        return self._extract_printed_rows(text[: self.MAX_TEXT_CHARS])
 
     def _extract_from_image(self, data: bytes) -> Dict[str, Any]:
         return self._extract_from_images([data])
 
     def _extract_from_images(self, images: List[bytes]) -> Dict[str, Any]:
         text = self._local_image_text(images)
-        if text:
-            extracted = self._extract_printed_rows(text)
-            if not extracted['fields']:
-                extracted = self._extract_from_text(text)
-            extracted['_transcribed_text'] = text
-            extracted['_image_reader'] = 'windows_ocr'
-            return extracted
-        models = self._installed_models()
-        if not self._has_model(models, self.vision_model):
+        if not text:
             raise LocalHealthToolsError(
-                f"Local Ollama vision model '{self.vision_model}' is not installed. Install/configure that local model, then retry the image scan."
+                "OCR could not read this report. Use a clear image on the Windows report processor, "
+                "or upload a PDF containing selectable text. No AI model is used.", 422
             )
-        if not images:
-            raise LocalHealthToolsError("No readable report pages were found.")
-        encoded = [base64.b64encode(self._optimize_image(item)).decode("ascii") for item in images[:3]]
-        transcription = self._chat_json(
-            model=self.vision_model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a local lab-report transcription helper. Read only visible report text and values. "
-                        "Never diagnose, interpret, calculate, or invent missing information. Return JSON only."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": 'Copy only the laboratory result rows from this image: test name, measured value, unit and printed reference range. Skip logos, addresses, patient details and explanatory paragraphs. Do not interpret or calculate. Return a JSON object with one key, "text", containing the copied rows. Omit unreadable rows; never invent text.',
-                    "images": encoded,
-                },
-            ],
-            num_predict=1200,
-            timeout=self.vision_timeout,
-        )
-        text = transcription.get('text')
-        if not isinstance(text, str) or not text.strip():
-            raise LocalHealthToolsError('The vision model could not read report text. Try a clearer, closely cropped image.', 502)
-        extracted = self._extract_from_text(text)
+        extracted = self._extract_printed_rows(text)
         extracted['_transcribed_text'] = text
+        extracted['_image_reader'] = 'windows_ocr'
         return extracted
 
     @staticmethod
@@ -593,10 +544,10 @@ class LocalHealthToolsService:
 
     @staticmethod
     def _local_image_text(images: List[bytes]) -> str | None:
-        """Use the installed offline Windows OCR engine before CPU vision.
+        """Use the installed offline Windows OCR engine without AI.
 
         Temporary report images are removed even when OCR fails. Other hosts,
-        or Windows machines without an OCR language, retain Ollama vision.
+        or Windows machines without an OCR language, cannot read image reports.
         """
         if os.name != 'nt' or not images:
             return None
@@ -646,31 +597,9 @@ class LocalHealthToolsService:
         except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
             raise LocalHealthToolsError("The report image is invalid or cannot be decoded.") from exc
 
-    def _extraction_prompt(self) -> str:
-        catalogue = [
-            {
-                "key": key,
-                "label": meta["label"],
-                "aliases": meta["aliases"],
-                "section": meta["section"],
-            }
-            for key, meta in self.SUPPORTED_FIELDS.items()
-        ]
-        return (
-            "Extract only lab/vital values explicitly shown in the report. Preserve the printed numeric value and printed unit. "
-            "For any uncertain value, omit it rather than guessing. Do not calculate derived indicators. "
-            "You may also return clearly labelled extra laboratory values not in the supported catalogue.\n"
-            "Return exactly this JSON shape:\n"
-            '{"fields":[{"key":"supported_key","label":"printed label","value":0.0,"unit":"printed unit","reference_range":"printed reference range or empty","confidence":"high|medium"}],'
-            '"extras":[{"label":"printed label","value":0.0,"unit":"printed unit","reference_range":"printed reference range or empty","confidence":"high|medium"}],'
-            '"warnings":["string"]}\n'
-            "Use an empty reference_range unless it is explicitly printed. Never supply a normal range from memory.\n"
-            f"SUPPORTED CATALOGUE: {json.dumps(catalogue, ensure_ascii=False)}"
-        )
-
     def _normalize_extraction(self, raw: Dict[str, Any]) -> Dict[str, Any]:
         if not isinstance(raw.get("fields"), list) or not isinstance(raw.get("extras", []), list) or not isinstance(raw.get("warnings", []), list):
-            raise LocalHealthToolsError("Ollama returned an invalid report schema. Retry extraction.", 502)
+            raise LocalHealthToolsError("The report reader returned an invalid schema. Retry extraction.", 502)
         fields: List[Dict[str, Any]] = []
         seen: set[str] = set()
         for item in self._iter_dicts(raw.get("fields")):

@@ -121,6 +121,12 @@ def ai_status():
     return ai_recommendation.status()
 
 
+@app.get("/tools/report-status")
+def report_status():
+    return {"available": True, "image_ocr_available": os.name == "nt",
+            "provider": "offline_ocr", "requires_ollama": False, "local_only": True}
+
+
 @app.get("/tools/status")
 def tools_status():
     try:
@@ -148,7 +154,7 @@ def predict(payload: AnalyzeRequest):
 @app.post("/tools/lab-report/scan")
 async def scan_lab_report(file: UploadFile = File(...)):
     # Keep uploads bounded because reports are processed in-memory and are sent
-    # only to the local Ollama process.
+    # only to the local report processor.
     data = await file.read(12 * 1024 * 1024 + 1)
     if len(data) > 12 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Report must be 12 MB or smaller.")

@@ -104,20 +104,21 @@ class BackendAnalysisService {
       throw const ReportProcessorException(
           'Choose a non-empty report of 12 MB or smaller.');
     }
-    // Check readiness before transferring any report bytes. A public API can
-    // be healthy while its local Ollama processor is unavailable.
+    // Report processing has no dependency on AI model availability.
     try {
-      final status = await localToolsStatus();
-      if (status?['text_model_installed'] != true) {
-        throw const ReportProcessorException(
-            'The report processor is reachable, but its text model is not ready. '
-            'Start Ollama on the laptop and install qwen3:1.7b, then retry.');
+      final response = await http
+          .get(_toolsUri('/tools/report-status'))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) {
+        throw ReportProcessorException(
+            'Update and restart the report processor. $reportConnectionHelp');
       }
+      final status = _decodeMap(response.body);
       final extension = fileName.split('.').last.toLowerCase();
       if ({'png', 'jpg', 'jpeg', 'webp'}.contains(extension) &&
-          status?['vision_model_installed'] != true) {
+          status?['image_ocr_available'] != true) {
         throw const ReportProcessorException(
-            'The image reader is not ready. Install qwen2.5vl:3b in Ollama on the laptop, then retry.');
+            'Image OCR requires the Windows report processor. You can also upload a PDF with selectable text.');
       }
     } on http.ClientException {
       throw ReportProcessorException(
@@ -181,7 +182,7 @@ class BackendAnalysisService {
         )
         .timeout(const Duration(seconds: 150));
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(_errorMessage(response, 'Local AI explanation failed'));
+      throw Exception(_errorMessage(response, 'AI explanation failed'));
     }
     return _decodeMap(response.body) ?? <String, dynamic>{};
   }
@@ -210,7 +211,7 @@ class BackendAnalysisService {
         )
         .timeout(const Duration(seconds: 150));
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(_errorMessage(response, 'Local AI guidance failed'));
+      throw Exception(_errorMessage(response, 'AI guidance failed'));
     }
     return _decodeMap(response.body) ?? <String, dynamic>{};
   }
